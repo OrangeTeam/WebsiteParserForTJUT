@@ -26,7 +26,13 @@ public class Course {
 	private ArrayList<TimeAndAddress> timeAndAddress = new ArrayList<TimeAndAddress>();
 	//暂没参考教材
 	private String teachingMaterial;
+	/**备注*/
 	private String note;
+	/**学年*/
+	private short year;
+	/**true表示上半学期，false表示下半学期，null表示未知*/
+	private Boolean isFirstSemester;
+	private short testScore, totalScore;
 
 	/**
 	 * 无参构造方法，各属性设为默认空值
@@ -38,11 +44,15 @@ public class Course {
 		classNumber = null;
 		teachingMaterial = null;
 		note = null;
+		year = 0;
+		isFirstSemester = null;
+		testScore = totalScore = -1;
 	}
 	/**全参构造方法
 	 * @throws CourseException */
 	public Course(String code,String name,String[] teachers,byte credit, String classNumber, 
-			TimeAndAddress[] timeAndAddresses,String teachingMaterial,String note) throws CourseException{
+			TimeAndAddress[] timeAndAddresses,String teachingMaterial,String note,short year,
+			Boolean isFirstSemester,short testScore,short totalScore) throws CourseException{
 		this.code = code;
 		setCredit(credit);
 		this.classNumber = classNumber;
@@ -56,10 +66,26 @@ public class Course {
 			for(TimeAndAddress TA:timeAndAddresses)
 				timeAndAddress.add(TA);
 		this.note = note;
+		this.year = year;
+		this.isFirstSemester = isFirstSemester;
+		this.testScore = testScore;
+		this.totalScore = totalScore;
 	}
 	public Course(String code, String name, byte credit, String classNumber) 
 			throws CourseException{
-		this(code, name, null, credit, classNumber, null, null, null);
+		this();
+		this.code = code;
+		this.name = name;
+		setCredit(credit);
+		this.classNumber = classNumber;
+	}
+	public Course(String code, String name, byte credit, String classNumber, short testScore, 
+			short totalScore, short year, Boolean isFirstSemester) throws CourseException{
+		this(code, name, credit, classNumber);
+		setTestScore(testScore);
+		setTotalScore(totalScore);
+		setYear(year);
+		this.isFirstSemester = isFirstSemester;
 	}
 	
 	
@@ -182,7 +208,71 @@ public class Course {
 		this.note = note;
 		return this;
 	}
-	
+	/**
+	 * @return the year
+	 */
+	public short getYear() {
+		return year;
+	}
+	/**
+	 * @param year the year to set
+	 * @throws CourseException when year<1900 || year>9999
+	 */
+	public Course setYear(short year) throws CourseException {
+		if(year<1900 || year>9999)
+			throw new CourseException("Illegal year!");
+		this.year = year;
+		return this;
+	}
+	/**
+	 * @return the isFirstSemester
+	 */
+	public Boolean getIsFirstSemester() {
+		return isFirstSemester;
+	}
+	/**
+	 * @param isFirstSemester the isFirstSemester to set
+	 */
+	public Course setIsFirstSemester(Boolean isFirstSemester) {
+		this.isFirstSemester = isFirstSemester;
+		return this;
+	}
+	/**
+	 * 取得 结课考核成绩
+	 * @return 结课考核成绩
+	 */
+	public short getTestScore() {
+		return testScore;
+	}
+	/**
+	 * 设置 结课考核成绩
+	 * @param testScore 结课考核成绩  to set
+	 * @throws CourseException when testScore<0 || testScore>999
+	 */
+	public Course setTestScore(short testScore) throws CourseException {
+		if(testScore<0 || testScore>999)
+			throw new CourseException("Illegel score of test!");
+		this.testScore = testScore;
+		return this;
+	}
+	/**
+	 * 取得 期末总评成绩
+	 * @return 期末总评成绩
+	 */
+	public short getTotalScore() {
+		return totalScore;
+	}
+	/**
+	 * 设置 期末总评成绩
+	 * @param totalScore 期末总评成绩 to set
+	 * @throws CourseException when totalScore<0 || totalScore>999
+	 */
+	public Course setTotalScore(short totalScore) throws CourseException {
+		if(totalScore<0 || totalScore>999)
+			throw new CourseException("Illegel final score!");
+		this.totalScore = totalScore;
+		return this;
+	}
 	/**
 	 * 增加教师，可以一次添加多名，用[,，;；]分开
 	 * @param teacher 教师名，可以是多名教师，用[,，;；]分开
