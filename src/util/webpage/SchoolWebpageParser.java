@@ -24,6 +24,11 @@ public class SchoolWebpageParser {
     private static final int COURSE_CREDIT = 5;
     private static final int COURSE_TIME = 6;
     private static final int COURSE_ADDRESS = 7;
+    
+    private static final int COURSE_TEST_SCORE = 8;
+    private static final int COURSE_TOTAL_SCORE = 9;
+    private static final int COURSE_ACADEMIC_YEAR = 10;
+    private static final int COURSE_SEMESTER = 11;
     //private static
 
 	
@@ -34,17 +39,33 @@ public class SchoolWebpageParser {
 		//student
 		
 		//courses
-		return readCourseTable(doc.getElementsByTag("table").get(0));
+		return readCourseTable(doc.getElementsByTag("table").get(0), false);
 	}
-	private static ArrayList<Course> readCourseTable(Element table) throws ParserException {
-	    int totalCredit = 0, totalCreditCalculated = 0;
+	public static ArrayList<Course> parseCourse(String url, 
+			ReadPageHelper readPageHelper) throws ParserException, IOException{
+		return parseCourse(url, readPageHelper, null);
+	}
+	public static ArrayList<Course> parseScores(String url, 
+			ReadPageHelper readPageHelper, Student studentInfoToReturn) throws ParserException, IOException{
+		Document doc = readPageHelper.getWithDocument(url);
+		//student
+		
+		//courses
+		return readCourseTable(doc.getElementsByTag("table").get(0), true);
+	}
+	public static ArrayList<Course> parseScores(String url, 
+			ReadPageHelper readPageHelper) throws ParserException, IOException{
+		return parseScores(url, readPageHelper, null);
+	}
+	private static ArrayList<Course> readCourseTable(Element table, boolean hasScores) throws ParserException {
 	    ArrayList<Course> result = new ArrayList<Course>();
 	    Elements courses = table.getElementsByTag("tr");
 	    
 	    HashMap<Integer, Integer> headingMap = getHeading(courses.first());
 	    if(headingMap == null)
 	    	throw new ParserException("Can't getHeading because result is null.");
-	    for(int i=1;i<courses.size()-1;i++)
+	    int size = hasScores?courses.size():courses.size()-1;
+	    for(int i=1;i<size;i++)
 			try {
 				result.add(readCourse(courses.get(i), headingMap));
 			} catch (Exception e) {
@@ -52,15 +73,18 @@ public class SchoolWebpageParser {
 				e.printStackTrace();
 			}
 	    result.trimToSize();
-	    totalCredit = Integer.parseInt( courses.last().text().replaceAll("\\D+", "") );
-	    
-	    for(Course c:result)
-	    	totalCreditCalculated += c.getCredit();
-	    if(totalCredit != totalCreditCalculated)
-	    	System.out.println("Warning: TotalCreditCalculated doesn't match " +
-	    			"with totalCredit fetched from page .");
-	    	//throw new ParserException(
-	    	//		"TotalCreditCalculated doesn't match with totalCredit fetched from page.");
+	    if(!hasScores){
+	    	int totalCredit = 0, totalCreditCalculated = 0;
+	    	totalCredit = Integer.parseInt( courses.last().text().replaceAll("\\D+", "") );
+		    
+		    for(Course c:result)
+		    	totalCreditCalculated += c.getCredit();
+		    if(totalCredit != totalCreditCalculated)
+		    	System.out.println("Warning: TotalCreditCalculated doesn't match " +
+		    			"with totalCredit fetched from page .");
+		    	//throw new ParserException(
+		    	//		"TotalCreditCalculated doesn't match with totalCredit fetched from page.");
+	    }
 		return result;
 	}
 	private static Course readCourse(Element course, HashMap<Integer, Integer> headingMap){
@@ -82,28 +106,74 @@ public class SchoolWebpageParser {
 				try {
 					result.addTeacher(cols.get(i).text().trim());
 				} catch (CourseException e) {
-					System.out.println("Can't add teacher normally. Because " 
-							+ e.getMessage());
+					System.out.println("Can't add teacher normally. Because " + e.getMessage());
 				}
 				break;
 			case COURSE_CREDIT:
 				try{
 					result.setCredit(Byte.parseByte(cols.get(i).text()));
 				}catch(Exception e){
-					System.out.println("Can't parse credit normally. Because " 
-							+ e.getMessage());
+					System.out.println("Can't parse credit normally. Because " + e.getMessage());
 				}
 				break;
 			case COURSE_TIME:rawTime= cols.get(i).getElementsByTag("font").get(0).html();break;
 			case COURSE_ADDRESS:rawAddress=cols.get(i).getElementsByTag("font").get(0).html();break;
-			default:System.out.println("Unknown column.");
+			//成绩表：
+			case COURSE_TEST_SCORE:
+				try {
+					result.setTestScore(Short.parseShort(cols.get(i).text()));
+				} catch (NumberFormatException e) {
+					System.out.println("Can't parse test score because can't parse to short.");
+					e.printStackTrace();
+				} catch (CourseException e) {
+					System.out.println("Can't parse test score normally. Because " + e.getMessage());
+					e.printStackTrace();
+				}
+				break;
+			case COURSE_TOTAL_SCORE:
+				try {
+					result.setTotalScore(Short.parseShort(cols.get(i).text()));
+				} catch (NumberFormatException e) {
+					System.out.println("Can't parse total score because can't parse to short.");
+					e.printStackTrace();
+				} catch (CourseException e) {
+					System.out.println("Can't parse total score normally. Because " + e.getMessage());
+					e.printStackTrace();
+				}
+				break;
+			case COURSE_ACADEMIC_YEAR:
+				try {
+					result.setYear(Short.parseShort(cols.get(i).text()));
+				} catch (NumberFormatException e) {
+					System.out.println("Can't parse academic year because can't parse to short.");
+					e.printStackTrace();
+				} catch (CourseException e) {
+					System.out.println("Can't parse academic year normally. Because " + e.getMessage());
+					e.printStackTrace();
+				}
+				break;
+			case COURSE_SEMESTER:
+				try{
+					switch(Integer.parseInt(cols.get(i).text())){
+					case 1:result.isFirstSemester(true);break;
+					case 2:result.isFirstSemester(false);break;
+					default:result.isFirstSemester(null);break;
+					}
+				}catch(NumberFormatException e){
+					System.out.println("Can't parse semester because can't parse to int.");
+					e.printStackTrace();
+				}
+				break;
+			default:System.out.println("Unknown column.");break;
 			}
 		}
-		try{
-			readTimeAndAddress(result, rawTime, rawAddress);
-		}catch(Exception e){
-			System.out.println(
-					"Can't parse time&address normally. Because " + e.getMessage());
+		if(rawTime!=null || rawAddress!=null){
+			try{
+				readTimeAndAddress(result, rawTime, rawAddress);
+			}catch(Exception e){
+				System.out.println(
+						"Can't parse time&address normally. Because " + e.getMessage());
+			}
 		}
 		return result;
 	}
@@ -219,6 +289,8 @@ public class SchoolWebpageParser {
 				headMap.put(i, SEQUENCE_NUMBER);
 			else if("课程代码".equals(colName))
 				headMap.put(i, COURSE_CODE);
+			else if("课程编码".equals(colName))
+				headMap.put(i, COURSE_CODE);
 			else if("课程名称".equals(colName))
 				headMap.put(i, COURSE_NAME);
 			else if("教学班号".equals(colName))
@@ -231,6 +303,14 @@ public class SchoolWebpageParser {
 				headMap.put(i, COURSE_TIME);
 			else if("地点".equals(colName))
 				headMap.put(i, COURSE_ADDRESS);
+			else if("结课考核成绩".equals(colName))
+				headMap.put(i, COURSE_TEST_SCORE);
+			else if("期末总评成绩".equals(colName))
+				headMap.put(i, COURSE_TOTAL_SCORE);
+			else if("学年".equals(colName))
+				headMap.put(i, COURSE_ACADEMIC_YEAR);
+			else if("学期".equals(colName))
+				headMap.put(i, COURSE_SEMESTER);
 		}
 		return headMap;
 	}

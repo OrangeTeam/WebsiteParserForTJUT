@@ -48,8 +48,10 @@ public class Test {
 			try{
 				if(readHelper.doLogin()){
 					//System.out.println(readHelper.get(Constant.url.本学期修读课程));
-					ArrayList<Course> courses = SchoolWebpageParser.parseCourse(
-							Constant.url.已选下学期课程, readHelper, null);
+					//ArrayList<Course> courses = SchoolWebpageParser.parseCourse(
+						//	Constant.url.已选下学期课程, readHelper);
+					ArrayList<Course> courses = SchoolWebpageParser.parseScores(
+							Constant.url.期末最新成绩, readHelper);
 					for(Course c:courses)
 						System.out.println(c.toString());
 				}

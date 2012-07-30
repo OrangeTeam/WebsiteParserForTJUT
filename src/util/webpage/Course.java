@@ -227,13 +227,13 @@ public class Course {
 	/**
 	 * @return the isFirstSemester
 	 */
-	public Boolean getIsFirstSemester() {
+	public Boolean isFirstSemester() {
 		return isFirstSemester;
 	}
 	/**
 	 * @param isFirstSemester the isFirstSemester to set
 	 */
-	public Course setIsFirstSemester(Boolean isFirstSemester) {
+	public Course isFirstSemester(Boolean isFirstSemester) {
 		this.isFirstSemester = isFirstSemester;
 		return this;
 	}
@@ -292,14 +292,14 @@ public class Course {
 	}
 	/**
 	 * 返回教师名称，若有多名教师，用“,”隔开。
-	 * @return 类似teacher1,teacher2,teacher3的字符串
+	 * @return 类似teacher1,teacher2,teacher3的字符串；若为空，返回null
 	 */
 	public String getTeacherString(){
 		StringBuilder sb = new StringBuilder();
 		for(String teacher:this.teachers)
 			sb.append(teacher+",");
 		if(sb.length() == 0)
-			return "(None)";
+			return null;
 		else
 			return sb.substring(0, sb.length()-1);
 	}
@@ -347,19 +347,24 @@ public class Course {
 		this.timeAndAddress.add(timeAndAddress);
 		return this;
 	}
+	/**
+	 * 返回时间地点，若有多组，用“\n”隔开。
+	 * @return 类似“1-2,5-16 周 星期四 9-10 节 1-0301” 的字符串；若为空，返回null
+	 */
 	public String getTimeAndAddressString(){
 		StringBuilder sb = new StringBuilder();
 		for(TimeAndAddress taa:this.timeAndAddress)
 			sb.append(taa.toString()+"\n");
 		if(sb.length() == 0)
-			return "(None)";
+			return null;
 		else
 			return sb.substring(0, sb.length()-1);
 	}
 	@Override
 	public String toString(){
 		return getCode()+"\t"+getName()+"\t"+getClassNumber()+"\t"+getTeacherString()+"\t"
-				+getCredit()+"\n"+getTimeAndAddressString();
+				+getCredit()+"\t"+getTestScore()+"\t"+getTotalScore()+"\t"+getYear()+"\t"
+				+isFirstSemester()+"\t"+getNote()+"\n"+getTimeAndAddressString();
 	}
 
 	public static class CourseException extends Exception{
