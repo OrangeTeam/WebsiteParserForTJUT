@@ -26,6 +26,7 @@ public class Course {
 	private ArrayList<TimeAndAddress> timeAndAddress = new ArrayList<TimeAndAddress>();
 	//暂没参考教材
 	private String teachingMaterial;
+	private String note;
 
 	/**
 	 * 无参构造方法，各属性设为默认空值
@@ -36,11 +37,12 @@ public class Course {
 		credit = 0;
 		classNumber = null;
 		teachingMaterial = null;
+		note = null;
 	}
 	/**全参构造方法
 	 * @throws CourseException */
 	public Course(String code,String name,String[] teachers,byte credit, String classNumber, 
-			TimeAndAddress[] timeAndAddresses,String teachingMaterial) throws CourseException{
+			TimeAndAddress[] timeAndAddresses,String teachingMaterial,String note) throws CourseException{
 		this.code = code;
 		setCredit(credit);
 		this.classNumber = classNumber;
@@ -53,10 +55,11 @@ public class Course {
 		if(timeAndAddresses!=null && timeAndAddresses.length>0)
 			for(TimeAndAddress TA:timeAndAddresses)
 				timeAndAddress.add(TA);
+		this.note = note;
 	}
 	public Course(String code, String name, byte credit, String classNumber) 
 			throws CourseException{
-		this(code, name, null, credit, classNumber, null, null);
+		this(code, name, null, credit, classNumber, null, null, null);
 	}
 	
 	
@@ -164,6 +167,19 @@ public class Course {
 	 */
 	public Course setTeachingMaterial(String teachingMaterial) {
 		this.teachingMaterial = teachingMaterial;
+		return this;
+	}
+	/**
+	 * @return the note
+	 */
+	public String getNote() {
+		return note;
+	}
+	/**
+	 * @param note the note to set
+	 */
+	public Course setNote(String note) {
+		this.note = note;
 		return this;
 	}
 	
