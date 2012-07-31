@@ -7,6 +7,7 @@ import util.BitOperate.BitOperateException;
 import util.webpage.Constant;
 import util.webpage.Course;
 import util.webpage.Course.TimeAndAddress;
+import util.webpage.Post;
 import util.webpage.ReadPageHelper;
 import util.webpage.SchoolWebpageParser;
 
@@ -108,6 +109,11 @@ public class Test {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		break;
+		case 6:
+			Post post = new Post("Title", "http://59.67.148.66", "2012-08-31", null, null);
+			//post.setDate(1970, 1, 1);
+			System.out.println(post.toString());
 		break;
 		}
 	}
