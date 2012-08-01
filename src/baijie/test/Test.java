@@ -1,6 +1,18 @@
 package baijie.test;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
+
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.nodes.TextNode;
+import org.jsoup.select.Elements;
 
 import util.BitOperate;
 import util.BitOperate.BitOperateException;
@@ -43,7 +55,8 @@ public class Test {
 
 	}*/
 	public static void main(String[] args) {
-		switch(1){
+		try{
+		switch(6){
 		case 1:
 			ReadPageHelper readHelper = new ReadPageHelper("20106135","20106135");
 			try{
@@ -111,11 +124,45 @@ public class Test {
 			}
 		break;
 		case 6:
-			Post post = new Post("Title", "http://59.67.148.66", "2012-08-31", null, null);
-			//post.setDate(1970, 1, 1);
-			System.out.println(post.toString());
+			Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+08"), Locale.PRC);
+			calendar.clear();
+			calendar.set(2007,4, 9);//("2007-05-09")
+			Date start = calendar.getTime();
+			calendar.clear();
+			calendar.set(2007,10, 13);//("2007-11-13");
+			Date end = calendar.getTime();
+			ReadPageHelper readHelper1 = new ReadPageHelper();
+			readHelper1.setTimeout(6000);
+			
+			ArrayList<Post> resultOfPosts = SchoolWebpageParser.parsePosts(
+					Post.CATEGORYS.TEACHING_AFFAIRS_WEBSITE, start, end, 0, readHelper1);
+			for(Post aPost:resultOfPosts)
+				System.out.println(aPost.toString());
+			System.out.println(resultOfPosts.size());
 		break;
+		case 7:
+			try{
+				Document doc = new ReadPageHelper().getWithDocument("http://59.67.148.66:8080/getRecords.jsp?url=list.jsp&pageSize=40&name=%D6%D8%D2%AA%CD%A8%D6%AA&currentPage=1");
+				Elements posts = doc.body().select("table table table table").get(0).getElementsByTag("tr");
+				System.out.println(posts.size());
+				System.out.println(posts.get(40).outerHtml());
+				Element post1 = posts.get(1);
+				Element link = post1.getElementsByTag("a").first();
+				System.out.println(link.attr("abs:href"));
+				System.out.println(link.text());
+				System.out.println(link.nextSibling().outerHtml().trim().substring(1, 11));
+				
+				System.out.println(doc.body().select("table table table table").get(1).select("tr td form font:eq(1)").text());
+			}catch(Exception e){
+				System.err.println(e.getMessage());
+			}
+		break;
+		default:;
 		}
+		}catch(Exception e){
+			System.out.println(e.getMessage());
+		}
+		
 	}
 	// Reads an InputStream and converts it to a String.
 	/*public static String readIt(InputStream stream, int len) throws IOException, UnsupportedEncodingException {

@@ -16,6 +16,18 @@ import java.util.TimeZone;
  *
  */
 public class Post {
+	public static final class CATEGORYS{
+		public static final int TEACHING_AFFAIRS_WEBSITE = 1;
+		public static final String[] CATEGORYS_IN_TEACHING_AFFAIRS_WEBSITE = new String[]{
+			"重要通知","教务快讯","考试相关通知","大学英语四六级考试","考试相关规定","选课相关通知","选课相关规定","成绩学籍相关通知",
+			"成绩相关规定","学籍相关规定","教学研究与评价相关通知","专业建设","培养计划","课程建设","教材建设","教学评价","教学研究",
+			"辅修专业","学科竞赛","实践教学相关通知","实验室建设","实验教学相关规定","实习教学相关规定","第二校园","毕业设计相关规定",
+			"课程设计专业设计","仪器设备","投资规划相关规定","基本教学管理文件","学籍与考试管理文件","教学建设文件","实践教学管理文件",
+			"教学质量监控文件","表格下载"
+		};
+	}
+	
+
 	String tag;
 	String title;
 	String url;
@@ -137,6 +149,12 @@ public class Post {
 		calendar.set(year, month-1, date);
 		this.date = calendar.getTime();
 		return this;
+	}
+	public static Date convertToDate(int year, int month, int date){
+		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+08"), Locale.PRC);
+		calendar.clear();
+		calendar.set(year, month-1, date);
+		return calendar.getTime();
 	}
 	/**
 	 * 以字符串(YYYY-MM-DD格式)设置日期

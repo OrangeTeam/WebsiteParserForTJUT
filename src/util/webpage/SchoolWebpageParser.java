@@ -1,7 +1,11 @@
 package util.webpage;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,10 +33,140 @@ public class SchoolWebpageParser {
     private static final int COURSE_TOTAL_SCORE = 9;
     private static final int COURSE_ACADEMIC_YEAR = 10;
     private static final int COURSE_SEMESTER = 11;
-    //private static
 
 	
-	public SchoolWebpageParser(boolean ignoreWhitespace){}
+	/**
+	 * 从给定来源，解析通知等文章
+	 * @param postSource 来源，类似Post.CATEGORYS.TEACHING_AFFAIRS_WEBSITE
+	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
+	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
+	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
+	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
+	 * @return 符合条件的Posts
+	 */
+    public static ArrayList<Post> parsePosts(int postSource, Date start, Date end, int max, 
+    		ReadPageHelper readHelper){
+    	ArrayList<Post> result = new ArrayList<Post>();
+    	switch(postSource){
+    	case Post.CATEGORYS.TEACHING_AFFAIRS_WEBSITE:
+    		for(String aCategory:Post.CATEGORYS.CATEGORYS_IN_TEACHING_AFFAIRS_WEBSITE){
+    			if(max>0 && result.size()>=max)
+    				break;
+    			result.addAll(parsePosts(postSource, aCategory, start , end, max-result.size(), readHelper));
+    		}
+    		return result;
+    	default:return null;
+    	}
+    }
+    /**
+     * 从给定来源，根据指定的类别等条件，解析通知等文章
+     * @param postSource 来源，类似Post.CATEGORYS.TEACHING_AFFAIRS_WEBSITE
+     * @param aCategory 某具体类别，类似Post.CATEGORYS。CATEGORYS_IN_TEACHING_AFFAIRS_WEBSITE中的“重要通知”等
+	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
+	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
+	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
+	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
+	 * @return 符合条件的Posts
+     */
+	public static ArrayList<Post> parsePosts(int postSource, String aCategory, Date start, Date end, 
+			int max, ReadPageHelper readHelper) {
+		switch(postSource){
+		case Post.CATEGORYS.TEACHING_AFFAIRS_WEBSITE:
+			return parsePostsFromTeachingAffairs(aCategory, start ,end ,max, readHelper);
+		}
+		return null;
+	}
+	/**
+	 * 根据指定的类别等条件，从教务处网站解析通知等文章
+	 * @param aCategory  某具体类别，类似Post.CATEGORYS。CATEGORYS_IN_TEACHING_AFFAIRS_WEBSITE中的“重要通知”等
+	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
+	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
+	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
+	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
+	 * @return 符合条件的Posts
+	 */
+	public static ArrayList<Post> parsePostsFromTeachingAffairs(String aCategory, Date start, Date end, 
+			int max, ReadPageHelper readHelper) {
+		String url = null;
+		Document doc = null;
+		int page = 0;
+		ArrayList<Post> result = new ArrayList<Post>();
+		try {
+			url = "http://59.67.148.66:8080/getRecords.jsp?url=list.jsp&pageSize=100&name=" 
+					+ URLEncoder.encode(aCategory, "GB2312") + "&currentPage=";
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.exit(-1);
+		}
+		try {
+			doc = readHelper.getWithDocument(url+"1");
+			page = Integer.parseInt( doc.body().select("table table table table")
+					.get(1).select("tr td form font:eq(1)").text() );
+			result.addAll(parsePostsFromTeachingAffairs(aCategory, start, end, max, doc));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return result;
+		}
+		for(int i = 2;i<=page;i++){
+			if(max>0 && result.size()>=max)
+				break;
+			try {
+				doc = readHelper.getWithDocument(url+i);
+				result.addAll(parsePostsFromTeachingAffairs(aCategory, start, end, max-result.size(), doc));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return result;
+	}
+	/**
+	 * 利用类别等信息，从指定的某教务处网页的Document文档对象，解析通知等文章
+	 * @param aCategory  某具体类别，类似Post.CATEGORYS。CATEGORYS_IN_TEACHING_AFFAIRS_WEBSITE中的“重要通知”等
+	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
+	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
+	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
+	 * @param doc 要解析的网页的Document文档对象模型
+	 * @return 符合条件的Posts
+	 */
+	public static ArrayList<Post> parsePostsFromTeachingAffairs(String aCategory, Date start, Date end, 
+			int max, Document doc) {
+		ArrayList<Post> result = new ArrayList<Post>();
+		Elements posts = doc.body().select("table table table table").get(0).getElementsByTag("tr");
+		Element link = null;
+		Post aPost = null;
+		for(int i = 1;i<posts.size();i++){
+			if(max>0 && result.size()>max)
+				break;
+			link = posts.get(i).getElementsByTag("a").first();
+			aPost = new Post();
+			try {
+				aPost.setDate(link.nextSibling().outerHtml().trim().substring(1, 11));
+				if(start!=null && aPost.getDate().before(start))
+					continue;
+				if(end!=null && aPost.getDate().after(end))
+					continue;
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				System.out.println(e.getMessage());
+				e.printStackTrace();
+			}
+			aPost.setCategory(aCategory).setTitle(link.text()).setUrl(link.attr("abs:href"));
+			result.add(aPost);
+		}
+		return result;
+	}
+	/**
+	 * 暂不可用
+	 * @param url
+	 * @param readPageHelper
+	 * @param studentInfoToReturn
+	 * @return
+	 * @throws ParserException
+	 * @throws IOException
+	 */
 	public static ArrayList<Course> parseCourse(String url, 
 			ReadPageHelper readPageHelper, Student studentInfoToReturn) throws ParserException, IOException{
 		Document doc = readPageHelper.getWithDocument(url);
@@ -41,10 +175,27 @@ public class SchoolWebpageParser {
 		//courses
 		return readCourseTable(doc.getElementsByTag("table").get(0), false);
 	}
+	/**
+	 * 从URL指定的页面，使用指定的网络连接方法（readPageHelper），解析课程信息
+	 * @param url 要读取的页面地址
+	 * @param readPageHelper 使用它做网络连接，您可以在这设置用户名、密码、超时时间等
+	 * @return 满足条件的课程信息
+	 * @throws ParserException 不能正确读取课程表表头时
+	 * @throws IOException 网络连接出现异常
+	 */
 	public static ArrayList<Course> parseCourse(String url, 
 			ReadPageHelper readPageHelper) throws ParserException, IOException{
 		return parseCourse(url, readPageHelper, null);
 	}
+	/**
+	 * 暂不可用
+	 * @param url
+	 * @param readPageHelper
+	 * @param studentInfoToReturn
+	 * @return
+	 * @throws ParserException
+	 * @throws IOException
+	 */
 	public static ArrayList<Course> parseScores(String url, 
 			ReadPageHelper readPageHelper, Student studentInfoToReturn) throws ParserException, IOException{
 		Document doc = readPageHelper.getWithDocument(url);
@@ -53,6 +204,14 @@ public class SchoolWebpageParser {
 		//courses
 		return readCourseTable(doc.getElementsByTag("table").get(0), true);
 	}
+	/**
+	 * 从URL指定的页面，使用指定的网络连接方法（readPageHelper），解析成绩
+	 * @param url 要读取的页面地址
+	 * @param readPageHelper 使用它做网络连接，您可以在这设置用户名、密码、超时时间等
+	 * @return 满足条件的包含成绩信息的课程类
+	 * @throws ParserException 不能正确读取课程表表头时
+	 * @throws IOException 网络连接出现异常
+	 */
 	public static ArrayList<Course> parseScores(String url, 
 			ReadPageHelper readPageHelper) throws ParserException, IOException{
 		return parseScores(url, readPageHelper, null);
