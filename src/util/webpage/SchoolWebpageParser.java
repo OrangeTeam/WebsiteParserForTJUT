@@ -48,7 +48,7 @@ public class SchoolWebpageParser {
     		ReadPageHelper readHelper){
     	ArrayList<Post> result = new ArrayList<Post>();
     	switch(postSource){
-    	case Post.CATEGORYS.TEACHING_AFFAIRS_WEBSITE:
+    	case Post.SOURCES.TEACHING_AFFAIRS_WEBSITE:
     		for(String aCategory:Post.CATEGORYS.CATEGORYS_IN_TEACHING_AFFAIRS_WEBSITE){
     			if(max>0 && result.size()>=max)
     				break;
@@ -71,7 +71,7 @@ public class SchoolWebpageParser {
 	public static ArrayList<Post> parsePosts(int postSource, String aCategory, Date start, Date end, 
 			int max, ReadPageHelper readHelper) {
 		switch(postSource){
-		case Post.CATEGORYS.TEACHING_AFFAIRS_WEBSITE:
+		case Post.SOURCES.TEACHING_AFFAIRS_WEBSITE:
 			return parsePostsFromTeachingAffairs(aCategory, start ,end ,max, readHelper);
 		}
 		return null;
@@ -154,6 +154,7 @@ public class SchoolWebpageParser {
 				e.printStackTrace();
 			}
 			aPost.setCategory(aCategory).setTitle(link.text()).setUrl(link.attr("abs:href"));
+			aPost.setSource(Post.SOURCES.TEACHING_AFFAIRS_WEBSITE);
 			result.add(aPost);
 		}
 		return result;

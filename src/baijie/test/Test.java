@@ -1,8 +1,5 @@
 package baijie.test;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -11,7 +8,6 @@ import java.util.TimeZone;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
 import util.BitOperate;
@@ -135,7 +131,7 @@ public class Test {
 			readHelper1.setTimeout(6000);
 			
 			ArrayList<Post> resultOfPosts = SchoolWebpageParser.parsePosts(
-					Post.CATEGORYS.TEACHING_AFFAIRS_WEBSITE, start, end, 0, readHelper1);
+					Post.SOURCES.TEACHING_AFFAIRS_WEBSITE, start, end, 0, readHelper1);
 			for(Post aPost:resultOfPosts)
 				System.out.println(aPost.toString());
 			System.out.println(resultOfPosts.size());

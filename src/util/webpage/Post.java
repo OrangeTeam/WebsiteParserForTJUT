@@ -16,8 +16,10 @@ import java.util.TimeZone;
  *
  */
 public class Post {
-	public static final class CATEGORYS{
+	public static final class SOURCES{
 		public static final int TEACHING_AFFAIRS_WEBSITE = 1;
+	}
+	public static final class CATEGORYS{
 		public static final String[] CATEGORYS_IN_TEACHING_AFFAIRS_WEBSITE = new String[]{
 			"重要通知","教务快讯","考试相关通知","大学英语四六级考试","考试相关规定","选课相关通知","选课相关规定","成绩学籍相关通知",
 			"成绩相关规定","学籍相关规定","教学研究与评价相关通知","专业建设","培养计划","课程建设","教材建设","教学评价","教学研究",
@@ -28,23 +30,26 @@ public class Post {
 	}
 	
 
-	String tag;
+	int source;
+	String category;
 	String title;
 	String url;
-	String category;
+	String author;
 	Date date;
 
 	public Post() {
 		super();
-		tag = title = url = category = null;
+		source = -1; 
+		title = url = category = null;
 		date = null;
 	}
-	public Post(String title, String url, String date, String tag, String category) {
+	public Post(int source, String category, String title, String url, String author, String date) {
 		this();
-		this.tag = tag;
+		this.source = source;
+		this.category = category;
 		this.title = title;
 		this.url = url;
-		this.category = category;
+		this.author = author;
 		try {
 			setDate(date);
 		} catch (ParseException e) {
@@ -54,16 +59,39 @@ public class Post {
 		}
 	}
 	/**
-	 * @return the tag
+	 * @return the source
 	 */
-	public String getTag() {
-		return tag;
+	public int getSource() {
+		return source;
 	}
 	/**
-	 * @param tag the tag to set
+	 * 以字符串形式返回通知源
+	 * @return 类似“教务处”的字符串
 	 */
-	public Post setTag(String tag) {
-		this.tag = tag;
+	public String getSourceString(){
+		switch(source){
+		case SOURCES.TEACHING_AFFAIRS_WEBSITE:return "教务处";
+		default:return "未知";
+		}
+	}
+	/**
+	 * @param source the source to set
+	 */
+	public Post setSource(int source) {
+		this.source = source;
+		return this;
+	}
+	/**
+	 * @return the category
+	 */
+	public String getCategory() {
+		return category;
+	}
+	/**
+	 * @param category the category to set
+	 */
+	public Post setCategory(String category) {
+		this.category = category;
 		return this;
 	}
 	/**
@@ -93,16 +121,16 @@ public class Post {
 		return this;
 	}
 	/**
-	 * @return the category
+	 * @return the author
 	 */
-	public String getCategory() {
-		return category;
+	public String getAuthor() {
+		return author;
 	}
 	/**
-	 * @param category the category to set
+	 * @param author the author to set
 	 */
-	public Post setCategory(String category) {
-		this.category = category;
+	public Post setAuthor(String author) {
+		this.author = author;
 		return this;
 	}
 	/**
@@ -169,6 +197,7 @@ public class Post {
 	}
 	
 	public String toString(){
-		return getCategory()+"\t"+getTag()+"\t"+getTitle()+"\t"+getUrl()+"\t"+getDateString();
+		return getSourceString()+"\t"+getCategory()+"\t"+getTitle()+"\t"+getUrl()+"\t"
+				+getAuthor()+"\t"+getDateString();
 	}
 }
