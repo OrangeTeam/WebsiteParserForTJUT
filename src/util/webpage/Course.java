@@ -7,11 +7,13 @@ import util.BitOperate.BitOperateException;
 import util.webpage.Course.TimeAndAddress.TimeAndAddressException;
 
 /**
- * 
+ * <strong>Note:</strong>大部分用于设置的方法返回this，做Builder
  * @author Zhou Peican
  * @improver Bai Jie
  */
 public class Course {
+	/**本地数据库使用的ID*/
+	private int id;
 	/**课程代码*/
 	private String code;
 	/**课程名称*/
@@ -89,7 +91,19 @@ public class Course {
 	}
 	
 	
-	
+	/**
+	 * @return the id
+	 */
+	public int getId() {
+		return id;
+	}
+	/**
+	 * @param id the id to set
+	 */
+	public Course setId(int id) {
+		this.id = id;
+		return this;
+	}
 	/**
 	 * @return the code
 	 */
