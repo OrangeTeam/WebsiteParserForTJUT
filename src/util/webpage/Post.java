@@ -17,7 +17,9 @@ import java.util.TimeZone;
  */
 public class Post {
 	public static final class SOURCES{
-		public static final int TEACHING_AFFAIRS_WEBSITE = 1;
+		public static final int WEBSITE_OF_TEACHING_AFFAIRS = 1;
+		public static final int WEBSITE_OF_SCCE = 2;
+		public static final int STUDENT_WEBSITE_OF_SCCE = 3;
 	}
 	public static final class CATEGORYS{
 		public static final String[] CATEGORYS_IN_TEACHING_AFFAIRS_WEBSITE = new String[]{
@@ -70,7 +72,9 @@ public class Post {
 	 */
 	public String getSourceString(){
 		switch(source){
-		case SOURCES.TEACHING_AFFAIRS_WEBSITE:return "教务处";
+		case SOURCES.WEBSITE_OF_TEACHING_AFFAIRS:return "教务处";
+		case SOURCES.WEBSITE_OF_SCCE:return "计算机与通信工程学院网站";
+		case SOURCES.STUDENT_WEBSITE_OF_SCCE:return "计算机与通信工程学院学生网站";
 		default:return "未知";
 		}
 	}

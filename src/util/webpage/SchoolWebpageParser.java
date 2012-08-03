@@ -48,15 +48,17 @@ public class SchoolWebpageParser {
     		ReadPageHelper readHelper){
     	ArrayList<Post> result = new ArrayList<Post>();
     	switch(postSource){
-    	case Post.SOURCES.TEACHING_AFFAIRS_WEBSITE:
+    	case Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS:
     		for(String aCategory:Post.CATEGORYS.CATEGORYS_IN_TEACHING_AFFAIRS_WEBSITE){
     			if(max>0 && result.size()>=max)
     				break;
     			result.addAll(parsePosts(postSource, aCategory, start , end, max-result.size(), readHelper));
     		}
-    		return result;
+    	break;
+    	case Post.SOURCES.WEBSITE_OF_SCCE:
     	default:return null;
     	}
+    	return result;
     }
     /**
      * 从给定来源，根据指定的类别等条件，解析通知等文章
@@ -71,10 +73,31 @@ public class SchoolWebpageParser {
 	public static ArrayList<Post> parsePosts(int postSource, String aCategory, Date start, Date end, 
 			int max, ReadPageHelper readHelper) {
 		switch(postSource){
-		case Post.SOURCES.TEACHING_AFFAIRS_WEBSITE:
+		case Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS:
 			return parsePostsFromTeachingAffairs(aCategory, start ,end ,max, readHelper);
 		}
 		return null;
+	}
+	public static ArrayList<Post> parsePostsFromSCCE(String aCategory, Date start, Date end, 
+			int max, ReadPageHelper readHelper){
+		String url = null;
+		Document doc = null;
+		int page = 0;
+		ArrayList<Post> result = new ArrayList<Post>();
+		if(aCategory.matches(".*通知.*"))
+			url = "http://59.67.152.3/wnoticemore.aspx?page=";
+		else if(aCategory.matches(".*新闻.*"))
+			url = "http://59.67.152.3/wnewmore.aspx?page=";
+		else
+			return result;
+		try {
+			doc = readHelper.getWithDocument(url+"1");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return result;
+		}
+		return null; 
 	}
 	/**
 	 * 根据指定的类别等条件，从教务处网站解析通知等文章
@@ -145,7 +168,7 @@ public class SchoolWebpageParser {
 			try {
 				aPost.setDate(link.nextSibling().outerHtml().trim().substring(1, 11));
 				if(start!=null && aPost.getDate().before(start))
-					continue;
+					break;
 				if(end!=null && aPost.getDate().after(end))
 					continue;
 			} catch (ParseException e) {
@@ -154,7 +177,7 @@ public class SchoolWebpageParser {
 				e.printStackTrace();
 			}
 			aPost.setCategory(aCategory).setTitle(link.text()).setUrl(link.attr("abs:href"));
-			aPost.setSource(Post.SOURCES.TEACHING_AFFAIRS_WEBSITE);
+			aPost.setSource(Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS);
 			result.add(aPost);
 		}
 		return result;

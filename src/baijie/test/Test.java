@@ -52,7 +52,7 @@ public class Test {
 	}*/
 	public static void main(String[] args) {
 		try{
-		switch(6){
+		switch(8){
 		case 1:
 			ReadPageHelper readHelper = new ReadPageHelper("20106135","20106135");
 			try{
@@ -122,16 +122,16 @@ public class Test {
 		case 6:
 			Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+08"), Locale.PRC);
 			calendar.clear();
-			calendar.set(2007,4, 9);//("2007-05-09")
+			calendar.set(2012,4, 9);//("2007-05-09")
 			Date start = calendar.getTime();
 			calendar.clear();
 			calendar.set(2007,10, 13);//("2007-11-13");
 			Date end = calendar.getTime();
 			ReadPageHelper readHelper1 = new ReadPageHelper();
-			readHelper1.setTimeout(6000);
+			readHelper1.setTimeout(12000);
 			
 			ArrayList<Post> resultOfPosts = SchoolWebpageParser.parsePosts(
-					Post.SOURCES.TEACHING_AFFAIRS_WEBSITE, start, end, 0, readHelper1);
+					Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS, start, null, 100, readHelper1);
 			for(Post aPost:resultOfPosts)
 				System.out.println(aPost.toString());
 			System.out.println(resultOfPosts.size());
@@ -152,6 +152,12 @@ public class Test {
 			}catch(Exception e){
 				System.err.println(e.getMessage());
 			}
+		break;
+		case 8:
+			Document doc8 = new ReadPageHelper().getWithDocument("http://59.67.152.3/wnoticemore.aspx");
+			
+			System.out.println(doc8.html());
+			//System.out.println(doc8.body().select(""));
 		break;
 		default:;
 		}

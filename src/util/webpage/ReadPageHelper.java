@@ -1,6 +1,8 @@
 package util.webpage;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.Map;
 
 import org.jsoup.Connection;
@@ -9,30 +11,33 @@ import org.jsoup.helper.HttpConnection;
 import org.jsoup.nodes.Document;
 
 public class ReadPageHelper {
-	private static final int DEFAULT_TIMEOUT = 12000;	/* milliseconds */
-	private static final String DEFAULT_CHARSET = "GB2312";
-	private int timeout; /* milliseconds */
+	/**网络连接的超时时间，单位milliseconds*/
+	private int timeout;
 	private String userName, password, charset;
-	private Cookie sessionCookie;
-	
-	public ReadPageHelper(String userName, String password, 
-			String pageCharset, int timeout){
-		this.userName = userName;
-		this.password = password;
-		this.charset = pageCharset;
-		if(timeout>0)
-			this.timeout = timeout;
-		else
-			this.timeout = DEFAULT_TIMEOUT;
-	}
-	public ReadPageHelper(String userName, String password, String pageCharset){
-		this(userName, password, pageCharset, DEFAULT_TIMEOUT);
+	private boolean isNewUser;
+	private Cookie teachingAffairsSession, SCCESession;
+	/**保留的session的过期时间，单位milliseconds*/
+	private int expire;
+
+	public ReadPageHelper(){
+		this.timeout = 12000;
+		this.userName = this.password = "";
+		this.charset = "GB2312";
+		this.isNewUser = false;
+		this.teachingAffairsSession = this.SCCESession = null;
+		this.expire = 60 * 60 *1000;//	1 hour 
 	}
 	public ReadPageHelper(String userName, String password){
-		this(userName, password, DEFAULT_CHARSET);
+		this();
+		setUser(userName, password);
 	}
-	public ReadPageHelper(){
-		this(null ,null);
+	public ReadPageHelper(String userName, String password, String pageCharset){
+		this(userName, password);
+		this.charset = pageCharset;
+	}
+	public ReadPageHelper(String userName, String password, String pageCharset, int timeout){
+		this(userName, password, pageCharset);
+		setTimeout(timeout);
 	}
 	
 	/**
@@ -63,24 +68,29 @@ public class ReadPageHelper {
 		return password;
 	}
 	/**
+	 * 设置用户名、密码<br />
+	 * <strong>注意：</strong>参数不能设为null，否则抛出NullPointerException
 	 * @param userName the user name to set
-	 * @param password this password to set
+	 * @param password the password to set
 	 */
-	public void setUserName(String userName, String password) {
+	public void setUser(String userName, String password) {
+		if(userName==null || password == null)
+			throw new NullPointerException("Encounter null when set user.");
 		this.userName = userName;
 		this.password = password;
+		this.isNewUser = true;
 	}
 	/**
-	 * @return the sessionCookie
+	 * @return the teachingAffairsSession
 	 */
-	public Cookie getSessionCookie() {
-		return sessionCookie;
+	public Cookie getTeachingAffairsSession() {
+		return teachingAffairsSession;
 	}
 	/**
-	 * @param sessionCookie the sessionCookie to set
+	 * @param teachingAffairsSession the teachingAffairsSession to set
 	 */
-	public void setSessionCookie(String sessionCookieKey, String sessionCookieValue) {
-		this.sessionCookie = new Cookie(sessionCookieKey, sessionCookieValue);
+	public void setTeachingAffairsSession(String sessionCookieKey, String sessionCookieValue) {
+		this.teachingAffairsSession = new Cookie(sessionCookieKey, sessionCookieValue);
 	}
 	/**
 	 * @return the charset
@@ -101,21 +111,17 @@ public class ReadPageHelper {
 	 * @throws IOException
 	 */
 	public boolean doLogin(String loginPageURL) throws IOException{
-		Connection conn = 
-				Jsoup.connect(loginPageURL).timeout(timeout).data("name",userName,"pswd", password).followRedirects(false);
+		if(!isNewUser && teachingAffairsSession!=null 
+				&& teachingAffairsSession.isModifiedWithIn(expire))
+			return true;
+		Connection conn = Jsoup.connect(loginPageURL).timeout(timeout)
+				.data("name",userName,"pswd", password).followRedirects(false);
 		conn.post();
 		if(conn.response().statusCode() != 302)
 			return false;
-		Map<String, String> cookies = conn.response().cookies();
-		if(cookies == null)
+		this.teachingAffairsSession = getCookie1FromMap(conn.response().cookies());
+		if(this.teachingAffairsSession == null)
 			return false;
-		String key = (String)cookies.keySet().toArray()[0];
-		if(key == null || key.length() == 0)
-			return false;
-		String value = cookies.get(key);
-		if(value == null || value.length() == 0)
-			return false;
-		sessionCookie = new Cookie(key, value);
 		return true;
 	}
 	/**
@@ -125,6 +131,34 @@ public class ReadPageHelper {
 	 */
 	public boolean doLogin() throws IOException{
 		return doLogin(Constant.url.LOGIN_PAGE);
+	}
+	public boolean prepareToGetPostsFromSCCE(String preparePageURL) throws IOException{
+		if(SCCESession!=null && SCCESession.isModifiedWithIn(expire))
+			return true;
+		Connection conn = Jsoup.connect(preparePageURL).timeout(timeout).followRedirects(false);
+		conn.get();
+		this.SCCESession = getCookie1FromMap(conn.response().cookies());
+		if(this.SCCESession == null)
+			return false;
+		return true;
+	}
+	public boolean prepareToGetPostsFromSCCE() throws IOException{
+		return prepareToGetPostsFromSCCE(Constant.url.PREPARE_PAGE_FOR_GET_POSTS_FROM_SCCE);
+	}
+	/**
+	 * 取出cookies中的第一个Cookie
+	 * @return 成功返回Cookie；失败返回null
+	 */
+	private Cookie getCookie1FromMap(Map<String, String> cookies){
+		if(cookies == null)
+			return null;
+		String key = (String)cookies.keySet().toArray()[0];
+		if(key == null || key.length() == 0)
+			return null;
+		String value = cookies.get(key);
+		if(value == null || value.length() == 0)
+			return null;
+		return new Cookie(key, value);
 	}
 	/**
 	 * read page by GET method
@@ -136,9 +170,11 @@ public class ReadPageHelper {
 		return getWithDocument(url).outerHtml();
 	}
 	public Document getWithDocument(String url) throws IOException{
-		Connection conn = Jsoup.connect(url).timeout(timeout);
-		if(sessionCookie != null && !sessionCookie.isEmpty())
-			conn.cookie(sessionCookie.cookieKey, sessionCookie.cookieValue);
+		Connection conn = Jsoup.connect(url).timeout(timeout).followRedirects(false);
+		if(teachingAffairsSession != null && !teachingAffairsSession.isEmpty())
+			conn.cookie(teachingAffairsSession.cookieKey, teachingAffairsSession.cookieValue);
+		if(SCCESession != null && !SCCESession.isEmpty())
+			conn.cookie(SCCESession.cookieKey, SCCESession.cookieValue);
 		return ((HttpConnection)conn).get(charset);
 	}
 	/**
@@ -149,8 +185,10 @@ public class ReadPageHelper {
 	 */
 	public String post(String url) throws IOException{
 		Connection conn = Jsoup.connect(url).timeout(timeout);
-		if(sessionCookie != null && !sessionCookie.isEmpty())
-			conn.cookie(sessionCookie.cookieKey, sessionCookie.cookieValue);
+		if(teachingAffairsSession != null && !teachingAffairsSession.isEmpty())
+			conn.cookie(teachingAffairsSession.cookieKey, teachingAffairsSession.cookieValue);
+		if(SCCESession != null && !SCCESession.isEmpty())
+			conn.cookie(SCCESession.cookieKey, SCCESession.cookieValue);
 		return ((HttpConnection)conn).post(charset).outerHtml();
 	}
 	
@@ -173,12 +211,17 @@ public class ReadPageHelper {
 	}
 	
 	public static class Cookie {
-		public String cookieKey;
-		public String cookieValue;
+		private String cookieKey;
+		private String cookieValue;
+		private Date modifiedTime;
 		
+		public Cookie(){
+			cookieKey = cookieValue = "";
+			modifiedTime = new Date(0);
+		}
 		public Cookie(String cookieKey, String cookieValue) {
-			this.cookieKey = cookieKey;
-			this.cookieValue = cookieValue;
+			this();
+			setCookie(cookieKey, cookieValue);
 		}
 		/**
 		 * @return the cookieKey
@@ -187,24 +230,37 @@ public class ReadPageHelper {
 			return cookieKey;
 		}
 		/**
-		 * @param cookieKey the cookieKey to set
-		 */
-		public void setCookieKey(String cookieKey) {
-			this.cookieKey = cookieKey;
-		}
-		/**
 		 * @return the cookieValue
 		 */
 		public String getCookieValue() {
 			return cookieValue;
 		}
 		/**
-		 * @param cookieValue the cookieValue to set
+		 * @param cookieKey the cookie's key to set
+		 * @param cookieValue the cookie's value to set
 		 */
-		public void setCookieValue(String cookieValue) {
+		public void setCookie(String cookieKey, String cookieValue) {
+			this.cookieKey = cookieKey;
 			this.cookieValue = cookieValue;
+			modifiedTime.setTime(System.currentTimeMillis());
 		}
-		
+		/**
+		 * @return the modifiedTime
+		 */
+		public Date getModifiedTime() {
+			return (Date)modifiedTime.clone();
+		}
+		public String getModifiedTimeString(){
+			return DateFormat.getInstance().format(modifiedTime);
+		}
+		/**
+		 * 上次修改时间是否在距现在指定时间（毫秒）内
+		 * @param milliseconds 测试标准。单位：毫秒
+		 * @return 在milliseconds毫秒内，返回true；在milliseconds毫秒外，返回false
+		 */
+		public boolean isModifiedWithIn(long milliseconds){
+			return (System.currentTimeMillis()-modifiedTime.getTime() <= milliseconds);
+		}
 		public boolean isEmpty(){
 			return (cookieKey.length() == 0&&cookieValue.length() == 0);
 		}
@@ -214,7 +270,7 @@ public class ReadPageHelper {
 		@Override
 		public String toString() {
 			return "Cookie [cookieKey=" + cookieKey + ", cookieValue="
-					+ cookieValue + "]";
+					+ cookieValue +"modifiedTime="+getModifiedTimeString()+ "]";
 		}
 	}
 }
