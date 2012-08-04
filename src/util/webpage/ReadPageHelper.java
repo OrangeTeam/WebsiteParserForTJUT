@@ -13,7 +13,7 @@ import org.jsoup.nodes.Document;
 public class ReadPageHelper {
 	/**网络连接的超时时间，单位milliseconds*/
 	private int timeout;
-	private String userName, password, charset;
+	private String userName, password, charset, charsetForParsePostsFromSCCE;
 	private boolean isNewUser;
 	private Cookie teachingAffairsSession, SCCESession;
 	/**保留的session的过期时间，单位milliseconds*/
@@ -23,6 +23,7 @@ public class ReadPageHelper {
 		this.timeout = 12000;
 		this.userName = this.password = "";
 		this.charset = "GB2312";
+		this.charsetForParsePostsFromSCCE = "UTF-8";
 		this.isNewUser = false;
 		this.teachingAffairsSession = this.SCCESession = null;
 		this.expire = 60 * 60 *1000;//	1 hour 
@@ -105,6 +106,18 @@ public class ReadPageHelper {
 		this.charset = charset;
 	}
 	/**
+	 * @return the charsetForParsePostsFromSCCE
+	 */
+	public String getCharsetForParsePostsFromSCCE() {
+		return charsetForParsePostsFromSCCE;
+	}
+	/**
+	 * @param charsetForParsePostsFromSCCE the charsetForParsePostsFromSCCE to set
+	 */
+	public void setCharsetForParsePostsFromSCCE(String charsetForParsePostsFromSCCE) {
+		this.charsetForParsePostsFromSCCE = charsetForParsePostsFromSCCE;
+	}
+	/**
 	 * do login<br />登录
 	 * @param loginPageURL send login request to this page 向此网址发送登录请求 
 	 * @return true for success, false for failure
@@ -132,7 +145,14 @@ public class ReadPageHelper {
 	public boolean doLogin() throws IOException{
 		return doLogin(Constant.url.LOGIN_PAGE);
 	}
-	public boolean prepareToGetPostsFromSCCE(String preparePageURL) throws IOException{
+	/**
+	 * 准备
+	 * @param preparePageURL
+	 * @param charset
+	 * @return
+	 * @throws IOException
+	 */
+	public boolean prepareToParsePostsFromSCCE(String preparePageURL) throws IOException{
 		if(SCCESession!=null && SCCESession.isModifiedWithIn(expire))
 			return true;
 		Connection conn = Jsoup.connect(preparePageURL).timeout(timeout).followRedirects(false);
@@ -142,8 +162,13 @@ public class ReadPageHelper {
 			return false;
 		return true;
 	}
-	public boolean prepareToGetPostsFromSCCE() throws IOException{
-		return prepareToGetPostsFromSCCE(Constant.url.PREPARE_PAGE_FOR_GET_POSTS_FROM_SCCE);
+	/**
+	 * 
+	 * @return
+	 * @throws IOException
+	 */
+	public boolean prepareToParsePostsFromSCCE() throws IOException{
+		return prepareToParsePostsFromSCCE(Constant.url.PREPARE_PAGE_FOR_GET_POSTS_FROM_SCCE);
 	}
 	/**
 	 * 取出cookies中的第一个Cookie
@@ -170,6 +195,12 @@ public class ReadPageHelper {
 		return getWithDocument(url).outerHtml();
 	}
 	public Document getWithDocument(String url) throws IOException{
+		return getWithDocument(url, this.charset);
+	}
+	public Document getWithDocumentForParsePostsFromSCCE(String url) throws IOException{
+		return getWithDocument(url, this.charsetForParsePostsFromSCCE);
+	}
+	public Document getWithDocument(String url, String charset) throws IOException{
 		Connection conn = Jsoup.connect(url).timeout(timeout).followRedirects(false);
 		if(teachingAffairsSession != null && !teachingAffairsSession.isEmpty())
 			conn.cookie(teachingAffairsSession.cookieKey, teachingAffairsSession.cookieValue);

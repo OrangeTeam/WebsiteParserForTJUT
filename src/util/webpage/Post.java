@@ -20,6 +20,8 @@ public class Post {
 		public static final int WEBSITE_OF_TEACHING_AFFAIRS = 1;
 		public static final int WEBSITE_OF_SCCE = 2;
 		public static final int STUDENT_WEBSITE_OF_SCCE = 3;
+		public static final String NOTICES_IN_SCCE_URL = "http://59.67.152.3/wnoticemore.aspx";
+		public static final String NEWS_IN_SCCE_URL = "http://59.67.152.3/wnewmore.aspx";
 	}
 	public static final class CATEGORYS{
 		public static final String[] CATEGORYS_IN_TEACHING_AFFAIRS_WEBSITE = new String[]{
@@ -176,10 +178,7 @@ public class Post {
 	 * @return 返回this（Builder）
 	 */
 	public Post setDate(int year, int month, int date){
-		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+08"), Locale.PRC);
-		calendar.clear();
-		calendar.set(year, month-1, date);
-		this.date = calendar.getTime();
+		this.date = convertToDate(year, month, date);
 		return this;
 	}
 	public static Date convertToDate(int year, int month, int date){
@@ -195,9 +194,12 @@ public class Post {
 	 * @throws ParseException if the beginning of the specified string cannot be parsed.
 	 */
 	public Post setDate(String date) throws ParseException{
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.PRC);
-		this.date = dateFormat.parse(date);
+		this.date = convertToDate(date);
 		return this;
+	}
+	public static Date convertToDate(String date) throws ParseException{
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.PRC);
+		return dateFormat.parse(date);
 	}
 	
 	public String toString(){

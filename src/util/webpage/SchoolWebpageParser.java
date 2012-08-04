@@ -28,7 +28,7 @@ public class SchoolWebpageParser {
     private static final int COURSE_CREDIT = 5;
     private static final int COURSE_TIME = 6;
     private static final int COURSE_ADDRESS = 7;
-    
+    //SCORE
     private static final int COURSE_TEST_SCORE = 8;
     private static final int COURSE_TOTAL_SCORE = 9;
     private static final int COURSE_ACADEMIC_YEAR = 10;
@@ -42,7 +42,7 @@ public class SchoolWebpageParser {
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
 	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
-	 * @return 符合条件的Posts
+	 * @return 符合条件的posts
 	 */
     public static ArrayList<Post> parsePosts(int postSource, Date start, Date end, int max, 
     		ReadPageHelper readHelper){
@@ -56,6 +56,12 @@ public class SchoolWebpageParser {
     		}
     	break;
     	case Post.SOURCES.WEBSITE_OF_SCCE:
+    		result.addAll(parsePostsFromSCCE(null, start, end, max, readHelper, 
+    				Post.SOURCES.NOTICES_IN_SCCE_URL));
+    		if(max<=0 || result.size()<max)
+    			result.addAll(parsePostsFromSCCE(null, start, end, max-result.size(), 
+    					readHelper, Post.SOURCES.NEWS_IN_SCCE_URL));
+    	break;
     	default:return null;
     	}
     	return result;
@@ -68,36 +74,138 @@ public class SchoolWebpageParser {
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
 	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
-	 * @return 符合条件的Posts
+	 * @return 符合条件的posts
      */
 	public static ArrayList<Post> parsePosts(int postSource, String aCategory, Date start, Date end, 
 			int max, ReadPageHelper readHelper) {
 		switch(postSource){
 		case Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS:
 			return parsePostsFromTeachingAffairs(aCategory, start ,end ,max, readHelper);
+		case Post.SOURCES.WEBSITE_OF_SCCE:
+			return parsePostsFromSCCE(aCategory, start, end, max, readHelper, null);
 		}
 		return null;
 	}
+	/**
+	 * 根据aCategory、start、end、max、url等条件，利用readHelper，从SCCE解析Posts
+	 * @param aCategory 类别，例如“学生通知”
+	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
+	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
+	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
+	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
+	 * @param baseURL 指定解析的基础URL，类似Post.SOURCES.NOTICES_IN_SCCE_URL
+	 * @return 符合条件的posts
+	 */
 	public static ArrayList<Post> parsePostsFromSCCE(String aCategory, Date start, Date end, 
-			int max, ReadPageHelper readHelper){
-		String url = null;
+			int max, ReadPageHelper readHelper, String baseURL){
 		Document doc = null;
 		int page = 0;
 		ArrayList<Post> result = new ArrayList<Post>();
-		if(aCategory.matches(".*通知.*"))
-			url = "http://59.67.152.3/wnoticemore.aspx?page=";
-		else if(aCategory.matches(".*新闻.*"))
-			url = "http://59.67.152.3/wnewmore.aspx?page=";
-		else
-			return result;
+		if(baseURL == null){
+			if(aCategory == null)
+				return parsePosts(Post.SOURCES.WEBSITE_OF_SCCE, start, end, max, readHelper);
+			else if(aCategory.matches(".*通知.*"))
+				baseURL = Post.SOURCES.NOTICES_IN_SCCE_URL;
+			else if(aCategory.matches(".*新闻.*"))
+				baseURL = Post.SOURCES.NEWS_IN_SCCE_URL;
+			else
+				return null;
+		}	
+		baseURL += "?page=";
 		try {
-			doc = readHelper.getWithDocument(url+"1");
+			readHelper.prepareToParsePostsFromSCCE();
+			doc = readHelper.getWithDocumentForParsePostsFromSCCE(baseURL+"1");
+			Matcher matcher = Pattern.compile("\\?page=(\\d+)").matcher(doc.body()
+					.select("a[href*=more.aspx?page=]").last().attr("href"));
+			if(matcher.find())
+				page = Integer.parseInt(matcher.group(1));
+			else
+				;//TODO Can't parse page
+			result.addAll(parsePostsFromSCCE(aCategory, start, end ,max ,doc));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return result;
 		}
-		return null; 
+		for(int i = 2;i<=page;i++){
+			if(max>0 && result.size()>=max)
+				break;
+			try {
+				if(start!=null && Post.convertToDate(ReadPageHelper.deleteSpace(doc
+						.select("form table table").first().getElementsByTag("tr").last()
+						.getElementsByTag("td").get(3).text())).before(start))
+					break;
+			} catch (ParseException e) {
+				System.err.println("Can't parse date normally.");
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				doc = readHelper.getWithDocumentForParsePostsFromSCCE(baseURL+i);
+				result.addAll(parsePostsFromSCCE(aCategory, start, end, max-result.size(), doc));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return result;
+	}
+	/**
+	 * 以aCategory、start、end、max为限制条件，从计算机学院页面doc中解析posts
+	 * @param aCategory 类别，例如“学生通知”
+	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
+	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
+	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
+	 * @param doc 包含post列表的 某计算机学院网页的 Document
+	 * @return 符合条件的posts
+	 */
+	public static ArrayList<Post> parsePostsFromSCCE(
+			String aCategory, Date start, Date end, int max, Document doc) {
+		Post post;
+		Elements cols = null;
+		Pattern pattern = Pattern.compile("openwin\\('(.*)'\\)");
+		Matcher matcher = null;
+		ArrayList<Post> result = new ArrayList<Post>();
+		Elements posts = doc.select("form table table").first().getElementsByTag("tr");
+		posts.remove(0);
+		for(Element postTr:posts){
+			if(max>0 && result.size()>=max)
+				break;
+			cols = postTr.getElementsByTag("td");
+			//验证通知对象
+			String temp = ReadPageHelper.deleteSpace(cols.get(4).text());
+			if(temp.equals("教师") || temp.equals("全体教师"))
+				continue;
+			
+			post = new Post();
+			//验证Category
+			post.setCategory(ReadPageHelper.deleteSpace(cols.get(1).text()));
+			if(aCategory!=null && !aCategory.equals(post.getCategory()))
+				continue;
+			//验证日期
+			try {
+				post.setDate(ReadPageHelper.deleteSpace(cols.get(3).text()));
+				if(end!=null && post.getDate().after(end))
+					continue;
+				if(start!=null && post.getDate().before(start))
+					break;
+			} catch (ParseException e) {
+				System.err.println("Can't parse date normally.");
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			//设置 title、url、author、source
+			post.setTitle(cols.get(0).text().trim());
+			matcher = pattern.matcher(cols.get(0).getElementsByTag("a").attr("onclick"));
+			if(matcher.find())
+				post.setUrl("http://59.67.152.3/"+matcher.group(1));
+			else
+				System.err.println("Can't parse url.");//TODO
+			post.setAuthor(ReadPageHelper.deleteSpace(cols.get(2).text()));
+			post.setSource(Post.SOURCES.WEBSITE_OF_SCCE);
+			result.add(post);
+		}
+		return result;
 	}
 	/**
 	 * 根据指定的类别等条件，从教务处网站解析通知等文章
@@ -106,7 +214,7 @@ public class SchoolWebpageParser {
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
 	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
-	 * @return 符合条件的Posts
+	 * @return 符合条件的posts
 	 */
 	public static ArrayList<Post> parsePostsFromTeachingAffairs(String aCategory, Date start, Date end, 
 			int max, ReadPageHelper readHelper) {
@@ -114,6 +222,8 @@ public class SchoolWebpageParser {
 		Document doc = null;
 		int page = 0;
 		ArrayList<Post> result = new ArrayList<Post>();
+		if(aCategory == null)
+			return parsePosts(Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS, start, end, max, readHelper);
 		try {
 			url = "http://59.67.148.66:8080/getRecords.jsp?url=list.jsp&pageSize=100&name=" 
 					+ URLEncoder.encode(aCategory, "GB2312") + "&currentPage=";
@@ -136,6 +246,16 @@ public class SchoolWebpageParser {
 			if(max>0 && result.size()>=max)
 				break;
 			try {
+				if(start!=null && Post.convertToDate(doc.body().select("table table table table")
+						.get(0).getElementsByTag("tr").last().getElementsByTag("a").first()
+						.nextSibling().outerHtml().trim().substring(1, 11)).before(start))
+					break;
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				System.out.println("Can't parse date normally. "+e.getMessage());
+				e.printStackTrace();
+			}
+			try {
 				doc = readHelper.getWithDocument(url+i);
 				result.addAll(parsePostsFromTeachingAffairs(aCategory, start, end, max-result.size(), doc));
 			} catch (IOException e) {
@@ -152,7 +272,7 @@ public class SchoolWebpageParser {
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
 	 * @param doc 要解析的网页的Document文档对象模型
-	 * @return 符合条件的Posts
+	 * @return 符合条件的posts
 	 */
 	public static ArrayList<Post> parsePostsFromTeachingAffairs(String aCategory, Date start, Date end, 
 			int max, Document doc) {
@@ -166,11 +286,12 @@ public class SchoolWebpageParser {
 			link = posts.get(i).getElementsByTag("a").first();
 			aPost = new Post();
 			try {
+				//解析日期
 				aPost.setDate(link.nextSibling().outerHtml().trim().substring(1, 11));
-				if(start!=null && aPost.getDate().before(start))
-					break;
 				if(end!=null && aPost.getDate().after(end))
 					continue;
+				if(start!=null && aPost.getDate().before(start))
+					break;
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
 				System.out.println(e.getMessage());
@@ -486,6 +607,7 @@ public class SchoolWebpageParser {
 				headMap.put(i, COURSE_TIME);
 			else if("地点".equals(colName))
 				headMap.put(i, COURSE_ADDRESS);
+			//Scores
 			else if("结课考核成绩".equals(colName))
 				headMap.put(i, COURSE_TEST_SCORE);
 			else if("期末总评成绩".equals(colName))

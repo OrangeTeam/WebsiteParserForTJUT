@@ -52,7 +52,7 @@ public class Test {
 	}*/
 	public static void main(String[] args) {
 		try{
-		switch(8){
+		switch(10){
 		case 1:
 			ReadPageHelper readHelper = new ReadPageHelper("20106135","20106135");
 			try{
@@ -131,7 +131,7 @@ public class Test {
 			readHelper1.setTimeout(12000);
 			
 			ArrayList<Post> resultOfPosts = SchoolWebpageParser.parsePosts(
-					Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS, start, null, 100, readHelper1);
+					Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS, start, end, 100, readHelper1);
 			for(Post aPost:resultOfPosts)
 				System.out.println(aPost.toString());
 			System.out.println(resultOfPosts.size());
@@ -154,10 +154,51 @@ public class Test {
 			}
 		break;
 		case 8:
-			Document doc8 = new ReadPageHelper().getWithDocument("http://59.67.152.3/wnoticemore.aspx");
+			ReadPageHelper helper9 = new ReadPageHelper("20106173","01021061");
+			helper9.setCharset("UTF-8");
+			helper9.prepareToParsePostsFromSCCE();
+			System.out.println(helper9.getWithDocument("http://59.67.152.3/wnoticemore.aspx").select("form table table").first().getElementsByTag("tr").last().getElementsByTag("td").get(3).text());
+			helper9.doLogin();
+			//System.out.println(helper9.get(Constant.url.个人全部成绩));
+			//System.out.println(helper9.get("http://59.67.152.3/wnoticemore.aspx"));
 			
-			System.out.println(doc8.html());
+		break;
+		case 9:
+			ReadPageHelper helper8 = new ReadPageHelper();
+			if(helper8.prepareToParsePostsFromSCCE()){
+				//Document doc8 = helper8.getWithDocument("http://59.67.152.3/wnewmore.aspx?page=2");
+				/*Element page = doc8.body().select("a[href*=more.aspx?page=]").last();
+				System.out.println(page.html());
+				Pattern pattern = Pattern.compile("\\?page=(\\d+)");
+				Matcher matcher = pattern.matcher(page.attr("href"));
+				while(matcher.find())
+					System.out.println(matcher.group(1));
+				Matcher m = Pattern.compile("\\?page=(\\d+)").matcher(doc8.body().select("a[href*=more.aspx?page=]").last().attr("href"));
+				m.find();
+				System.out.println(m.group(1));*/
+				/*Elements posts9 = doc8.select("form table table").first().getElementsByTag("tr");
+				posts9.remove(0);
+				System.out.println(posts9.html());*/
+				ArrayList<Post> result9 = null;
+				//result9 = SchoolWebpageParser.parsePostsFromSCCE("学校新闻", null, null, 0, doc8);
+				result9 = SchoolWebpageParser.parsePosts(Post.SOURCES.WEBSITE_OF_SCCE, null, Post.convertToDate(2012, 6, 1), null, 18, helper8);
+				//result9 = SchoolWebpageParser.parsePostsFromSCCE("学生通知", null, null, 0, helper8, null);
+				for(Post p:result9)
+					System.out.println(p.toString());
+				System.out.println(result9.size());
+				//System.out.println(posts9.get(2).getElementsByTag("td").first().getElementsByTag("a").attr("onclick"));
+			}else
+				System.err.println("can't set session cookie!");
+			
 			//System.out.println(doc8.body().select(""));
+		break;
+		case 10:
+			ReadPageHelper helper10 = new ReadPageHelper();
+			ArrayList<Post> result10 = null;
+			result10 = SchoolWebpageParser.parsePosts(Post.SOURCES.WEBSITE_OF_SCCE, Post.convertToDate(2012, 6, 1), null, 22, helper10);
+			for(Post p:result10)
+				System.out.println(p.toString());
+			System.out.println(result10.size());
 		break;
 		default:;
 		}

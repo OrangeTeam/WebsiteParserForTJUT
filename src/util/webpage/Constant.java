@@ -4,6 +4,7 @@ public final class Constant {
 	public static final class url{
 		public static final String LOGIN_PAGE = "http://59.67.148.66/index.asp";
 		public static final String 登录页面 = LOGIN_PAGE;
+		public static final String PREPARE_PAGE_FOR_GET_POSTS_FROM_SCCE = "http://59.67.152.3";
 		public static final String LEARNING_COURSES = "http://59.67.148.66/selection/bxqxkcx_z.asp";
 		public static final String 本学期修读课程 = LEARNING_COURSES;
 		public static final String SELECTED_COURSES_FOR_NEXT_SEMESTER = "http://59.67.148.66/selection/bxqxkcx_z_new.asp";
