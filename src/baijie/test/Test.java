@@ -54,7 +54,7 @@ public class Test {
 	}*/
 	public static void main(String[] args) {
 		try{
-		switch(11){
+		switch(6){
 		case 1:
 			ReadPageHelper readHelper = new ReadPageHelper("20106135","20106135");
 			try{
@@ -133,7 +133,7 @@ public class Test {
 			readHelper1.setTimeout(12000);
 			
 			ArrayList<Post> resultOfPosts = SchoolWebpageParser.parsePosts(
-					Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS, start, end, 100, readHelper1);
+					Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS, start, null, 100, readHelper1);
 			for(Post aPost:resultOfPosts)
 				System.out.println(aPost.toString());
 			System.out.println(resultOfPosts.size());

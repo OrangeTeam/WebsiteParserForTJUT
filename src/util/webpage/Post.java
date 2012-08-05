@@ -24,8 +24,14 @@ public class Post {
 		public static final String NEWS_IN_SCCE_URL = "http://59.67.152.3/wnewmore.aspx";
 	}
 	public static final class CATEGORYS{
+		public static final String TEACHING_AFFAIRS_NOTICES = "重要通知";
+		public static final String TEACHING_AFFAIRS_COURSE_SELECTION = "选课相关通知";
+		public static final String TEACHING_AFFAIRS_NEWS = "教务快讯";
+		public static final String TEACHING_AFFAIRS_NOTICES_ON_TEST = "考试相关通知";
+		public static final String TEACHING_AFFAIRS_CET = "大学英语四六级考试";
 		public static final String[] CATEGORYS_IN_TEACHING_AFFAIRS_WEBSITE = new String[]{
-			"重要通知","教务快讯","考试相关通知","大学英语四六级考试","考试相关规定","选课相关通知","选课相关规定","成绩学籍相关通知",
+			TEACHING_AFFAIRS_NOTICES, TEACHING_AFFAIRS_COURSE_SELECTION, TEACHING_AFFAIRS_NEWS, 
+			TEACHING_AFFAIRS_NOTICES_ON_TEST, TEACHING_AFFAIRS_CET,"考试相关规定","选课相关规定","成绩学籍相关通知",
 			"成绩相关规定","学籍相关规定","教学研究与评价相关通知","专业建设","培养计划","课程建设","教材建设","教学评价","教学研究",
 			"辅修专业","学科竞赛","实践教学相关通知","实验室建设","实验教学相关规定","实习教学相关规定","第二校园","毕业设计相关规定",
 			"课程设计专业设计","仪器设备","投资规划相关规定","基本教学管理文件","学籍与考试管理文件","教学建设文件","实践教学管理文件",
