@@ -31,6 +31,18 @@ public class Post {
 			"课程设计专业设计","仪器设备","投资规划相关规定","基本教学管理文件","学籍与考试管理文件","教学建设文件","实践教学管理文件",
 			"教学质量监控文件","表格下载"
 		};
+		
+		public static final String SCCE_STUDENT_NEWS = "新闻中心";
+		public static final String SCCE_STUDENT_NOTICES = "通知公告";
+		public static final String SCCE_STUDENT_UNION = "院学生会";
+		public static final String SCCE_STUDENT_EMPLOYMENT = "招聘快讯";
+		public static final String SCCE_STUDENT_YOUTH_LEAGUE = "分团时讯";
+		public static final String SCCE_STUDENT_DOWNLOADS = "下载中心";
+		public static final String SCCE_STUDENT_JOBS = "岗位信息";
+		public static final String[] IN_STUDENT_WEBSITE_OF_SCCE = new String[]{
+			SCCE_STUDENT_NOTICES, SCCE_STUDENT_NEWS, SCCE_STUDENT_UNION, SCCE_STUDENT_EMPLOYMENT
+			, SCCE_STUDENT_DOWNLOADS, SCCE_STUDENT_YOUTH_LEAGUE, SCCE_STUDENT_JOBS
+		};
 	}
 	
 

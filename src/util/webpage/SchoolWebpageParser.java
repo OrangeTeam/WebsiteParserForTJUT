@@ -62,6 +62,13 @@ public class SchoolWebpageParser {
     			result.addAll(parsePostsFromSCCE(null, start, end, max-result.size(), 
     					readHelper, Post.SOURCES.NEWS_IN_SCCE_URL));
     	break;
+    	case Post.SOURCES.STUDENT_WEBSITE_OF_SCCE:
+    		for(String aCategory:Post.CATEGORYS.IN_STUDENT_WEBSITE_OF_SCCE){
+    			if(max>0 && result.size()>=max)
+    				break;
+    			result.addAll(parsePosts(postSource, aCategory, start, end, max-result.size(), readHelper));
+    		}
+    	break;
     	default:return null;
     	}
     	return result;
@@ -83,11 +90,111 @@ public class SchoolWebpageParser {
 			return parsePostsFromTeachingAffairs(aCategory, start ,end ,max, readHelper);
 		case Post.SOURCES.WEBSITE_OF_SCCE:
 			return parsePostsFromSCCE(aCategory, start, end, max, readHelper, null);
+		case Post.SOURCES.STUDENT_WEBSITE_OF_SCCE:
+			return parsePostsFromSCCEStudent(aCategory, start, end, max, readHelper);
 		}
 		return null;
 	}
+	
 	/**
-	 * 根据aCategory、start、end、max、url等条件，利用readHelper，从SCCE解析Posts
+	 * 根据指定的类别等条件，从教务处网站解析通知等文章
+	 * @param aCategory  某具体类别，类似Post.CATEGORYS。CATEGORYS_IN_TEACHING_AFFAIRS_WEBSITE中的“重要通知”等
+	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
+	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
+	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
+	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
+	 * @return 符合条件的posts
+	 */
+	public static ArrayList<Post> parsePostsFromTeachingAffairs(String aCategory, Date start, Date end, 
+			int max, ReadPageHelper readHelper) {
+		if(aCategory == null)
+			return parsePosts(Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS, start, end, max, readHelper);
+		String url = null;
+		Document doc = null;
+		int page = 0;
+		ArrayList<Post> result = new ArrayList<Post>();
+		try {
+			url = "http://59.67.148.66:8080/getRecords.jsp?url=list.jsp&pageSize=100&name=" 
+					+ URLEncoder.encode(aCategory, "GB2312") + "&currentPage=";
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.exit(-1);
+		}
+		try {
+			doc = readHelper.getWithDocument(url+"1");
+			result.addAll(parsePostsFromTeachingAffairs(aCategory, start, end, max, doc));
+			page = Integer.parseInt( doc.body().select("table table table table")
+					.get(1).select("tr td form font:eq(1)").text() );
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return result;
+		}
+		for(int i = 2;i<=page;i++){
+			if(max>0 && result.size()>=max)
+				break;
+			try {
+				if(start!=null && Post.convertToDate(doc.body().select("table table table table")
+						.get(0).getElementsByTag("tr").last().getElementsByTag("a").first()
+						.nextSibling().outerHtml().trim().substring(1, 11)).before(start))
+					break;
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				System.out.println("Can't parse date normally. "+e.getMessage());
+				e.printStackTrace();
+			}
+			try {
+				doc = readHelper.getWithDocument(url+i);
+				result.addAll(parsePostsFromTeachingAffairs(aCategory, start, end, max-result.size(), doc));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return result;
+	}
+	/**
+	 * 利用类别等信息，从指定的某教务处网页的Document文档对象，解析通知等文章
+	 * @param aCategory  某具体类别，类似Post.CATEGORYS。CATEGORYS_IN_TEACHING_AFFAIRS_WEBSITE中的“重要通知”等
+	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
+	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
+	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
+	 * @param doc 要解析的网页的Document文档对象模型
+	 * @return 符合条件的posts
+	 */
+	public static ArrayList<Post> parsePostsFromTeachingAffairs(String aCategory, Date start, Date end, 
+			int max, Document doc) {
+		ArrayList<Post> result = new ArrayList<Post>();
+		Elements posts = doc.body().select("table table table table").get(0).getElementsByTag("tr");
+		Element link = null;
+		Post aPost = null;
+		for(int i = 1;i<posts.size();i++){
+			if(max>0 && result.size()>max)
+				break;
+			link = posts.get(i).getElementsByTag("a").first();
+			aPost = new Post();
+			try {
+				//解析日期
+				aPost.setDate(link.nextSibling().outerHtml().trim().substring(1, 11));
+				if(end!=null && aPost.getDate().after(end))
+					continue;
+				if(start!=null && aPost.getDate().before(start))
+					break;
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				System.out.println(e.getMessage());
+				e.printStackTrace();
+			}
+			aPost.setCategory(aCategory).setTitle(link.text()).setUrl(link.attr("abs:href"));
+			aPost.setSource(Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS);
+			result.add(aPost);
+		}
+		return result;
+	}
+	
+	/**
+	 * 根据aCategory、start、end、max、baseURL等条件，利用readHelper，从SCCE解析posts
 	 * @param aCategory 类别，例如“学生通知”
 	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
@@ -207,36 +314,48 @@ public class SchoolWebpageParser {
 		}
 		return result;
 	}
+	
 	/**
-	 * 根据指定的类别等条件，从教务处网站解析通知等文章
-	 * @param aCategory  某具体类别，类似Post.CATEGORYS。CATEGORYS_IN_TEACHING_AFFAIRS_WEBSITE中的“重要通知”等
+	 * 根据aCategory、start、end、max等条件，利用readHelper，从SCCE学生网站解析posts
+	 * @param aCategory 类别，例如Post.CATEGORYS.SCCE_STUDENT_NOTICES
 	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
 	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
 	 * @return 符合条件的posts
 	 */
-	public static ArrayList<Post> parsePostsFromTeachingAffairs(String aCategory, Date start, Date end, 
-			int max, ReadPageHelper readHelper) {
-		String url = null;
-		Document doc = null;
-		int page = 0;
-		ArrayList<Post> result = new ArrayList<Post>();
+	public static ArrayList<Post> parsePostsFromSCCEStudent(String aCategory, Date start, Date end, 
+			int max, ReadPageHelper readHelper){
 		if(aCategory == null)
-			return parsePosts(Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS, start, end, max, readHelper);
+			return parsePosts(Post.SOURCES.STUDENT_WEBSITE_OF_SCCE, start, end, max, readHelper);
+		int page = 0;
+		Document doc = null;
+		String url = "http://59.67.152.6/Channels/";
+		ArrayList<Post> result = new ArrayList<Post>();
+		if(aCategory.equals(Post.CATEGORYS.SCCE_STUDENT_NEWS))
+			url += "7";
+		else if(aCategory.equals(Post.CATEGORYS.SCCE_STUDENT_NOTICES))
+			url += "9";
+		else if(aCategory.equals(Post.CATEGORYS.SCCE_STUDENT_UNION))
+			url += "45";
+		else if(aCategory.equals(Post.CATEGORYS.SCCE_STUDENT_EMPLOYMENT))
+			url += "43";
+		else if(aCategory.equals(Post.CATEGORYS.SCCE_STUDENT_YOUTH_LEAGUE))
+			url += "29";
+		else if(aCategory.equals(Post.CATEGORYS.SCCE_STUDENT_DOWNLOADS))
+			url += "16";
+		else if(aCategory.equals(Post.CATEGORYS.SCCE_STUDENT_JOBS))
+			url += "55";
+		else
+			return null;
+		url += "?page=";
+		
 		try {
-			url = "http://59.67.148.66:8080/getRecords.jsp?url=list.jsp&pageSize=100&name=" 
-					+ URLEncoder.encode(aCategory, "GB2312") + "&currentPage=";
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			System.exit(-1);
-		}
-		try {
-			doc = readHelper.getWithDocument(url+"1");
-			page = Integer.parseInt( doc.body().select("table table table table")
-					.get(1).select("tr td form font:eq(1)").text() );
-			result.addAll(parsePostsFromTeachingAffairs(aCategory, start, end, max, doc));
+			doc = readHelper.getWithDocumentForParsePostsFromSCCE(url+"1");
+			result.addAll(parsePostsFromSCCEStudent(aCategory, start, end, max, doc));
+			Matcher matcher = Pattern.compile("共(\\d+)页").matcher(doc.select(".oright .page").first().text());
+			if(matcher.find())
+				page = Integer.parseInt(matcher.group(1));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -246,9 +365,8 @@ public class SchoolWebpageParser {
 			if(max>0 && result.size()>=max)
 				break;
 			try {
-				if(start!=null && Post.convertToDate(doc.body().select("table table table table")
-						.get(0).getElementsByTag("tr").last().getElementsByTag("a").first()
-						.nextSibling().outerHtml().trim().substring(1, 11)).before(start))
+				if(start!=null && Post.convertToDate(doc.select(".oright .orbg ul li").last()
+						.getElementsByClass("date").first().text().trim().substring(1, 11)).before(start))
 					break;
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
@@ -256,53 +374,55 @@ public class SchoolWebpageParser {
 				e.printStackTrace();
 			}
 			try {
-				doc = readHelper.getWithDocument(url+i);
-				result.addAll(parsePostsFromTeachingAffairs(aCategory, start, end, max-result.size(), doc));
+				doc = readHelper.getWithDocumentForParsePostsFromSCCE(url+i);
+				result.addAll(parsePostsFromSCCEStudent(aCategory, start, end, max-result.size(), doc));
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
+			
 		return result;
 	}
 	/**
-	 * 利用类别等信息，从指定的某教务处网页的Document文档对象，解析通知等文章
-	 * @param aCategory  某具体类别，类似Post.CATEGORYS。CATEGORYS_IN_TEACHING_AFFAIRS_WEBSITE中的“重要通知”等
+	 * 以start、end、max为限制条件，从计算机学院学生网站页面doc中解析posts
+	 * @param aCategory 类别，例如Post.CATEGORYS.SCCE_STUDENT_NOTICES
 	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
-	 * @param doc 要解析的网页的Document文档对象模型
+	 * @param doc 包含post列表的 某计算机学院学生网站网页的 Document
 	 * @return 符合条件的posts
 	 */
-	public static ArrayList<Post> parsePostsFromTeachingAffairs(String aCategory, Date start, Date end, 
-			int max, Document doc) {
-		ArrayList<Post> result = new ArrayList<Post>();
-		Elements posts = doc.body().select("table table table table").get(0).getElementsByTag("tr");
+	public static ArrayList<Post> parsePostsFromSCCEStudent(
+			String aCategory, Date start, Date end, int max, Document doc){
+		Post post = null;
 		Element link = null;
-		Post aPost = null;
-		for(int i = 1;i<posts.size();i++){
-			if(max>0 && result.size()>max)
+		ArrayList<Post> result = new ArrayList<Post>();
+		Elements posts = doc.select(".oright .orbg ul li");
+		for(Element postLi:posts){
+			if(max>0 && result.size()>=max)
 				break;
-			link = posts.get(i).getElementsByTag("a").first();
-			aPost = new Post();
+			post = new Post();
 			try {
-				//解析日期
-				aPost.setDate(link.nextSibling().outerHtml().trim().substring(1, 11));
-				if(end!=null && aPost.getDate().after(end))
+				post.setDate(postLi.getElementsByClass("date").first().text().substring(1,11));
+				if(end!=null && post.getDate().after(end))
 					continue;
-				if(start!=null && aPost.getDate().before(start))
+				if(start!=null && post.getDate().before(start))
 					break;
 			} catch (ParseException e) {
+				System.err.println("Can't parse date normally.");
 				// TODO Auto-generated catch block
-				System.out.println(e.getMessage());
 				e.printStackTrace();
 			}
-			aPost.setCategory(aCategory).setTitle(link.text()).setUrl(link.attr("abs:href"));
-			aPost.setSource(Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS);
-			result.add(aPost);
+			link = postLi.getElementsByTag("a").first();
+			post.setTitle(link.text().trim());
+			post.setUrl(link.attr("abs:href"));
+			post.setSource(Post.SOURCES.STUDENT_WEBSITE_OF_SCCE).setCategory(aCategory);
+			result.add(post);
 		}
 		return result;
 	}
+	
 	/**
 	 * 暂不可用
 	 * @param url

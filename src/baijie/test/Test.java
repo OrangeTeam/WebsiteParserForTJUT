@@ -5,6 +5,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -52,7 +54,7 @@ public class Test {
 	}*/
 	public static void main(String[] args) {
 		try{
-		switch(10){
+		switch(11){
 		case 1:
 			ReadPageHelper readHelper = new ReadPageHelper("20106135","20106135");
 			try{
@@ -199,6 +201,22 @@ public class Test {
 			for(Post p:result10)
 				System.out.println(p.toString());
 			System.out.println(result10.size());
+		break;
+		case 11:
+			ReadPageHelper helper11 = new ReadPageHelper();
+//			Document doc11 = helper11.getWithDocumentForParsePostsFromSCCE("http://59.67.152.6/Channels/7");
+//			System.out.println(doc11.select(".oright .orbg ul li").last()
+//					.getElementsByClass("date").first().text().trim().substring(1, 11));
+//			Matcher matcher = Pattern.compile("共(\\d+)页").matcher(doc11.select(".oright .page").first().text());
+//			matcher.find();
+//			System.out.println(matcher.group(1));
+			ArrayList<Post> result11;
+//			result11 = SchoolWebpageParser.parsePostsFromSCCEStudent("新闻", null, null, 0, doc11);
+//			result11 = SchoolWebpageParser.parsePostsFromSCCEStudent(Post.CATEGORYS.SCCE_STUDENT_NOTICES, Post.convertToDate(2012, 6, 1), null, 0, helper11);
+			result11 = SchoolWebpageParser.parsePosts(Post.SOURCES.STUDENT_WEBSITE_OF_SCCE, Post.convertToDate(2012, 6, 1), null, 0, helper11);
+			for(Post p:result11)
+				System.out.println(p);
+			System.out.println(result11.size());
 		break;
 		default:;
 		}
