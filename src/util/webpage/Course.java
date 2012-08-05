@@ -19,13 +19,13 @@ public class Course {
 	/**课程名称*/
 	private String name;
 	/**课程教师<br />暂没教师详情*/
-	private ArrayList<String> teachers = new ArrayList<String>();
+	private ArrayList<String> teachers;
 	/**学分*/
 	private byte credit;
 	/**教学班号*/
 	private String classNumber;
 	
-	private ArrayList<TimeAndAddress> timeAndAddress = new ArrayList<TimeAndAddress>();
+	private ArrayList<TimeAndAddress> timeAndAddress;
 	//暂没参考教材
 	private String teachingMaterial;
 	/**备注*/
@@ -40,54 +40,57 @@ public class Course {
 	 * 无参构造方法，各属性设为默认空值
 	 */
 	public Course(){
-		code = null;
-		name = null;
+		id = -1;
+		code = name = classNumber = teachingMaterial = note = null;
 		credit = 0;
-		classNumber = null;
-		teachingMaterial = null;
-		note = null;
 		year = 0;
 		isFirstSemester = null;
 		testScore = totalScore = -1;
+		teachers = new ArrayList<String>();
+		timeAndAddress = new ArrayList<TimeAndAddress>();
 	}
-	/**全参构造方法
-	 * @throws CourseException */
-	public Course(String code,String name,String[] teachers,byte credit, String classNumber, 
-			TimeAndAddress[] timeAndAddresses,String teachingMaterial,String note,short year,
-			Boolean isFirstSemester,short testScore,short totalScore) throws CourseException{
-		this.code = code;
-		setCredit(credit);
-		this.classNumber = classNumber;
-		this.name = name;
-		this.teachingMaterial = teachingMaterial;
-		//对teachers数组初始化
-		if(teachers!=null && teachers.length>0)
-			for(String teacher:teachers)
-				this.teachers.add(teacher);
-		if(timeAndAddresses!=null && timeAndAddresses.length>0)
-			for(TimeAndAddress TA:timeAndAddresses)
-				timeAndAddress.add(TA);
-		this.note = note;
-		this.year = year;
-		this.isFirstSemester = isFirstSemester;
-		this.testScore = testScore;
-		this.totalScore = totalScore;
-	}
-	public Course(String code, String name, byte credit, String classNumber) 
-			throws CourseException{
+	public Course(String code, String name, int credit, String classNumber) throws CourseException{
 		this();
 		this.code = code;
 		this.name = name;
 		setCredit(credit);
 		this.classNumber = classNumber;
 	}
-	public Course(String code, String name, byte credit, String classNumber, short testScore, 
-			short totalScore, short year, Boolean isFirstSemester) throws CourseException{
+	public Course(String code, String name, int credit, String classNumber, int testScore, 
+			int totalScore, int year, Boolean isFirstSemester) throws CourseException{
 		this(code, name, credit, classNumber);
 		setTestScore(testScore);
 		setTotalScore(totalScore);
 		setYear(year);
 		this.isFirstSemester = isFirstSemester;
+	}
+	/**全参构造方法
+	 * @throws CourseException */
+	public Course(int id, String code, String name, String[] teachers, int credit, String classNumber, 
+			TimeAndAddress[] timeAndAddresses, String teachingMaterial, String note, int year,
+			Boolean isFirstSemester, int testScore, int totalScore) throws CourseException{
+		this(code, name, credit, classNumber, testScore, totalScore, year, isFirstSemester);
+		this.id = id;
+		this.teachingMaterial = teachingMaterial;
+		//对teachers数组初始化
+		if(teachers!=null && teachers.length>0)
+			for(String teacher:teachers)
+				if(teacher != null)
+					this.teachers.add(teacher);
+		if(timeAndAddresses!=null && timeAndAddresses.length>0)
+			for(TimeAndAddress TA:timeAndAddresses)
+				if(TA != null)
+					timeAndAddress.add(new TimeAndAddress(TA));
+		this.note = note;
+	}
+	/**拷贝构造方法*/
+	public Course(Course src) throws CourseException{
+		this(src.code, src.name, src.credit, src.classNumber, src.testScore, src.totalScore, src.year, src.isFirstSemester);
+		this.id = src.id;
+		this.teachingMaterial = src.teachingMaterial;
+		this.note = src.note;
+		setTeachers(src.teachers);
+		setTimeAndAddresse(src.timeAndAddress);
 	}
 	
 	
@@ -138,14 +141,29 @@ public class Course {
 		return teachers;
 	}
 	/**
-	 * 替换本Course对象的teachers
+	 * 把本Course对象的teachers清空并设置为参数指定的内容
 	 * @param teachers the teachers to set
-	 * @throws CourseException 参数为null
+	 * @throws NullPointerException 参数为null
 	 */
-	public Course setTeachers(ArrayList<String> teachers) throws CourseException {
+	public Course setTeachers(ArrayList<String> teachers){
 		if(teachers == null)
-			throw new CourseException("teachers shouldn't have been null.");
-		this.teachers = teachers;
+			throw new NullPointerException("teachers shouldn't have been null.");
+		this.teachers.clear();
+		this.teachers.addAll(teachers);
+		return this;
+	}
+	/**
+	 * 把本Course对象的teachers清空并设置为参数指定的内容
+	 * @param teachers the teachers to set
+	 * @throws NullPointerException 参数为null
+	 */
+	public Course setTeachers(String[] teachers){
+		if(teachers == null)
+			throw new NullPointerException("teachers shouldn't have been null.");
+		this.teachers.clear();
+		for(String teacher:teachers)
+			if(teacher != null)
+				this.teachers.add(teacher);
 		return this;
 	}
 	/**
@@ -156,12 +174,14 @@ public class Course {
 	}
 	/**
 	 * @param credit the credit to set
-	 * @throws CourseException 参数不是正数
+	 * @throws CourseException 参数不是正数,或者参数大于Byte.MAX_VALUE
 	 */
-	public Course setCredit(byte credit) throws CourseException {
+	public Course setCredit(int credit) throws CourseException {
 		if(credit<=0)
 			throw new CourseException("Field credit should have been positive.");
-		this.credit = credit;
+		else if(credit>Byte.MAX_VALUE)
+			throw new CourseException("Field credit shouldn't have been more than "+Byte.MAX_VALUE+".");
+		this.credit = (byte)credit;
 		return this;
 	}
 	/**
@@ -185,15 +205,31 @@ public class Course {
 		return timeAndAddress;
 	}
 	/**
-	 * 替换本Course对象的TimeAndAddresses
+	 * 把本Course对象的TimeAndAddresses清空并设置为参数指定的内容
 	 * @param timeAndAddress the timeAndAddress to set
-	 * @throws CourseException 参数是null
+	 * @throws NullPointerException 参数是null
 	 */
-	public Course setTimeAndAddresse(ArrayList<TimeAndAddress> timeAndAddresses) 
-			throws CourseException {
+	public Course setTimeAndAddresse(ArrayList<TimeAndAddress> timeAndAddresses){
 		if(timeAndAddresses == null)
-			throw new CourseException("timeAndAddresses shouldn't have been null.");
-		this.timeAndAddress = timeAndAddresses;
+			throw new NullPointerException("timeAndAddresses shouldn't have been null.");
+		this.timeAndAddress.clear();
+		for(TimeAndAddress TA:timeAndAddresses)
+			if(TA != null)
+				this.timeAndAddress.add(new TimeAndAddress(TA));
+		return this;
+	}
+	/**
+	 * 把本Course对象的TimeAndAddresses清空并设置为参数指定的内容
+	 * @param timeAndAddress the timeAndAddress to set
+	 * @throws NullPointerException 参数是null
+	 */
+	public Course setTimeAndAddresse(TimeAndAddress[] timeAndAddresses){
+		if(timeAndAddresses == null)
+			throw new NullPointerException("timeAndAddresses shouldn't have been null.");
+		this.timeAndAddress.clear();
+		for(TimeAndAddress TA:timeAndAddresses)
+			if(TA != null)
+				this.timeAndAddress.add(new TimeAndAddress(TA));
 		return this;
 	}
 	/**
@@ -232,10 +268,10 @@ public class Course {
 	 * @param year the year to set
 	 * @throws CourseException when year<1900 || year>9999
 	 */
-	public Course setYear(short year) throws CourseException {
+	public Course setYear(int year) throws CourseException {
 		if(year<1900 || year>9999)
 			throw new CourseException("Illegal year!");
-		this.year = year;
+		this.year = (short) year;
 		return this;
 	}
 	/**
@@ -263,10 +299,10 @@ public class Course {
 	 * @param testScore 结课考核成绩  to set
 	 * @throws CourseException when testScore<0 || testScore>999
 	 */
-	public Course setTestScore(short testScore) throws CourseException {
+	public Course setTestScore(int testScore) throws CourseException {
 		if(testScore<0 || testScore>999)
 			throw new CourseException("Illegel score of test!");
-		this.testScore = testScore;
+		this.testScore = (short) testScore;
 		return this;
 	}
 	/**
@@ -281,10 +317,10 @@ public class Course {
 	 * @param totalScore 期末总评成绩 to set
 	 * @throws CourseException when totalScore<0 || totalScore>999
 	 */
-	public Course setTotalScore(short totalScore) throws CourseException {
+	public Course setTotalScore(int totalScore) throws CourseException {
 		if(totalScore<0 || totalScore>999)
 			throw new CourseException("Illegel final score!");
-		this.totalScore = totalScore;
+		this.totalScore = (short) totalScore;
 		return this;
 	}
 	/**
@@ -358,7 +394,7 @@ public class Course {
 	public Course addTimeAndAddress(TimeAndAddress timeAndAddress) throws CourseException{
 		if(timeAndAddress == null)
 			throw new CourseException("timeAndAddress shouldn't have been null.");
-		this.timeAndAddress.add(timeAndAddress);
+		this.timeAndAddress.add(new TimeAndAddress(timeAndAddress));
 		return this;
 	}
 	/**
