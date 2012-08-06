@@ -167,6 +167,18 @@ public class Course {
 		return this;
 	}
 	/**
+	 * 把本Course对象的teachers清空并设置为参数指定的内容
+	 * @param teachers 教师名，可以是多名教师，用[,，;；]分开
+	 * @throws NullPointerException 参数为null
+	 */
+	public Course setTeachers(String teachers){
+		if(teachers == null)
+			throw new NullPointerException("teachers shouldn't have been null.");
+		this.teachers.clear();
+		addTeacher(teachers);
+		return this;
+	}
+	/**
 	 * @return the credit
 	 */
 	public byte getCredit() {
@@ -327,11 +339,11 @@ public class Course {
 	 * 增加教师，可以一次添加多名，用[,，;；]分开
 	 * @param teacher 教师名，可以是多名教师，用[,，;；]分开
 	 * @return 参数合法返回this（builder），参数非法抛出异常
-	 * @throws CourseException 参数teacher是null
+	 * @throws NullPointerException 参数teacher是null
 	 */
-	public Course addTeacher(String teacher) throws CourseException{
+	public Course addTeacher(String teacher){
 		if(teacher == null)
-			throw new CourseException("teacher shouldn't haven been null when addTeacher.");
+			throw new NullPointerException("teacher shouldn't haven been null when addTeacher.");
 		String[] teachers = teacher.split("[,，;；]");
 		for(String t:teachers){
 			t = t.trim();
