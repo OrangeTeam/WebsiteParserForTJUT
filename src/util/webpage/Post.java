@@ -38,6 +38,15 @@ public class Post {
 			"教学质量监控文件","表格下载"
 		};
 		
+		public static final String SCCE_NOTICE_TEACHING = "教学通知";
+		public static final String SCCE_NOTICE_RESEARCH = "科研通知";
+		public static final String SCCE_NOTICE_STUDENT = "学生通知";
+		public static final String SCCE_NOTICE_OFFICE = "办公通知";
+		public static final String SCCE_NOTICE_UNION = "工会通知";
+		public static final String SCCE_NEW_SCHOOL = "学校新闻";
+		public static final String SCCE_NEW_COLLEGE = "学院新闻";
+		public static final String SCCE_NEW_DEPARTMENT = "系内新闻";
+		
 		public static final String SCCE_STUDENT_NEWS = "新闻中心";
 		public static final String SCCE_STUDENT_NOTICES = "通知公告";
 		public static final String SCCE_STUDENT_UNION = "院学生会";

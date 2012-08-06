@@ -36,6 +36,66 @@ public class SchoolWebpageParser {
 
 	
 	/**
+	 * 从给定来源，在指定的categories类别中，解析通知等文章
+	 * @param postSource 来源，类似Post.CATEGORYS.TEACHING_AFFAIRS_WEBSITE
+	 * @param categories 指定类别范围，是String[]，内容类似Post.CATEGORYS.TEACHING_AFFAIRS_NOTICES
+	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
+	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
+	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
+	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
+	 * @return 符合条件的posts
+	 */
+    public static ArrayList<Post> parsePosts(int postSource, String[] categories, Date start, 
+    		Date end, int max, ReadPageHelper readHelper){
+    	ArrayList<Post> result = new ArrayList<Post>();
+    	switch(postSource){
+    	case Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS:
+    		if(categories == null)
+    			categories = Post.CATEGORYS.CATEGORYS_IN_TEACHING_AFFAIRS_WEBSITE;
+    		for(String aCategory:categories){
+    			if(max>0 && result.size()>=max)
+    				break;
+    			result.addAll(parsePostsFromTeachingAffairs(aCategory, start , end, max-result.size(), readHelper));
+    		}
+    	break;
+    	case Post.SOURCES.WEBSITE_OF_SCCE:
+    		if(categories == null){
+	    		result.addAll(parsePostsFromSCCE(null, start, end, max, readHelper, 
+	    				Post.SOURCES.NOTICES_IN_SCCE_URL));
+	    		if(max<=0 || result.size()<max)
+	    			result.addAll(parsePostsFromSCCE(null, start, end, max-result.size(), 
+	    					readHelper, Post.SOURCES.NEWS_IN_SCCE_URL));
+    		}else{
+    			ArrayList<String> categoriesInNotices = new ArrayList<String>();
+    			ArrayList<String> categoriesInNews = new ArrayList<String>();
+    			for(String aCategory:categories){
+    				if(aCategory.matches(".*通知.*"))
+    					categoriesInNotices.add(aCategory);
+    				else if(aCategory.matches(".*新闻.*"))
+    					categoriesInNews.add(aCategory);
+    			}
+    			if(!categoriesInNotices.isEmpty())
+    				result.addAll(parsePostsFromSCCE(categoriesInNotices.toArray(new String[0]), 
+    						start, end, max, readHelper, Post.SOURCES.NOTICES_IN_SCCE_URL));
+    			if(!categoriesInNews.isEmpty() && (max<=0 || result.size()<max))
+    				result.addAll(parsePostsFromSCCE(categoriesInNews.toArray(new String[0]), start,
+    						end, max-result.size(), readHelper, Post.SOURCES.NEWS_IN_SCCE_URL));
+    		}
+    	break;
+    	case Post.SOURCES.STUDENT_WEBSITE_OF_SCCE:
+    		if(categories == null)
+    			categories = Post.CATEGORYS.IN_STUDENT_WEBSITE_OF_SCCE;
+    		for(String aCategory:categories){
+    			if(max>0 && result.size()>=max)
+    				break;
+    			result.addAll(parsePostsFromSCCEStudent(aCategory, start, end, max-result.size(), readHelper));
+    		}
+    	break;
+    	default:return null;
+    	}
+    	return result;
+    }
+    /**
 	 * 从给定来源，解析通知等文章
 	 * @param postSource 来源，类似Post.CATEGORYS.TEACHING_AFFAIRS_WEBSITE
 	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
@@ -44,61 +104,37 @@ public class SchoolWebpageParser {
 	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
 	 * @return 符合条件的posts
 	 */
-    public static ArrayList<Post> parsePosts(int postSource, Date start, Date end, int max, 
-    		ReadPageHelper readHelper){
-    	ArrayList<Post> result = new ArrayList<Post>();
-    	switch(postSource){
-    	case Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS:
-    		for(String aCategory:Post.CATEGORYS.CATEGORYS_IN_TEACHING_AFFAIRS_WEBSITE){
-    			if(max>0 && result.size()>=max)
-    				break;
-    			result.addAll(parsePosts(postSource, aCategory, start , end, max-result.size(), readHelper));
-    		}
-    	break;
-    	case Post.SOURCES.WEBSITE_OF_SCCE:
-    		result.addAll(parsePostsFromSCCE(null, start, end, max, readHelper, 
-    				Post.SOURCES.NOTICES_IN_SCCE_URL));
-    		if(max<=0 || result.size()<max)
-    			result.addAll(parsePostsFromSCCE(null, start, end, max-result.size(), 
-    					readHelper, Post.SOURCES.NEWS_IN_SCCE_URL));
-    	break;
-    	case Post.SOURCES.STUDENT_WEBSITE_OF_SCCE:
-    		for(String aCategory:Post.CATEGORYS.IN_STUDENT_WEBSITE_OF_SCCE){
-    			if(max>0 && result.size()>=max)
-    				break;
-    			result.addAll(parsePosts(postSource, aCategory, start, end, max-result.size(), readHelper));
-    		}
-    	break;
-    	default:return null;
-    	}
-    	return result;
+    public static ArrayList<Post> parsePosts(int postSource, Date start, 
+    		Date end, int max, ReadPageHelper readHelper){
+    	return parsePosts(postSource, null, start, end, max, readHelper);
+    	
     }
     /**
      * 从给定来源，根据指定的类别等条件，解析通知等文章
      * @param postSource 来源，类似Post.CATEGORYS.TEACHING_AFFAIRS_WEBSITE
-     * @param aCategory 某具体类别，类似Post.CATEGORYS。CATEGORYS_IN_TEACHING_AFFAIRS_WEBSITE中的“重要通知”等
+     * @param aCategory 某具体类别，类似Post.CATEGORYS.TEACHING_AFFAIRS_NOTICES等
 	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
 	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
 	 * @return 符合条件的posts
      */
-	public static ArrayList<Post> parsePosts(int postSource, String aCategory, Date start, Date end, 
-			int max, ReadPageHelper readHelper) {
-		switch(postSource){
-		case Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS:
-			return parsePostsFromTeachingAffairs(aCategory, start ,end ,max, readHelper);
-		case Post.SOURCES.WEBSITE_OF_SCCE:
-			return parsePostsFromSCCE(aCategory, start, end, max, readHelper, null);
-		case Post.SOURCES.STUDENT_WEBSITE_OF_SCCE:
-			return parsePostsFromSCCEStudent(aCategory, start, end, max, readHelper);
-		}
-		return null;
-	}
+//	public static ArrayList<Post> parsePosts(int postSource, String aCategory, Date start, Date end, 
+//			int max, ReadPageHelper readHelper) {
+//		switch(postSource){
+//		case Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS:
+//			return parsePostsFromTeachingAffairs(aCategory, start ,end ,max, readHelper);
+//		case Post.SOURCES.WEBSITE_OF_SCCE:
+//			return parsePostsFromSCCE(new String[]{aCategory}, start, end, max, readHelper, null);
+//		case Post.SOURCES.STUDENT_WEBSITE_OF_SCCE:
+//			return parsePostsFromSCCEStudent(aCategory, start, end, max, readHelper);
+//		}
+//		return null;
+//	}
 	
 	/**
 	 * 根据指定的类别等条件，从教务处网站解析通知等文章
-	 * @param aCategory  某具体类别，类似Post.CATEGORYS。CATEGORYS_IN_TEACHING_AFFAIRS_WEBSITE中的“重要通知”等
+	 * @param aCategory  某具体类别，类似Post.CATEGORYS.TEACHING_AFFAIRS_NOTICES等
 	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
@@ -156,7 +192,7 @@ public class SchoolWebpageParser {
 	}
 	/**
 	 * 利用类别等信息，从指定的某教务处网页的Document文档对象，解析通知等文章
-	 * @param aCategory  某具体类别，类似Post.CATEGORYS。CATEGORYS_IN_TEACHING_AFFAIRS_WEBSITE中的“重要通知”等
+	 * @param aCategory  某具体类别，类似Post.CATEGORYS.TEACHING_AFFAIRS_NOTICES等
 	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
@@ -203,20 +239,29 @@ public class SchoolWebpageParser {
 	 * @param baseURL 指定解析的基础URL，类似Post.SOURCES.NOTICES_IN_SCCE_URL
 	 * @return 符合条件的posts
 	 */
-	public static ArrayList<Post> parsePostsFromSCCE(String aCategory, Date start, Date end, 
+	public static ArrayList<Post> parsePostsFromSCCE(String[] categories, Date start, Date end, 
 			int max, ReadPageHelper readHelper, String baseURL){
 		Document doc = null;
 		int page = 0;
 		ArrayList<Post> result = new ArrayList<Post>();
 		if(baseURL == null){
-			if(aCategory == null)
+			if(categories == null)
 				return parsePosts(Post.SOURCES.WEBSITE_OF_SCCE, start, end, max, readHelper);
-			else if(aCategory.matches(".*通知.*"))
+			boolean hasNew = false, hasNotice = false;
+			for(String aCategory:categories){
+				if(aCategory.matches(".*通知.*"))
+					hasNotice = true;
+				else if(aCategory.matches(".*新闻.*"))
+					hasNew = true;
+			}
+			if(hasNotice && !hasNew)
 				baseURL = Post.SOURCES.NOTICES_IN_SCCE_URL;
-			else if(aCategory.matches(".*新闻.*"))
+			else if(!hasNotice && hasNew)
 				baseURL = Post.SOURCES.NEWS_IN_SCCE_URL;
+			else if(hasNotice && hasNew)
+				return parsePosts(Post.SOURCES.WEBSITE_OF_SCCE, categories, start, end, max, readHelper);
 			else
-				return null;
+				return result;
 		}	
 		baseURL += "?page=";
 		try {
@@ -228,7 +273,7 @@ public class SchoolWebpageParser {
 				page = Integer.parseInt(matcher.group(1));
 			else
 				;//TODO Can't parse page
-			result.addAll(parsePostsFromSCCE(aCategory, start, end ,max ,doc));
+			result.addAll(parsePostsFromSCCE(categories, start, end ,max ,doc));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -249,7 +294,7 @@ public class SchoolWebpageParser {
 			}
 			try {
 				doc = readHelper.getWithDocumentForParsePostsFromSCCE(baseURL+i);
-				result.addAll(parsePostsFromSCCE(aCategory, start, end, max-result.size(), doc));
+				result.addAll(parsePostsFromSCCE(categories, start, end, max-result.size(), doc));
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -267,7 +312,7 @@ public class SchoolWebpageParser {
 	 * @return 符合条件的posts
 	 */
 	public static ArrayList<Post> parsePostsFromSCCE(
-			String aCategory, Date start, Date end, int max, Document doc) {
+			String[] categories, Date start, Date end, int max, Document doc) {
 		Post post;
 		Elements cols = null;
 		Pattern pattern = Pattern.compile("openwin\\('(.*)'\\)");
@@ -287,8 +332,14 @@ public class SchoolWebpageParser {
 			post = new Post();
 			//验证Category
 			post.setCategory(ReadPageHelper.deleteSpace(cols.get(1).text()));
-			if(aCategory!=null && !aCategory.equals(post.getCategory()))
-				continue;
+			if(categories!=null){
+				boolean isContained = false;
+				for(String aCategory:categories)
+					if(aCategory.equals(post.getCategory()))
+						isContained = true;
+				if(!isContained)
+					continue;
+			}
 			//验证日期
 			try {
 				post.setDate(ReadPageHelper.deleteSpace(cols.get(3).text()));

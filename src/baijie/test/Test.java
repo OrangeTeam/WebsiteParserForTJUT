@@ -54,7 +54,7 @@ public class Test {
 	}*/
 	public static void main(String[] args) {
 		try{
-		switch(6){
+		switch(9){
 		case 1:
 			ReadPageHelper readHelper = new ReadPageHelper("20106135","20106135");
 			try{
@@ -183,8 +183,8 @@ public class Test {
 				System.out.println(posts9.html());*/
 				ArrayList<Post> result9 = null;
 				//result9 = SchoolWebpageParser.parsePostsFromSCCE("学校新闻", null, null, 0, doc8);
-				result9 = SchoolWebpageParser.parsePosts(Post.SOURCES.WEBSITE_OF_SCCE, null, Post.convertToDate(2012, 6, 1), null, 18, helper8);
-				//result9 = SchoolWebpageParser.parsePostsFromSCCE("学生通知", null, null, 0, helper8, null);
+				result9 = SchoolWebpageParser.parsePosts(Post.SOURCES.WEBSITE_OF_SCCE, new String[]{Post.CATEGORYS.SCCE_NOTICE_UNION, Post.CATEGORYS.SCCE_NEW_DEPARTMENT}, null, null, 0, helper8);
+				//result9 = SchoolWebpageParser.parsePostsFromSCCE(new String[]{"学生通知","学校新闻"}, null, null, 0, helper8, null);
 				for(Post p:result9)
 					System.out.println(p.toString());
 				System.out.println(result9.size());
