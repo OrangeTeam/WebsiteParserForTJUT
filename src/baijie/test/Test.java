@@ -54,7 +54,7 @@ public class Test {
 	}*/
 	public static void main(String[] args) {
 		try{
-		switch(9){
+		switch(1){
 		case 1:
 			ReadPageHelper readHelper = new ReadPageHelper("20106135","20106135");
 			try{
@@ -62,8 +62,9 @@ public class Test {
 					//System.out.println(readHelper.get(Constant.url.本学期修读课程));
 					//ArrayList<Course> courses = SchoolWebpageParser.parseCourse(
 						//	Constant.url.已选下学期课程, readHelper);
+//					System.out.println(readHelper.getWithDocument(Constant.url.个人全部成绩).getElementsByTag("table").get(1));
 					ArrayList<Course> courses = SchoolWebpageParser.parseScores(
-							Constant.url.期末最新成绩, readHelper);
+							Constant.url.个人全部成绩, readHelper);
 					for(Course c:courses)
 						System.out.println(c.toString());
 				}
@@ -222,6 +223,7 @@ public class Test {
 		}
 		}catch(Exception e){
 			System.out.println(e.getMessage());
+			e.printStackTrace();
 		}
 		
 	}

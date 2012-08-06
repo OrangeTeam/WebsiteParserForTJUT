@@ -34,14 +34,20 @@ public class Course {
 	private short year;
 	/**true表示上半学期，false表示下半学期，null表示未知*/
 	private Boolean isFirstSemester;
-	private short testScore, totalScore;
+	/**结课考核成绩*/
+	private short testScore;
+	/**期末总评成绩*/
+	private short totalScore;
+	/**期末总评成绩*/
+	private String kind;
+	
 
 	/**
 	 * 无参构造方法，各属性设为默认空值
 	 */
 	public Course(){
 		id = -1;
-		code = name = classNumber = teachingMaterial = note = null;
+		code = name = classNumber = teachingMaterial = note = kind= null;
 		credit = 0;
 		year = 0;
 		isFirstSemester = null;
@@ -68,7 +74,7 @@ public class Course {
 	 * @throws CourseException */
 	public Course(int id, String code, String name, String[] teachers, int credit, String classNumber, 
 			TimeAndAddress[] timeAndAddresses, String teachingMaterial, String note, int year,
-			Boolean isFirstSemester, int testScore, int totalScore) throws CourseException{
+			Boolean isFirstSemester, int testScore, int totalScore, String kind) throws CourseException{
 		this(code, name, credit, classNumber, testScore, totalScore, year, isFirstSemester);
 		this.id = id;
 		this.teachingMaterial = teachingMaterial;
@@ -82,6 +88,7 @@ public class Course {
 				if(TA != null)
 					timeAndAddress.add(new TimeAndAddress(TA));
 		this.note = note;
+		this.kind = kind;
 	}
 	/**拷贝构造方法*/
 	public Course(Course src) throws CourseException{
@@ -91,6 +98,7 @@ public class Course {
 		this.note = src.note;
 		setTeachers(src.teachers);
 		setTimeAndAddresse(src.timeAndAddress);
+		this.kind = src.kind;
 	}
 	
 	
@@ -336,6 +344,20 @@ public class Course {
 		return this;
 	}
 	/**
+	 * @return the kind
+	 */
+	public String getKind() {
+		return kind;
+	}
+	/**
+	 * @param kind the kind to set
+	 */
+	public Course setKind(String kind) {
+		this.kind = kind;
+		return this;
+	}
+	
+	/**
 	 * 增加教师，可以一次添加多名，用[,，;；]分开
 	 * @param teacher 教师名，可以是多名教师，用[,，;；]分开
 	 * @return 参数合法返回this（builder），参数非法抛出异常
@@ -426,7 +448,7 @@ public class Course {
 	public String toString(){
 		return getCode()+"\t"+getName()+"\t"+getClassNumber()+"\t"+getTeacherString()+"\t"
 				+getCredit()+"\t"+getTestScore()+"\t"+getTotalScore()+"\t"+getYear()+"\t"
-				+isFirstSemester()+"\t"+getNote()+"\n"+getTimeAndAddressString();
+				+isFirstSemester()+"\t"+getKind()+"\t"+getNote()+"\n"+getTimeAndAddressString();
 	}
 
 	public static class CourseException extends Exception{

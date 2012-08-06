@@ -20,6 +20,7 @@ import util.webpage.Course.TimeAndAddress.TimeAndAddressException;
 
 public class SchoolWebpageParser {
 
+	private static final int UNKNOWN_COL = -1;
     private static final int SEQUENCE_NUMBER = 0;
     private static final int COURSE_CODE = 1;
     private static final int COURSE_NAME = 2;
@@ -33,6 +34,7 @@ public class SchoolWebpageParser {
     private static final int COURSE_TOTAL_SCORE = 9;
     private static final int COURSE_ACADEMIC_YEAR = 10;
     private static final int COURSE_SEMESTER = 11;
+    private static final int COURSE_KIND = 12;
 
 	
 	/**
@@ -518,7 +520,10 @@ public class SchoolWebpageParser {
 		//student
 		
 		//courses
-		return readCourseTable(doc.getElementsByTag("table").get(0), true);
+		if(url.equals(Constant.url.ALL_PERSONAL_GRADES))
+			return readCourseTable(doc.getElementsByTag("table").get(1), true);
+		else
+			return readCourseTable(doc.getElementsByTag("table").first(), true);
 	}
 	/**
 	 * 从URL指定的页面，使用指定的网络连接方法（readPageHelper），解析成绩
@@ -536,30 +541,37 @@ public class SchoolWebpageParser {
 	    ArrayList<Course> result = new ArrayList<Course>();
 	    Elements courses = table.getElementsByTag("tr");
 	    
-	    HashMap<Integer, Integer> headingMap = getHeading(courses.first());
-	    if(headingMap == null)
-	    	throw new ParserException("Can't getHeading because result is null.");
-	    int size = hasScores?courses.size():courses.size()-1;
-	    for(int i=1;i<size;i++)
-			try {
-				result.add(readCourse(courses.get(i), headingMap));
-			} catch (Exception e) {
-				System.out.println("Can't parse \""+courses.get(i).html()+"\".");
-				e.printStackTrace();
-			}
-	    result.trimToSize();
-	    if(!hasScores){
-	    	int totalCredit = 0, totalCreditCalculated = 0;
-	    	totalCredit = Integer.parseInt( courses.last().text().replaceAll("\\D+", "") );
-		    
-		    for(Course c:result)
-		    	totalCreditCalculated += c.getCredit();
-		    if(totalCredit != totalCreditCalculated)
-		    	System.out.println("Warning: TotalCreditCalculated doesn't match " +
-		    			"with totalCredit fetched from page .");
-		    	//throw new ParserException(
-		    	//		"TotalCreditCalculated doesn't match with totalCredit fetched from page.");
+	    HashMap<Integer, Integer> headingMap = null;
+	    for(Element course:courses){
+	    	if(course.text().trim().length()==0)
+	    		continue;
+	    	if(course.getElementsByTag("td").first().text().trim().matches("\\d+"))
+				try {
+				    if(headingMap == null)
+				    	throw new ParserException("headingMap is null.");//TODO
+					result.add(readCourse(course, headingMap));
+				} catch (Exception e) {
+					System.out.println("Can't parse \""+course.html()+"\".");
+					e.printStackTrace();
+				}
+	    	else if(course.getElementsByTag("td").size()>1)
+	    	    headingMap = getHeading(course);
+	    	else
+	    		System.out.println("Skip: "+course.text());//TODO
 	    }
+	    result.trimToSize();
+//	    if(!hasScores){
+//	    	int totalCredit = 0, totalCreditCalculated = 0;
+//	    	totalCredit = Integer.parseInt( courses.last().text().replaceAll("\\D+", "") );
+//		    
+//		    for(Course c:result)
+//		    	totalCreditCalculated += c.getCredit();
+//		    if(totalCredit != totalCreditCalculated)
+//		    	System.out.println("Warning: TotalCreditCalculated doesn't match " +
+//		    			"with totalCredit fetched from page .");
+//		    	//throw new ParserException(
+//		    	//		"TotalCreditCalculated doesn't match with totalCredit fetched from page.");
+//	    }
 		return result;
 	}
 	private static Course readCourse(Element course, HashMap<Integer, Integer> headingMap){
@@ -578,11 +590,11 @@ public class SchoolWebpageParser {
 			case COURSE_NAME:result.setName(ReadPageHelper.deleteSpace(cols.get(i).text()));break;
 			case CLASS_NUMBER:result.setClassNumber(cols.get(i).text().trim());break;
 			case COURSE_TEACHER:
-				try {
-					result.addTeacher(cols.get(i).text().trim());
-				} catch (CourseException e) {
-					System.out.println("Can't add teacher normally. Because " + e.getMessage());
-				}
+				String temp = cols.get(i).text().trim();
+				if(temp.length() == 0)
+					;//TODO
+				else
+					result.addTeacher(temp);
 				break;
 			case COURSE_CREDIT:
 				try{
@@ -639,7 +651,9 @@ public class SchoolWebpageParser {
 					e.printStackTrace();
 				}
 				break;
-			default:System.out.println("Unknown column.");break;
+			case COURSE_KIND:result.setKind(cols.get(i).text().trim());break;
+			case UNKNOWN_COL:
+			default:System.out.println("Unknown column: "+cols.get(i).text());break;
 			}
 		}
 		if(rawTime!=null || rawAddress!=null){
@@ -783,10 +797,16 @@ public class SchoolWebpageParser {
 				headMap.put(i, COURSE_TEST_SCORE);
 			else if("期末总评成绩".equals(colName))
 				headMap.put(i, COURSE_TOTAL_SCORE);
+			else if("成绩".equals(colName))
+				headMap.put(i, COURSE_TOTAL_SCORE);
 			else if("学年".equals(colName))
 				headMap.put(i, COURSE_ACADEMIC_YEAR);
 			else if("学期".equals(colName))
 				headMap.put(i, COURSE_SEMESTER);
+			else if("课程性质".equals(colName))
+				headMap.put(i, COURSE_KIND);
+			else
+				headMap.put(i, UNKNOWN_COL);
 		}
 		return headMap;
 	}
