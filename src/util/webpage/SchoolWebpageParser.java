@@ -17,6 +17,7 @@ import org.jsoup.select.Elements;
 import util.BitOperate.BitOperateException;
 import util.webpage.Course.CourseException;
 import util.webpage.Course.TimeAndAddress.TimeAndAddressException;
+import util.webpage.Student.StudentException;
 
 public class SchoolWebpageParser {
 
@@ -477,21 +478,34 @@ public class SchoolWebpageParser {
 	}
 	
 	/**
-	 * 暂不可用
-	 * @param url
-	 * @param readPageHelper
-	 * @param studentInfoToReturn
-	 * @return
-	 * @throws ParserException
-	 * @throws IOException
+	 * 从URL指定的页面，使用指定的网络连接方法（readPageHelper），解析课程信息，同时返回对应同学信息（如果studentInfoToReturn!=null）
+	 * @param url 要读取的页面地址
+	 * @param readPageHelper 使用它做网络连接，您可以在这设置用户名、密码、超时时间等
+	 * @param studentInfoToReturn 与课程信息相对应的同学的信息，被保存在这里，会覆盖原有数据
+	 * @return 满足条件的课程信息
+	 * @throws ParserException 不能正确读取课程表表头时
+	 * @throws IOException 网络连接出现异常
 	 */
 	public static ArrayList<Course> parseCourse(String url, 
 			ReadPageHelper readPageHelper, Student studentInfoToReturn) throws ParserException, IOException{
 		Document doc = readPageHelper.getWithDocument(url);
 		//student
-		
+		if(studentInfoToReturn != null){
+			Pattern pattern = Pattern.compile
+					("学号(?:：|:)(.*)姓名(?:：|:)(.*)学院(?:：|:)(.*)专业(?:：|:)(.*)班级(?:：|:)(.*\\d+班)");
+			Matcher matcher = pattern.matcher(doc.body().child(1).text());
+			if(matcher.find()){
+				studentInfoToReturn.setNumber( matcher.group(1).replaceAll("[\u3000\u00a0]", " ").trim() );
+				studentInfoToReturn.setName( matcher.group(2).replaceAll("[\u3000\u00a0]", " ").trim() );
+				studentInfoToReturn.setSchoolName( matcher.group(3).replaceAll("[\u3000\u00a0]", " ").trim());
+				studentInfoToReturn.setMajorName( matcher.group(4).replaceAll("[\u3000\u00a0]", " ").trim() );
+				studentInfoToReturn.setClassName( matcher.group(5).replaceAll("[\u3000\u00a0]", " ").trim() );	
+			}else{
+				//TODO
+			}
+		}
 		//courses
-		return readCourseTable(doc.getElementsByTag("table").get(0), false);
+		return readCourseTable(doc.getElementsByTag("table").get(0));
 	}
 	/**
 	 * 从URL指定的页面，使用指定的网络连接方法（readPageHelper），解析课程信息
@@ -506,24 +520,38 @@ public class SchoolWebpageParser {
 		return parseCourse(url, readPageHelper, null);
 	}
 	/**
-	 * 暂不可用
-	 * @param url
-	 * @param readPageHelper
-	 * @param studentInfoToReturn
-	 * @return
-	 * @throws ParserException
-	 * @throws IOException
+	 * 从URL指定的页面，使用指定的网络连接方法（readPageHelper），解析成绩，同时返回对应同学信息（如果studentInfoToReturn!=null）
+	 * @param url 要读取的页面地址
+	 * @param readPageHelper 使用它做网络连接，您可以在这设置用户名、密码、超时时间等
+	 * @param studentInfoToReturn 与成绩信息相对应的同学的信息，被保存在这里，会覆盖原有数据
+	 * @return 满足条件的包含成绩信息的课程类
+	 * @throws ParserException 不能正确读取课程表表头时
+	 * @throws IOException 网络连接出现异常
 	 */
 	public static ArrayList<Course> parseScores(String url, 
 			ReadPageHelper readPageHelper, Student studentInfoToReturn) throws ParserException, IOException{
 		Document doc = readPageHelper.getWithDocument(url);
 		//student
-		
+		if(studentInfoToReturn != null){
+			if(url.equals(Constant.url.ALL_PERSONAL_GRADES)){
+				setStudentInformation(doc.getElementsByTag("table").first(), studentInfoToReturn);
+			}else{
+				Pattern pattern = Pattern.compile
+						("学号(?:：|:)(.*)姓名(?:：|:)(.*)");
+				Matcher matcher = pattern.matcher(doc.body().getElementsByTag("p").get(2).text());
+				if(matcher.find()){
+					studentInfoToReturn.setNumber( matcher.group(1).replaceAll("[\u3000\u00a0]", " ").trim() );
+					studentInfoToReturn.setName( matcher.group(2).replaceAll("[\u3000\u00a0]", " ").trim() );
+				}else{
+					//TODO
+				}
+			}
+		}
 		//courses
 		if(url.equals(Constant.url.ALL_PERSONAL_GRADES))
-			return readCourseTable(doc.getElementsByTag("table").get(1), true);
+			return readCourseTable(doc.getElementsByTag("table").get(1));
 		else
-			return readCourseTable(doc.getElementsByTag("table").first(), true);
+			return readCourseTable(doc.getElementsByTag("table").first());
 	}
 	/**
 	 * 从URL指定的页面，使用指定的网络连接方法（readPageHelper），解析成绩
@@ -537,7 +565,40 @@ public class SchoolWebpageParser {
 			ReadPageHelper readPageHelper) throws ParserException, IOException{
 		return parseScores(url, readPageHelper, null);
 	}
-	private static ArrayList<Course> readCourseTable(Element table, boolean hasScores) throws ParserException {
+	private static void setStudentInformation(Element studentInfoTable, Student studentInfoToReturn){
+		Elements rows = studentInfoTable.getElementsByTag("tr");
+		studentInfoToReturn.setNumber(rows.get(0).getElementsByTag("td").get(1).text().replaceAll("[\u3000\u00a0]", " ").trim());
+		studentInfoToReturn.setName(rows.get(0).getElementsByTag("td").get(3).text().replaceAll("[\u3000\u00a0]", " ").trim());
+		if(rows.get(0).getElementsByTag("td").get(5).text().replaceAll("[\u3000\u00a0]", " ").trim().equals("男"))
+			studentInfoToReturn.setIsMale(true);
+		else if(rows.get(0).getElementsByTag("td").get(5).text().replaceAll("[\u3000\u00a0]", " ").trim().equals("女"))
+			studentInfoToReturn.setIsMale(false);
+		try {
+			studentInfoToReturn.setBirthday(rows.get(1).getElementsByTag("td").get(1).text().replaceAll("[\u3000\u00a0]", " ").trim());
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			studentInfoToReturn.setAcademicPeriod(Integer.parseInt(rows.get(1).getElementsByTag("td").get(3).text().replaceAll("[\u3000\u00a0]", " ").trim()));
+		} catch (NumberFormatException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (StudentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			studentInfoToReturn.setAdmissionTime(rows.get(1).getElementsByTag("td").get(5).text().replaceAll("[\u3000\u00a0]", " ").trim());
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		studentInfoToReturn.setSchoolName(rows.get(2).getElementsByTag("td").get(1).text().replaceAll("[\u3000\u00a0]", " ").trim());
+		studentInfoToReturn.setMajorName(rows.get(2).getElementsByTag("td").get(3).text().replaceAll("[\u3000\u00a0]", " ").trim());
+		studentInfoToReturn.setClassName(rows.get(2).getElementsByTag("td").get(5).text().replaceAll("[\u3000\u00a0]", " ").trim());
+	}
+	private static ArrayList<Course> readCourseTable(Element table) throws ParserException {
 	    ArrayList<Course> result = new ArrayList<Course>();
 	    Elements courses = table.getElementsByTag("tr");
 	    
@@ -560,18 +621,6 @@ public class SchoolWebpageParser {
 	    		System.out.println("Skip: "+course.text());//TODO
 	    }
 	    result.trimToSize();
-//	    if(!hasScores){
-//	    	int totalCredit = 0, totalCreditCalculated = 0;
-//	    	totalCredit = Integer.parseInt( courses.last().text().replaceAll("\\D+", "") );
-//		    
-//		    for(Course c:result)
-//		    	totalCreditCalculated += c.getCredit();
-//		    if(totalCredit != totalCreditCalculated)
-//		    	System.out.println("Warning: TotalCreditCalculated doesn't match " +
-//		    			"with totalCredit fetched from page .");
-//		    	//throw new ParserException(
-//		    	//		"TotalCreditCalculated doesn't match with totalCredit fetched from page.");
-//	    }
 		return result;
 	}
 	private static Course readCourse(Element course, HashMap<Integer, Integer> headingMap){
@@ -662,6 +711,7 @@ public class SchoolWebpageParser {
 			}catch(Exception e){
 				System.out.println(
 						"Can't parse time&address normally. Because " + e.getMessage());
+				e.printStackTrace();
 			}
 		}
 		return result;
@@ -696,9 +746,9 @@ public class SchoolWebpageParser {
 				counter++;
 			}
 			else
-				throw new ParserException("Unexpected time String.");
+				throw new ParserException("Unexpected time String: "+time);
 		if(counter != 3)
-			throw new ParserException("Unexpected time String.");
+			throw new ParserException("Unexpected time String: "+time);
 		return result;
 	}
 	/*

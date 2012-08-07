@@ -55,19 +55,22 @@ public class Test {
 	}*/
 	public static void main(String[] args) {
 		try{
-		switch(12){
+		switch(1){
 		case 1:
 			ReadPageHelper readHelper = new ReadPageHelper("20106135","20106135");
 			try{
 				if(readHelper.doLogin()){
 					//System.out.println(readHelper.get(Constant.url.本学期修读课程));
-					//ArrayList<Course> courses = SchoolWebpageParser.parseCourse(
-						//	Constant.url.已选下学期课程, readHelper);
 //					System.out.println(readHelper.getWithDocument(Constant.url.个人全部成绩).getElementsByTag("table").get(1));
+					Student stu = new Student();
 					ArrayList<Course> courses = SchoolWebpageParser.parseScores(
-							Constant.url.本学期修读课程, readHelper);
+							Constant.url.个人全部成绩, readHelper, stu);
 					for(Course c:courses)
-						System.out.println(c.toString());
+						System.out.println(c);
+					System.out.println(stu);
+					System.out.println(stu.getName()+stu.getNumber()+stu.isMale()+stu.getBirthdayString()
+							+stu.getAdmissionTimeString()+stu.getAcademicPeriod()+stu.getSchoolName()
+							+stu.getMajorName()+stu.getClassName()+stu.getUrlOfFacedPhoto());
 				}
 				else
 					System.err.println("Can't log in!");
@@ -230,6 +233,50 @@ public class Test {
 			stu2.setAcademicPeriod(4);
 			System.out.println(stu1);
 			System.out.println(stu2);
+		break;
+		case 13:
+			ReadPageHelper helper13 = new ReadPageHelper("20106173","01021061");
+			if(helper13.doLogin()){
+				Document doc12 = helper13.getWithDocument(Constant.url.已选下学期课程);
+				System.out.println(doc12.body().child(1).text());
+//				System.out.println(doc12.select("table").first().text());
+				Pattern pattern = Pattern.compile
+						("学号(?:：|:)(.*)姓名(?:：|:)(.*)学院(?:：|:)(.*)专业(?:：|:)(.*)班级(?:：|:)(.*\\d+班)");
+				Matcher matcher = pattern.matcher(doc12.body().child(1).text());
+				if(matcher.find()){
+					Student studentInfoToReturn = new Student();
+					studentInfoToReturn.setNumber( matcher.group(1).replace('\u00a0', ' ').trim() );
+					studentInfoToReturn.setName( matcher.group(2).replace('\u00a0', ' ').trim() );
+					studentInfoToReturn.setSchoolName( matcher.group(3).replace('\u00a0', ' ').trim() );
+					studentInfoToReturn.setMajorName( matcher.group(4).replace('\u00a0', ' ').trim() );
+					studentInfoToReturn.setClassName( matcher.group(5).replace('\u00a0', ' ').trim() );
+					System.out.println(studentInfoToReturn);
+				}
+			}
+			else
+				System.out.println("Can't log in.");
+		break;
+		case 14:
+			ReadPageHelper helper14 = new ReadPageHelper("20106173","01021061");
+			if(helper14.doLogin()){
+				/*Document doc14 = helper14.getWithDocument(Constant.url.期末最新成绩);
+				System.out.println(doc14.body().getElementsByTag("p").get(2).text());
+				Pattern pattern = Pattern.compile
+						("学号(?:：|:)(.*)姓名(?:：|:)(.*)");
+				Matcher matcher = pattern.matcher(doc14.body().getElementsByTag("p").get(2).text());
+				if(matcher.find()){
+					Student studentInfoToReturn = new Student();
+					studentInfoToReturn.setNumber( matcher.group(1).replaceAll("[\u3000\u00a0]", " ").trim() );
+					studentInfoToReturn.setName( matcher.group(2).replaceAll("[\u3000\u00a0]", " ").trim() );
+					System.out.println(studentInfoToReturn);
+					System.out.println(studentInfoToReturn.getNumber()+studentInfoToReturn.getName());
+				}*/
+				Document doc14 = helper14.getWithDocument(Constant.url.个人全部成绩);
+				System.out.println(doc14.getElementsByTag("table").first());
+			}
+			else
+				System.out.println("Can't log in.");
+			
 		break;
 		default:;
 		}

@@ -98,6 +98,14 @@ public class Student implements Cloneable {
 	public Boolean isMale() {
 		return isMale;
 	}
+	public String getGender(){
+		if(this.isMale == null)
+			return "不明";
+		else if(this.isMale)
+			return "男";
+		else
+			return "女";
+	}
 	/**
 	 * @param isMale 性别 。true表示男，false表示女，null表示未知
 	 */
@@ -208,6 +216,15 @@ public class Student implements Cloneable {
 		this.className = className;
 		return this;
 	}
+	/**
+	 * @return 免冠头像照片的URL。如果没有设置number，返回null
+	 */
+	public String getUrlOfFacedPhoto(){
+		if(this.number == null)
+			return null;
+		else
+			return "http://59.67.148.66/cet46/photo/apply/"+number+".jpg";
+	}
 	
 
 	public static Date convertToDate(String date) throws ParseException{
@@ -242,8 +259,8 @@ public class Student implements Cloneable {
 	 */
 	@Override
 	public String toString() {
-		return number+"\t"+name+"\t"+isMale+"\t"+getBirthdayString()+"\t"+getAdmissionTimeString()+"\t"
-				+academicPeriod+"\t"+schoolName+"\t"+majorName+"\t"+className;
+		return number+"\t"+name+"\t"+getGender()+"\t"+getBirthdayString()+"\t"+getAdmissionTimeString()
+				+"\t"+academicPeriod+"\t"+schoolName+"\t"+majorName+"\t"+className;
 	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#clone()
