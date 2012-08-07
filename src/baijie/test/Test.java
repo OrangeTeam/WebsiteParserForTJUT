@@ -20,6 +20,7 @@ import util.webpage.Course.TimeAndAddress;
 import util.webpage.Post;
 import util.webpage.ReadPageHelper;
 import util.webpage.SchoolWebpageParser;
+import util.webpage.Student;
 
 public class Test {
 
@@ -54,7 +55,7 @@ public class Test {
 	}*/
 	public static void main(String[] args) {
 		try{
-		switch(1){
+		switch(12){
 		case 1:
 			ReadPageHelper readHelper = new ReadPageHelper("20106135","20106135");
 			try{
@@ -64,7 +65,7 @@ public class Test {
 						//	Constant.url.已选下学期课程, readHelper);
 //					System.out.println(readHelper.getWithDocument(Constant.url.个人全部成绩).getElementsByTag("table").get(1));
 					ArrayList<Course> courses = SchoolWebpageParser.parseScores(
-							Constant.url.个人全部成绩, readHelper);
+							Constant.url.本学期修读课程, readHelper);
 					for(Course c:courses)
 						System.out.println(c.toString());
 				}
@@ -218,6 +219,17 @@ public class Test {
 			for(Post p:result11)
 				System.out.println(p);
 			System.out.println(result11.size());
+		break;
+		case 12:
+			Student stu1 = new Student("20106173", "柏杰", "计算机与通信工程学院", "计算机科学与技术（中加合作）", "中加6班");
+			System.out.println(stu1);
+			Student stu2 = new Student(stu1);
+			stu2.setBirthday("1991-3-8");
+			stu2.setAdmissionTime("2010-9-12");
+			stu2.setIsMale(true);
+			stu2.setAcademicPeriod(4);
+			System.out.println(stu1);
+			System.out.println(stu2);
 		break;
 		default:;
 		}
