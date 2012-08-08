@@ -55,7 +55,7 @@ public class Test {
 	}*/
 	public static void main(String[] args) {
 		try{
-		switch(1){
+		switch(15){
 		case 1:
 			ReadPageHelper readHelper = new ReadPageHelper("20106135","20106135");
 			try{
@@ -276,6 +276,22 @@ public class Test {
 			}
 			else
 				System.out.println("Can't log in.");
+			
+		break;
+		case 15:
+			Post post1 = new Post();
+			Post post2 = new Post(post1);
+			Post post3 = post1.clone();
+			System.out.println(post1);
+			System.out.println(post2);
+			System.out.println(post3);
+			post2.setDate("2004-3-01");
+			post2.setAuthor("Test Jie");
+			post3.setDate(2020, 4, 1);
+			post3.setTitle("发大水发大水發都發");
+			System.out.println(post1);
+			System.out.println(post2);
+			System.out.println(post3);
 			
 		break;
 		default:;

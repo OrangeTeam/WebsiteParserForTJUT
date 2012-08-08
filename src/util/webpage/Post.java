@@ -15,7 +15,7 @@ import java.util.TimeZone;
  * @author Bai Jie
  *
  */
-public class Post {
+public class Post implements Cloneable{
 	public static final class SOURCES{
 		public static final int WEBSITE_OF_TEACHING_AFFAIRS = 1;
 		public static final int WEBSITE_OF_SCCE = 2;
@@ -72,7 +72,7 @@ public class Post {
 		super();
 		source = -1; 
 		title = url = category = null;
-		date = null;
+		date = new Date(0);
 	}
 	public Post(int source, String category, String title, String url, String author, String date) {
 		this();
@@ -89,6 +89,16 @@ public class Post {
 			e.printStackTrace();
 		}
 	}
+	public Post(Post src){
+		this();
+		this.source = src.source;
+		this.category = src.category;
+		this.title = src.title;
+		this.url = src.url;
+		this.author = src.author;
+		this.date = (Date) src.date.clone();
+	}
+	
 	/**
 	 * @return the source
 	 */
@@ -177,7 +187,30 @@ public class Post {
 	 * @param date the date to set
 	 */
 	public Post setDate(Date date) {
-		this.date = date;
+		if(date == null)
+			throw new NullPointerException("date shouldn't have been null.");
+		this.date = (Date) date.clone();
+		return this;
+	}
+	/**
+	 * 以字符串(YYYY-MM-DD格式)设置日期
+	 * @param date YYYY-MM-DD格式的字符串，例如2012-07-16
+	 * @return 返回this（Builder）
+	 * @throws ParseException if the beginning of the specified string cannot be parsed.
+	 */
+	public Post setDate(String date) throws ParseException{
+		this.date = convertToDate(date);
+		return this;
+	}
+	/**
+	 * 设置日期
+	 * @param year 年
+	 * @param month 月
+	 * @param date 日
+	 * @return 返回this（Builder）
+	 */
+	public Post setDate(int year, int month, int date){
+		this.date = convertToDate(year, month, date);
 		return this;
 	}
 	/**
@@ -197,40 +230,28 @@ public class Post {
 	public String getDateString(){
 		return getDateString("-");
 	}
-	/**
-	 * 设置日期
-	 * @param year 年
-	 * @param month 月
-	 * @param date 日
-	 * @return 返回this（Builder）
-	 */
-	public Post setDate(int year, int month, int date){
-		this.date = convertToDate(year, month, date);
-		return this;
-	}
 	public static Date convertToDate(int year, int month, int date){
 		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+08"), Locale.PRC);
 		calendar.clear();
 		calendar.set(year, month-1, date);
 		return calendar.getTime();
 	}
-	/**
-	 * 以字符串(YYYY-MM-DD格式)设置日期
-	 * @param date YYYY-MM-DD格式的字符串，例如2012-07-16
-	 * @return 返回this（Builder）
-	 * @throws ParseException if the beginning of the specified string cannot be parsed.
-	 */
-	public Post setDate(String date) throws ParseException{
-		this.date = convertToDate(date);
-		return this;
-	}
 	public static Date convertToDate(String date) throws ParseException{
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.PRC);
 		return dateFormat.parse(date);
 	}
-	
+	@Override
 	public String toString(){
 		return getSourceString()+"\t"+getCategory()+"\t"+getTitle()+"\t"+getUrl()+"\t"
 				+getAuthor()+"\t"+getDateString();
+	}
+	/* (non-Javadoc)
+	 * @see java.lang.Object#clone()
+	 */
+	@Override
+	public Post clone() throws CloneNotSupportedException {
+		Post clone = (Post) super.clone();
+		clone.date = (Date) this.date.clone();
+		return clone;
 	}
 }
