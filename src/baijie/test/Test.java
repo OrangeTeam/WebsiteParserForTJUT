@@ -27,35 +27,9 @@ public class Test {
 	/**
 	 * @param args
 	 */
-	/*public static void main(String[] args) {
-		InputStream is = null;
-		String page = null;
-		ReadPageHelper scores = null;
-		ReadPageHelper readPageHelper = new ReadPageHelper("20106173","01021061");
-		if(login.doLogin()){
-			scores = new ReadPageHelper("http://59.67.148.66/score/xszxcjcy.asp",login.getSessionID());
-			String result = scores.openInputStream();
-			if(result.equals("OK")){
-				is = scores.getInputStream();
-				try{
-					page = readIt(new BufferedInputStream(is),10000);
-					System.out.println(page);
-				}catch(Exception e){
-					System.err.println(e);
-				}
-				scores.getConnection().disconnect();
-			}
-			else
-				System.err.println(result);
-		}
-		else
-			System.err.println("Can't login");
-		
-
-	}*/
 	public static void main(String[] args) {
 		try{
-		switch(15){
+		switch(1){
 		case 1:
 			ReadPageHelper readHelper = new ReadPageHelper("20106135","20106135");
 			try{
@@ -302,13 +276,4 @@ public class Test {
 		}
 		
 	}
-	// Reads an InputStream and converts it to a String.
-	/*public static String readIt(InputStream stream, int len) throws IOException, UnsupportedEncodingException {
-	    Reader reader = null;
-	    reader = new InputStreamReader(stream, "GB2312");        
-	    char[] buffer = new char[len];
-	    reader.read(buffer);
-	    stream.close();
-	    return new String(buffer);
-	}*/
 }

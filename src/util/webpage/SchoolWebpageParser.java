@@ -36,6 +36,7 @@ public class SchoolWebpageParser {
     private static final int COURSE_ACADEMIC_YEAR = 10;
     private static final int COURSE_SEMESTER = 11;
     private static final int COURSE_KIND = 12;
+    private static final int COURSE_GRADE_POINT = 13;
 
 	
 	/**
@@ -46,7 +47,7 @@ public class SchoolWebpageParser {
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
 	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
-	 * @return 符合条件的posts
+	 * @return 符合条件的posts；如果postSource不可识别，返回null
 	 */
     public static ArrayList<Post> parsePosts(int postSource, String[] categories, Date start, 
     		Date end, int max, ReadPageHelper readHelper){
@@ -105,11 +106,12 @@ public class SchoolWebpageParser {
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
 	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
-	 * @return 符合条件的posts
+	 * @return 符合条件的posts；如果postSource不可识别，返回null
 	 */
     public static ArrayList<Post> parsePosts(int postSource, Date start, 
     		Date end, int max, ReadPageHelper readHelper){
-    	return parsePosts(postSource, null, start, end, max, readHelper);
+    	String[] categories = null;
+    	return parsePosts(postSource, categories, start, end, max, readHelper);
     	
     }
     /**
@@ -120,20 +122,13 @@ public class SchoolWebpageParser {
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
 	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
-	 * @return 符合条件的posts
+	 * @return 符合条件的posts；如果postSource不可识别，返回null
      */
-//	public static ArrayList<Post> parsePosts(int postSource, String aCategory, Date start, Date end, 
-//			int max, ReadPageHelper readHelper) {
-//		switch(postSource){
-//		case Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS:
-//			return parsePostsFromTeachingAffairs(aCategory, start ,end ,max, readHelper);
-//		case Post.SOURCES.WEBSITE_OF_SCCE:
-//			return parsePostsFromSCCE(new String[]{aCategory}, start, end, max, readHelper, null);
-//		case Post.SOURCES.STUDENT_WEBSITE_OF_SCCE:
-//			return parsePostsFromSCCEStudent(aCategory, start, end, max, readHelper);
-//		}
-//		return null;
-//	}
+	public static ArrayList<Post> parsePosts(int postSource, String aCategory, Date start, Date end, 
+			int max, ReadPageHelper readHelper) {
+		String[] categories = new String[]{aCategory};
+		return parsePosts(postSource, categories, start, end, max, readHelper);
+	}
 	
 	/**
 	 * 根据指定的类别等条件，从教务处网站解析通知等文章
@@ -376,7 +371,7 @@ public class SchoolWebpageParser {
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
 	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
-	 * @return 符合条件的posts
+	 * @return 符合条件的posts；如果aCategory不可识别，返回null
 	 */
 	public static ArrayList<Post> parsePostsFromSCCEStudent(String aCategory, Date start, Date end, 
 			int max, ReadPageHelper readHelper){
@@ -701,6 +696,7 @@ public class SchoolWebpageParser {
 				}
 				break;
 			case COURSE_KIND:result.setKind(cols.get(i).text().trim());break;
+			case COURSE_GRADE_POINT:System.out.println("Skip: grade point "+cols.get(i).text().trim());break;
 			case UNKNOWN_COL:
 			default:System.out.println("Unknown column: "+cols.get(i).text());break;
 			}
@@ -751,59 +747,6 @@ public class SchoolWebpageParser {
 			throw new ParserException("Unexpected time String: "+time);
 		return result;
 	}
-	/*
-	private static String[] splitTime(String time) throws ParserException{
-		int counter = 0;
-		String[] result = new String[3];
-		Pattern numberPattern = Pattern.compile(
-				"\\d[\\d\\s\u00a0\u3000;；,，\\-－\u2013\u2014\u2015]*\\d");
-		Pattern dayOfWeekPattern = Pattern.compile(
-				"(星期|周)[一二三四五六日]([\\s\u00a0\u3000;；,，星期周日一二三四五六至到]*[一二三四五六日])?");
-		Matcher numberMatcher = numberPattern.matcher(time);
-		Matcher dayOfWeekMatcher = dayOfWeekPattern.matcher(time);
-		while(numberMatcher.find()){
-			counter++;
-			switch(counter){
-			case 1:result[0] = numberMatcher.group();break;
-			case 2:result[2] = numberMatcher.group();break;
-			default:throw new ParserException("Unexpected time String.");
-			}
-		}
-		if(dayOfWeekMatcher.find())
-			result[1] = dayOfWeekMatcher.group();
-		return result;
-	}*/
-	/*
-	private String[] splitTime(String time) throws ParserException{
-		time = time.trim();
-		if(!time.matches(".*节"))
-			throw new ParserException("Can't match the time.");
-		ArrayList<String> result = new ArrayList<String>(3);
-		String[] splited = time.split("周");
-		result.add(splited[0].trim());
-		splited = splited[1].split("[\\s\u00a0\u3000]");
-		int lastWeekString = 0,i;
-		for(i = 0;i<splited.length;i++)
-			if(splited[i].matches(".*[星期周一二三四五六日].*") && i>lastWeekString)
-				lastWeekString = i;
-		String temp = "";
-		for(i = 0;i<=lastWeekString;i++){
-			splited[i] = splited[i].trim();
-			if(splited[i].length()>0)
-				temp += splited[i] + " ";
-		}
-		result.add(temp.trim());
-		temp = "";
-		for(i = lastWeekString;i<splited.length;i++){
-			splited[i] = splited[i].trim();
-			if(splited[i].length()>0){
-				if(!splited[i].matches(".*节.*"))
-					temp += splited[i] + " ";
-				else if(splited[i].matches(".*节"))
-					temp += splited[i].replace("节", "");
-			}
-		}
-	}*/
 	private static String[] splitTimeOrAddress(String timeOrAddress){
 		String[] first;
 		ArrayList<String> second = new ArrayList<String>();
@@ -855,6 +798,8 @@ public class SchoolWebpageParser {
 				headMap.put(i, COURSE_SEMESTER);
 			else if("课程性质".equals(colName))
 				headMap.put(i, COURSE_KIND);
+			else if("绩点".equals(colName))
+				headMap.put(i, COURSE_GRADE_POINT);
 			else
 				headMap.put(i, UNKNOWN_COL);
 		}
@@ -868,6 +813,9 @@ public class SchoolWebpageParser {
 		}
 		public ParserException(){
 			this("encounter Exception when parse school page.");
+		}
+		public ParserException(Throwable cause){
+			super(cause);
 		}
 	}
 }
