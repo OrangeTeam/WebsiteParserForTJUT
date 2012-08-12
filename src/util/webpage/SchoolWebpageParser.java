@@ -818,4 +818,56 @@ public class SchoolWebpageParser {
 			super(cause);
 		}
 	}
+	
+	/**
+	 * 解析监听器，用于返回状体信息，解析进度等。
+	 * @author Bai Jie
+	 */
+	public static interface ParserListener{
+		
+		/**
+		 * 当遇到错误时，调用此方法。错误意味着解释失败，停止解析。很可能此调用后解析方法抛出异常
+		 * @param code 错误代码
+		 * @param message 错误信息
+		 */
+		public void onError(int code, String message);
+		/**
+		 * 当遇到警告信息时，调用此方法。警告意味着可能有错误的解析结果，需要用户检查正误，解析方法本身会正常返回结果（可能包含错误信息）。
+		 * @param code 警告代码
+		 * @param message 警告信息
+		 */
+		public void onWarn(int code, String message);
+		/**
+		 * 当返回消息信息时，调用此方法。这并不代表程序不正常，只是用于返回一些关于当前状态的消息。
+		 * @param code 消息代码
+		 * @param message 消息信息
+		 */
+		public void onInformation(int code, String message);
+		/**
+		 * 当解析进度改变时。用于报告解析进度。用current/total表示，0<=current<=total，current==total时解析完成。
+		 * @param current 当前进度。
+		 * @param total 总进度。
+		 */
+		public void onProgressChange(float current, float total);
+	}
+	/**
+	 * 解析监听器适配器，若无说明，默认方法是空方法。您可以继承此类，只重写需要定义的方法。<br />
+	 * <strong>注：</strong>本适配器的onError调用System.err.println返回错误信息，方便调试。您可以重写此方法（如用空方法替代）
+	 * @author Bai Jie
+	 */
+	public static class ParserListenerAdapter implements ParserListener{
+		@Override
+		public void onError(int code, String message) {
+			System.err.println("Error "+code+": "+message);
+		}
+		@Override
+		public void onWarn(int code, String message) {			
+		}
+		@Override
+		public void onInformation(int code, String message) {
+		}
+		@Override
+		public void onProgressChange(float current, float total) {			
+		}
+	}
 }
