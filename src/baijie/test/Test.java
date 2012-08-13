@@ -20,6 +20,7 @@ import util.webpage.Course.TimeAndAddress;
 import util.webpage.Post;
 import util.webpage.ReadPageHelper;
 import util.webpage.SchoolWebpageParser;
+import util.webpage.SchoolWebpageParser.ParserListenerAdapter;
 import util.webpage.Student;
 
 public class Test {
@@ -29,7 +30,7 @@ public class Test {
 	 */
 	public static void main(String[] args) {
 		try{
-		switch(1){
+		switch(16){
 		case 1:
 			ReadPageHelper readHelper = new ReadPageHelper("20106135","20106135");
 			try{
@@ -267,6 +268,11 @@ public class Test {
 			System.out.println(post2);
 			System.out.println(post3);
 			
+		break;
+		case 16:
+			ReadPageHelper helper16 = new ReadPageHelper();
+			SchoolWebpageParser parser16 = new SchoolWebpageParser(new ParserListenerAdapter(), helper16);
+			System.out.println("OK");
 		break;
 		default:;
 		}

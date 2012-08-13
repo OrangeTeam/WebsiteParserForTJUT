@@ -20,6 +20,9 @@ import util.webpage.Course.TimeAndAddress.TimeAndAddressException;
 import util.webpage.Student.StudentException;
 
 public class SchoolWebpageParser {
+	private ParserListener listener;
+	private ReadPageHelper autoReadHelper;
+	private ReadPageHelper readHelper;
 
 	private static final int UNKNOWN_COL = -1;
     private static final int SEQUENCE_NUMBER = 0;
@@ -38,6 +41,87 @@ public class SchoolWebpageParser {
     private static final int COURSE_KIND = 12;
     private static final int COURSE_GRADE_POINT = 13;
 
+	
+	/**
+	 * 无参构造方法
+	 */
+	public SchoolWebpageParser() {
+		super();
+		listener = new ParserListenerAdapter();
+		autoReadHelper = new ReadPageHelper();
+		autoReadHelper.setCharset("GB2312");
+		autoReadHelper.setCharsetForParsePostsFromSCCE("UTF-8");
+		readHelper = null;
+	}
+	/**
+	 * 仅设置监听器
+	 * @param listener
+	 * @throws CloneNotSupportedException
+	 */
+	public SchoolWebpageParser(ParserListener listener) throws CloneNotSupportedException {
+		this();
+		setListener(listener);
+	}
+	/**
+	 * 仅设置监听器以及用户名、密码（设置到自动readPageHelper里）
+	 * @param listener
+	 * @param userName
+	 * @param password
+	 * @throws CloneNotSupportedException
+	 */
+	public SchoolWebpageParser(ParserListener listener, String userName, String password) throws CloneNotSupportedException {
+		this(listener);
+		setUser(userName, password);
+	}
+	/**
+	 * 设置监听器和读取网页帮助类
+	 * @param listener
+	 * @param readHelper
+	 * @throws CloneNotSupportedException
+	 */
+	public SchoolWebpageParser(ParserListener listener, ReadPageHelper readHelper) throws CloneNotSupportedException{
+		this(listener);
+		setReadHelper(readHelper);
+		autoReadHelper.setUser(readHelper.getUserName(), readHelper.getPassword());
+	}
+	
+	/**
+	 * @return the listener
+	 */
+	public ParserListener getListener() {
+		return listener;
+	}
+	/**
+	 * @param listener the listener to set
+	 * @throws CloneNotSupportedException 
+	 */
+	public void setListener(ParserListener listener) throws CloneNotSupportedException {
+		this.listener = listener.clone();
+	}
+	/**
+	 * @return the readhelper
+	 */
+	public ReadPageHelper getReadHelper() {
+		return readHelper;
+	}
+	/**
+	 * @param readHelper the readHelper to set
+	 * @throws CloneNotSupportedException 
+	 */
+	public void setReadHelper(ReadPageHelper readHelper) throws CloneNotSupportedException {
+		this.readHelper = readHelper.clone();
+	}
+	/**
+	 * 设置用户名和密码。
+	 * @param userName 用户名
+	 * @param password 密码
+	 * @throws NullPointerException
+	 */
+	public void setUser(String userName, String password){
+		if(readHelper != null)
+			readHelper.setUser(userName, password);
+		autoReadHelper.setUser(userName, password);
+	}
 	
 	/**
 	 * 从给定来源，在指定的categories类别中，解析通知等文章
@@ -823,7 +907,7 @@ public class SchoolWebpageParser {
 	 * 解析监听器，用于返回状体信息，解析进度等。
 	 * @author Bai Jie
 	 */
-	public static interface ParserListener{
+	public static interface ParserListener extends Cloneable{
 		
 		/**
 		 * 当遇到错误时，调用此方法。错误意味着解释失败，停止解析。很可能此调用后解析方法抛出异常
@@ -849,13 +933,22 @@ public class SchoolWebpageParser {
 		 * @param total 总进度。
 		 */
 		public void onProgressChange(float current, float total);
+		/**
+		 * 实现深克隆
+		 * @see java.lang.Object#clone()
+		 */
+		public ParserListener clone() throws CloneNotSupportedException;
 	}
 	/**
 	 * 解析监听器适配器，若无说明，默认方法是空方法。您可以继承此类，只重写需要定义的方法。<br />
-	 * <strong>注：</strong>本适配器的onError调用System.err.println返回错误信息，方便调试。您可以重写此方法（如用空方法替代）
+	 * <strong>注：</strong>本适配器的onError调用System.err.println返回错误信息，方便调试。您可以重写此方法（如用空方法替代）<br />
+	 * <strong>注：</strong>本适配器的clone()方法仅调用默认的super.clone()方法，如果您有非安全对象字段，这并不适合您，请重写clone
 	 * @author Bai Jie
 	 */
-	public static class ParserListenerAdapter implements ParserListener{
+	public static class ParserListenerAdapter implements ParserListener{	
+		public ParserListenerAdapter() {
+			super();
+		}
 		@Override
 		public void onError(int code, String message) {
 			System.err.println("Error "+code+": "+message);
@@ -868,6 +961,10 @@ public class SchoolWebpageParser {
 		}
 		@Override
 		public void onProgressChange(float current, float total) {			
+		}
+		@Override
+		public ParserListener clone() throws CloneNotSupportedException{
+			return (ParserListener) super.clone();
 		}
 	}
 }
