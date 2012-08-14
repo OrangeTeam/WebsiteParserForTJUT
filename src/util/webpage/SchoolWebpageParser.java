@@ -105,7 +105,7 @@ public class SchoolWebpageParser {
 		return readHelper;
 	}
 	/**
-	 * @param readHelper the readHelper to set
+	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
 	 * @throws CloneNotSupportedException 
 	 */
 	public void setReadHelper(ReadPageHelper readHelper) throws CloneNotSupportedException {
@@ -123,6 +123,9 @@ public class SchoolWebpageParser {
 		autoReadHelper.setUser(userName, password);
 	}
 	
+	private ReadPageHelper getCurrentHelper(){
+		return readHelper!=null?readHelper:autoReadHelper;
+	}
 	/**
 	 * 从给定来源，在指定的categories类别中，解析通知等文章
 	 * @param postSource 来源，类似Post.CATEGORYS.TEACHING_AFFAIRS_WEBSITE
@@ -130,11 +133,10 @@ public class SchoolWebpageParser {
 	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
-	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
 	 * @return 符合条件的posts；如果postSource不可识别，返回null
 	 */
-    public static ArrayList<Post> parsePosts(int postSource, String[] categories, Date start, 
-    		Date end, int max, ReadPageHelper readHelper){
+    public ArrayList<Post> parsePosts(int postSource, String[] categories, Date start, 
+    		Date end, int max){
     	ArrayList<Post> result = new ArrayList<Post>();
     	switch(postSource){
     	case Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS:
@@ -143,16 +145,14 @@ public class SchoolWebpageParser {
     		for(String aCategory:categories){
     			if(max>0 && result.size()>=max)
     				break;
-    			result.addAll(parsePostsFromTeachingAffairs(aCategory, start , end, max-result.size(), readHelper));
+    			result.addAll(parsePostsFromTeachingAffairs(aCategory, start , end, max-result.size()));
     		}
     	break;
     	case Post.SOURCES.WEBSITE_OF_SCCE:
     		if(categories == null){
-	    		result.addAll(parsePostsFromSCCE(null, start, end, max, readHelper, 
-	    				Post.SOURCES.NOTICES_IN_SCCE_URL));
+	    		result.addAll(parsePostsFromSCCE(null, start, end, max, Post.SOURCES.NOTICES_IN_SCCE_URL));
 	    		if(max<=0 || result.size()<max)
-	    			result.addAll(parsePostsFromSCCE(null, start, end, max-result.size(), 
-	    					readHelper, Post.SOURCES.NEWS_IN_SCCE_URL));
+	    			result.addAll(parsePostsFromSCCE(null, start, end, max-result.size(), Post.SOURCES.NEWS_IN_SCCE_URL));
     		}else{
     			ArrayList<String> categoriesInNotices = new ArrayList<String>();
     			ArrayList<String> categoriesInNews = new ArrayList<String>();
@@ -164,10 +164,10 @@ public class SchoolWebpageParser {
     			}
     			if(!categoriesInNotices.isEmpty())
     				result.addAll(parsePostsFromSCCE(categoriesInNotices.toArray(new String[0]), 
-    						start, end, max, readHelper, Post.SOURCES.NOTICES_IN_SCCE_URL));
+    						start, end, max, Post.SOURCES.NOTICES_IN_SCCE_URL));
     			if(!categoriesInNews.isEmpty() && (max<=0 || result.size()<max))
     				result.addAll(parsePostsFromSCCE(categoriesInNews.toArray(new String[0]), start,
-    						end, max-result.size(), readHelper, Post.SOURCES.NEWS_IN_SCCE_URL));
+    						end, max-result.size(), Post.SOURCES.NEWS_IN_SCCE_URL));
     		}
     	break;
     	case Post.SOURCES.STUDENT_WEBSITE_OF_SCCE:
@@ -176,7 +176,7 @@ public class SchoolWebpageParser {
     		for(String aCategory:categories){
     			if(max>0 && result.size()>=max)
     				break;
-    			result.addAll(parsePostsFromSCCEStudent(aCategory, start, end, max-result.size(), readHelper));
+    			result.addAll(parsePostsFromSCCEStudent(aCategory, start, end, max-result.size()));
     		}
     	break;
     	default:return null;
@@ -189,13 +189,12 @@ public class SchoolWebpageParser {
 	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
-	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
 	 * @return 符合条件的posts；如果postSource不可识别，返回null
 	 */
-    public static ArrayList<Post> parsePosts(int postSource, Date start, 
-    		Date end, int max, ReadPageHelper readHelper){
+    public ArrayList<Post> parsePosts(int postSource, Date start, 
+    		Date end, int max){
     	String[] categories = null;
-    	return parsePosts(postSource, categories, start, end, max, readHelper);
+    	return parsePosts(postSource, categories, start, end, max);
     	
     }
     /**
@@ -205,13 +204,12 @@ public class SchoolWebpageParser {
 	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
-	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
 	 * @return 符合条件的posts；如果postSource不可识别，返回null
      */
-	public static ArrayList<Post> parsePosts(int postSource, String aCategory, Date start, Date end, 
-			int max, ReadPageHelper readHelper) {
+	public ArrayList<Post> parsePosts(int postSource, String aCategory, Date start, Date end, 
+			int max) {
 		String[] categories = new String[]{aCategory};
-		return parsePosts(postSource, categories, start, end, max, readHelper);
+		return parsePosts(postSource, categories, start, end, max);
 	}
 	
 	/**
@@ -220,13 +218,12 @@ public class SchoolWebpageParser {
 	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
-	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
 	 * @return 符合条件的posts
 	 */
-	public static ArrayList<Post> parsePostsFromTeachingAffairs(String aCategory, Date start, Date end, 
-			int max, ReadPageHelper readHelper) {
+	public ArrayList<Post> parsePostsFromTeachingAffairs(String aCategory, Date start, Date end, int max) {
+		ReadPageHelper readHelper = getCurrentHelper();
 		if(aCategory == null)
-			return parsePosts(Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS, start, end, max, readHelper);
+			return parsePosts(Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS, start, end, max);
 		String url = null;
 		Document doc = null;
 		int page = 0;
@@ -317,18 +314,18 @@ public class SchoolWebpageParser {
 	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
-	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
 	 * @param baseURL 指定解析的基础URL，类似Post.SOURCES.NOTICES_IN_SCCE_URL
 	 * @return 符合条件的posts
 	 */
-	public static ArrayList<Post> parsePostsFromSCCE(String[] categories, Date start, Date end, 
-			int max, ReadPageHelper readHelper, String baseURL){
+	public ArrayList<Post> parsePostsFromSCCE(String[] categories, Date start, Date end, 
+			int max, String baseURL){
+		ReadPageHelper readHelper = getCurrentHelper();
 		Document doc = null;
 		int page = 0;
 		ArrayList<Post> result = new ArrayList<Post>();
 		if(baseURL == null){
 			if(categories == null)
-				return parsePosts(Post.SOURCES.WEBSITE_OF_SCCE, start, end, max, readHelper);
+				return parsePosts(Post.SOURCES.WEBSITE_OF_SCCE, start, end, max);
 			boolean hasNew = false, hasNotice = false;
 			for(String aCategory:categories){
 				if(aCategory.matches(".*通知.*"))
@@ -341,7 +338,7 @@ public class SchoolWebpageParser {
 			else if(!hasNotice && hasNew)
 				baseURL = Post.SOURCES.NEWS_IN_SCCE_URL;
 			else if(hasNotice && hasNew)
-				return parsePosts(Post.SOURCES.WEBSITE_OF_SCCE, categories, start, end, max, readHelper);
+				return parsePosts(Post.SOURCES.WEBSITE_OF_SCCE, categories, start, end, max);
 			else
 				return result;
 		}	
@@ -454,13 +451,12 @@ public class SchoolWebpageParser {
 	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
-	 * @param readHelper 用于读取网页，你可以在readHelper中设置timeout、charset等
 	 * @return 符合条件的posts；如果aCategory不可识别，返回null
 	 */
-	public static ArrayList<Post> parsePostsFromSCCEStudent(String aCategory, Date start, Date end, 
-			int max, ReadPageHelper readHelper){
+	public ArrayList<Post> parsePostsFromSCCEStudent(String aCategory, Date start, Date end, int max){
+		ReadPageHelper readHelper = getCurrentHelper();
 		if(aCategory == null)
-			return parsePosts(Post.SOURCES.STUDENT_WEBSITE_OF_SCCE, start, end, max, readHelper);
+			return parsePosts(Post.SOURCES.STUDENT_WEBSITE_OF_SCCE, start, end, max);
 		int page = 0;
 		Document doc = null;
 		String url = "http://59.67.152.6/Channels/";
@@ -556,18 +552,25 @@ public class SchoolWebpageParser {
 		return result;
 	}
 	
+	private ReadPageHelper getCurrentHelperAfterLogin() throws ParserException, IOException{
+		ReadPageHelper readHelper = getCurrentHelper();
+		if(!readHelper.doLogin()){
+			this.listener.onError(ParserListener.CANNOT_LOGIN, "登录教务处失败。");
+			throw new ParserException("Can't login Teaching Affairs website.");
+		}
+		return readHelper;
+	}
 	/**
 	 * 从URL指定的页面，使用指定的网络连接方法（readPageHelper），解析课程信息，同时返回对应同学信息（如果studentInfoToReturn!=null）
 	 * @param url 要读取的页面地址
-	 * @param readPageHelper 使用它做网络连接，您可以在这设置用户名、密码、超时时间等
 	 * @param studentInfoToReturn 与课程信息相对应的同学的信息，被保存在这里，会覆盖原有数据
 	 * @return 满足条件的课程信息
 	 * @throws ParserException 不能正确读取课程表表头时
 	 * @throws IOException 网络连接出现异常
 	 */
-	public static ArrayList<Course> parseCourse(String url, 
-			ReadPageHelper readPageHelper, Student studentInfoToReturn) throws ParserException, IOException{
-		Document doc = readPageHelper.getWithDocument(url);
+	public ArrayList<Course> parseCourse(String url, 
+			Student studentInfoToReturn) throws ParserException, IOException{
+		Document doc = getCurrentHelperAfterLogin().getWithDocument(url);
 		//student
 		if(studentInfoToReturn != null){
 			Pattern pattern = Pattern.compile
@@ -589,27 +592,24 @@ public class SchoolWebpageParser {
 	/**
 	 * 从URL指定的页面，使用指定的网络连接方法（readPageHelper），解析课程信息
 	 * @param url 要读取的页面地址
-	 * @param readPageHelper 使用它做网络连接，您可以在这设置用户名、密码、超时时间等
 	 * @return 满足条件的课程信息
 	 * @throws ParserException 不能正确读取课程表表头时
 	 * @throws IOException 网络连接出现异常
 	 */
-	public static ArrayList<Course> parseCourse(String url, 
-			ReadPageHelper readPageHelper) throws ParserException, IOException{
-		return parseCourse(url, readPageHelper, null);
+	public ArrayList<Course> parseCourse(String url) throws ParserException, IOException{
+		return parseCourse(url, null);
 	}
 	/**
 	 * 从URL指定的页面，使用指定的网络连接方法（readPageHelper），解析成绩，同时返回对应同学信息（如果studentInfoToReturn!=null）
 	 * @param url 要读取的页面地址
-	 * @param readPageHelper 使用它做网络连接，您可以在这设置用户名、密码、超时时间等
 	 * @param studentInfoToReturn 与成绩信息相对应的同学的信息，被保存在这里，会覆盖原有数据
 	 * @return 满足条件的包含成绩信息的课程类
 	 * @throws ParserException 不能正确读取课程表表头时
 	 * @throws IOException 网络连接出现异常
 	 */
-	public static ArrayList<Course> parseScores(String url, 
-			ReadPageHelper readPageHelper, Student studentInfoToReturn) throws ParserException, IOException{
-		Document doc = readPageHelper.getWithDocument(url);
+	public ArrayList<Course> parseScores(String url, 
+			Student studentInfoToReturn) throws ParserException, IOException{
+		Document doc = getCurrentHelperAfterLogin().getWithDocument(url);
 		//student
 		if(studentInfoToReturn != null){
 			if(url.equals(Constant.url.ALL_PERSONAL_GRADES)){
@@ -635,14 +635,12 @@ public class SchoolWebpageParser {
 	/**
 	 * 从URL指定的页面，使用指定的网络连接方法（readPageHelper），解析成绩
 	 * @param url 要读取的页面地址
-	 * @param readPageHelper 使用它做网络连接，您可以在这设置用户名、密码、超时时间等
 	 * @return 满足条件的包含成绩信息的课程类
 	 * @throws ParserException 不能正确读取课程表表头时
 	 * @throws IOException 网络连接出现异常
 	 */
-	public static ArrayList<Course> parseScores(String url, 
-			ReadPageHelper readPageHelper) throws ParserException, IOException{
-		return parseScores(url, readPageHelper, null);
+	public ArrayList<Course> parseScores(String url) throws ParserException, IOException{
+		return parseScores(url, null);
 	}
 	private static void setStudentInformation(Element studentInfoTable, Student studentInfoToReturn){
 		Elements rows = studentInfoTable.getElementsByTag("tr");
@@ -908,7 +906,8 @@ public class SchoolWebpageParser {
 	 * @author Bai Jie
 	 */
 	public static interface ParserListener extends Cloneable{
-		
+		/**不能登录*/
+		public static final int CANNOT_LOGIN = 1;
 		/**
 		 * 当遇到错误时，调用此方法。错误意味着解释失败，停止解析。很可能此调用后解析方法抛出异常
 		 * @param code 错误代码
