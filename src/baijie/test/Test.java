@@ -16,7 +16,7 @@ public class Test {
 	 */
 	public static void main(String[] args) {
 		try{
-		switch(2){
+		switch(3){
 		case 1:
 			SchoolWebpageParser parser1 = new SchoolWebpageParser();
 			parser1.setUser("20106173", "20106173");
@@ -46,11 +46,37 @@ public class Test {
 			SchoolWebpageParser parser2 = new SchoolWebpageParser(listener2, "20106173", "20106173");
 			System.out.println(parser2.parseScores(Constant.url.个人全部成绩));
 		break;
+		case 3:
+			SchoolWebpageParser parser3 = new SchoolWebpageParser(new MyListener(), "20106173", "20106173");
+			System.out.println(parser3.parseScores(Constant.url.个人全部成绩));
+		break;
 		default:;
 		}
 		}catch(Exception e){
 			System.out.println(e.getMessage());
 			e.printStackTrace();
+		}
+	}
+	
+	private static class MyListener extends ParserListenerAdapter{
+		public MyListener(){
+			super();
+		}
+
+		/* (non-Javadoc)
+		 * @see util.webpage.SchoolWebpageParser.ParserListenerAdapter#onWarn(int, java.lang.String)
+		 */
+		@Override
+		public void onWarn(int code, String message) {
+			System.err.println("WARN "+code+": "+message);
+		}
+
+		/* (non-Javadoc)
+		 * @see util.webpage.SchoolWebpageParser.ParserListenerAdapter#onInformation(int, java.lang.String)
+		 */
+		@Override
+		public void onInformation(int code, String message) {
+			System.out.println("INFO "+code+": "+message);
 		}
 		
 	}
