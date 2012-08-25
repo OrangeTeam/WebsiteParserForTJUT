@@ -230,12 +230,19 @@ public class Post implements Cloneable{
 	public String getDateString(){
 		return getDateString("-");
 	}
+	/** 根据指定年月日生成Date对象 */
 	public static Date convertToDate(int year, int month, int date){
 		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+08"), Locale.PRC);
 		calendar.clear();
 		calendar.set(year, month-1, date);
 		return calendar.getTime();
 	}
+	/**
+	 * 字符串日期转化为Date对象
+	 * @param date 类似2012-08-23或2012-3-8的日期，以Locale.PRC的地区习惯处理
+	 * @return 对应的Date对象
+	 * @throws ParseException if the beginning of the specified string cannot be parsed.
+	 */
 	public static Date convertToDate(String date) throws ParseException{
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.PRC);
 		return dateFormat.parse(date);

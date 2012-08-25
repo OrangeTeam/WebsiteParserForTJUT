@@ -153,6 +153,9 @@ public class Student implements Cloneable {
 		this.admissionTime = (Date) admissionTime.clone();
 		return this;
 	}
+	/**
+	 * @param admissionTime 入学时间
+	 */
 	public Student setAdmissionTime(String admissionTime) throws ParseException{
 		this.admissionTime = convertToDate(admissionTime);
 		return this;
