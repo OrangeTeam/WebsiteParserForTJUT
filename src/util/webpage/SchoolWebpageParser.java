@@ -7,6 +7,8 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,24 +26,7 @@ public class SchoolWebpageParser {
 	private ReadPageHelper autoReadHelper;
 	private ReadPageHelper readHelper;
 
-	private static final int UNKNOWN_COL = -1;
-    private static final int SEQUENCE_NUMBER = 0;
-    private static final int COURSE_CODE = 1;
-    private static final int COURSE_NAME = 2;
-    private static final int CLASS_NUMBER = 3;
-    private static final int COURSE_TEACHER = 4;
-    private static final int COURSE_CREDIT = 5;
-    private static final int COURSE_TIME = 6;
-    private static final int COURSE_ADDRESS = 7;
-    private static final int COURSE_TEACHING_MATERIAL = 8;
-    //SCORE
-    private static final int COURSE_TEST_SCORE = 10;
-    private static final int COURSE_TOTAL_SCORE = 11;
-    private static final int COURSE_ACADEMIC_YEAR = 12;
-    private static final int COURSE_SEMESTER = 13;
-    private static final int COURSE_KIND = 14;
-    private static final int COURSE_GRADE_POINT = 15;
-
+	private static final Headings HEADINGS = new Headings();
 	
 	/**
 	 * 无参构造方法
@@ -299,7 +284,6 @@ public class SchoolWebpageParser {
 					break;
 			} catch (ParseException e) {
 				listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_DATE, "解析教务处通知/文章的日期失败。 "+e.getMessage());
-				e.printStackTrace();
 			}
 			aPost.setCategory(aCategory).setTitle(link.text()).setUrl(link.attr("abs:href"));
 			aPost.setSource(Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS);
@@ -688,10 +672,9 @@ public class SchoolWebpageParser {
 	    result.trimToSize();
 		return result;
 	}
-	//TODO
 	private Course readCourse(Element course, HashMap<Integer, Integer> headingMap){
 		if(headingMap == null){
-			listener.onError(ParserListener.ERROR_NULL_POINTER, "headingMap是null，无法解析课程表格。");
+			listener.onError(ParserListener.NULL_POINTER, "headingMap是null，无法解析课程表格。");
 			throw new NullPointerException("headingMap is null.");
 		}
 		String rawTime = null, rawAddress = null;
@@ -701,86 +684,26 @@ public class SchoolWebpageParser {
 		Integer fieldCode;
 		for(i = 0;i<cols.size();i++){
 			fieldCode = headingMap.get(i);
-			if(fieldCode == null)
+			if(fieldCode == null){
+				listener.onWarn(ParserListener.NULL_POINTER, "headingMap检查字段内容时，返回null。");
 				continue;
-			switch(fieldCode){
-			case SEQUENCE_NUMBER:
-				listener.onInformation(ParserListener.INFO_SKIP, "忽略序号："+cols.get(i).text().trim());
+			}
+			switch(fieldCode.intValue()){
+			case Headings.COURSE_CODE: case Headings.COURSE_NAME: case Headings.CLASS_NUMBER: 
+			case Headings.COURSE_TEACHER: case Headings.COURSE_KIND: case Headings.COURSE_SEMESTER:
+				parseAsString(result, fieldCode.intValue(), cols.get(i).text());
 				break;
-			case COURSE_CODE:result.setCode(cols.get(i).text().trim());break;
-			case COURSE_NAME:result.setName(ReadPageHelper.deleteSpace(cols.get(i).text()));break;
-			case CLASS_NUMBER:result.setClassNumber(cols.get(i).text().trim());break;
-			case COURSE_TEACHER:
-				String temp = cols.get(i).text().trim();
-				if(temp.length() == 0)
-					listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_TEACHER, "教师姓名长度为0，解析教师失败。");
-				else
-					result.addTeacher(temp);
+			case Headings.COURSE_CREDIT: case Headings.COURSE_TEST_SCORE: case Headings.COURSE_TOTAL_SCORE: 
+			case Headings.COURSE_ACADEMIC_YEAR:
+				parseAsNumber(result, fieldCode.intValue(), cols.get(i).text());
 				break;
-			case COURSE_CREDIT:
-				try{
-					result.setCredit(Byte.parseByte(cols.get(i).text()));
-				}catch(Exception e){
-					System.out.println("Can't parse credit normally. Because " + e.getMessage());
-				}
+			case Headings.COURSE_TIME:rawTime= cols.get(i).getElementsByTag("font").get(0).html();break;
+			case Headings.COURSE_ADDRESS:rawAddress=cols.get(i).getElementsByTag("font").get(0).html();break;
+			case Headings.SEQUENCE_NUMBER: case Headings.COURSE_TEACHING_MATERIAL: case Headings.COURSE_GRADE_POINT:
+				listener.onInformation(ParserListener.INFO_SKIP, "忽略"+HEADINGS.getString(fieldCode)+"："+cols.get(i).text().trim());
 				break;
-			case COURSE_TIME:rawTime= cols.get(i).getElementsByTag("font").get(0).html();break;
-			case COURSE_ADDRESS:rawAddress=cols.get(i).getElementsByTag("font").get(0).html();break;
-			case COURSE_TEACHING_MATERIAL:
-				listener.onInformation(ParserListener.INFO_SKIP, "忽略参考教材 ："+cols.get(i).text().trim());
-				break;
-			//成绩表：
-			case COURSE_TEST_SCORE:
-				try {
-					result.setTestScore(Short.parseShort(cols.get(i).text()));
-				} catch (NumberFormatException e) {
-					System.out.println("Can't parse test score because can't parse to short.");
-					e.printStackTrace();
-				} catch (CourseException e) {
-					System.out.println("Can't parse test score normally. Because " + e.getMessage());
-					e.printStackTrace();
-				}
-				break;
-			case COURSE_TOTAL_SCORE:
-				try {
-					result.setTotalScore(Short.parseShort(cols.get(i).text()));
-				} catch (NumberFormatException e) {
-					System.out.println("Can't parse total score because can't parse to short.");
-					e.printStackTrace();
-				} catch (CourseException e) {
-					System.out.println("Can't parse total score normally. Because " + e.getMessage());
-					e.printStackTrace();
-				}
-				break;
-			case COURSE_ACADEMIC_YEAR:
-				try {
-					result.setYear(Short.parseShort(cols.get(i).text()));
-				} catch (NumberFormatException e) {
-					System.out.println("Can't parse academic year because can't parse to short.");
-					e.printStackTrace();
-				} catch (CourseException e) {
-					System.out.println("Can't parse academic year normally. Because " + e.getMessage());
-					e.printStackTrace();
-				}
-				break;
-			case COURSE_SEMESTER:
-				try{
-					switch(Integer.parseInt(cols.get(i).text())){
-					case 1:result.isFirstSemester(true);break;
-					case 2:result.isFirstSemester(false);break;
-					default:result.isFirstSemester(null);break;
-					}
-				}catch(NumberFormatException e){
-					System.out.println("Can't parse semester because can't parse to int.");
-					e.printStackTrace();
-				}
-				break;
-			case COURSE_KIND:result.setKind(cols.get(i).text().trim());break;
-			case COURSE_GRADE_POINT:
-				listener.onInformation(ParserListener.INFO_SKIP, "忽略绩点："+cols.get(i).text().trim());
-				break;
-			case UNKNOWN_COL:
-			default:listener.onWarn(ParserListener.WARNING_UNKNOWN_COLUMN, "Unknown column: "+cols.get(i).text());break;
+			case Headings.UNKNOWN_COL:
+			default:listener.onWarn(ParserListener.WARNING_UNKNOWN_COLUMN, "未知列: "+cols.get(i).text());break;
 			}
 		}
 		if(rawTime!=null || rawAddress!=null){
@@ -791,6 +714,66 @@ public class SchoolWebpageParser {
 			}
 		}
 		return result;
+	}
+	private String pretreatmentString(int colContent, String rawData){
+		String temp = null;
+		if(colContent == Headings.COURSE_NAME || colContent == Headings.COURSE_TEACHER)
+			temp = ReadPageHelper.trim(rawData);
+		else
+			temp = ReadPageHelper.deleteSpace(rawData);
+		if(temp.length() == 0){
+			listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_STRING_DATA, "数据"+HEADINGS.getString(colContent)+"为空，解析失败。");
+			return null;
+		}
+		else
+			return temp;
+	}
+	private void parseAsString(Course result, int colContent, String rawData){
+		String temp = pretreatmentString(colContent, rawData);
+		if(temp == null)
+			return;
+		switch(colContent){
+		case Headings.COURSE_CODE:result.setCode(temp);break;
+		case Headings.COURSE_NAME:result.setName(temp);break;
+		case Headings.CLASS_NUMBER:result.setClassNumber(temp);break;
+		case Headings.COURSE_TEACHER:result.addTeacher(temp);break;
+		case Headings.COURSE_KIND:result.setKind(temp);break;
+		case Headings.COURSE_SEMESTER:
+			if(temp.equals("1"))
+				result.isFirstSemester(true);
+			else if(temp.equals("2"))
+				result.isFirstSemester(false);
+			else{
+				result.isFirstSemester(null);
+				listener.onWarn(ParserListener.WARNINT_CANNOT_PARSE_SEMESTER, "未知的学期数据"+temp+"，解析学期失败。");
+			}
+			break;
+		default:listener.onWarn(ParserListener.WARNING_UNKNOWN_COLUMN, 
+				"未知的字符串数据项"+colContent+"("+HEADINGS.getString(colContent)+")。");
+		}
+	}
+	private void parseAsNumber(Course result, int colContent, String rawData){
+		String temp = pretreatmentString(colContent, rawData);
+		if(temp == null)
+			return;
+		try{
+			int data = Integer.parseInt(temp);
+			switch(colContent){
+			case Headings.COURSE_CREDIT:result.setCredit(data);break;
+			case Headings.COURSE_TEST_SCORE:result.setTestScore(data);break;
+			case Headings.COURSE_TOTAL_SCORE:result.setTotalScore(data);break;
+			case Headings.COURSE_ACADEMIC_YEAR:result.setYear(data);break;
+			default:listener.onWarn(ParserListener.WARNING_UNKNOWN_COLUMN, 
+					"未知的数字数据项"+colContent+"("+HEADINGS.getString(colContent)+")。");
+			}
+		}catch(NumberFormatException e){
+			listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_NUMBER_DATA, 
+					"不能把字符串数据转换为数字，解析数字数据项"+HEADINGS.getString(colContent)+"失败。详情："+e.getMessage() );
+		}
+		catch (CourseException e) {
+			listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_NUMBER_DATA, 
+					"数据超过合理范围，解析数字数据项"+HEADINGS.getString(colContent)+"失败.详情："+e.getMessage() );
+		}
 	}
 	private static void readTimeAndAddress(Course result, String rawTime, String rawAddress) 
 			throws ParserException, TimeAndAddressException, BitOperateException {
@@ -853,47 +836,10 @@ public class SchoolWebpageParser {
 		for(int i=0;i<cols.size();i++){
 			colName = ReadPageHelper.deleteSpace(cols.get(i).text());
 			//assert colName != null;
-			if("序号".equals(colName))
-				headMap.put(i, SEQUENCE_NUMBER);
-			else if("课程代码".equals(colName))
-				headMap.put(i, COURSE_CODE);
-			else if("课程编码".equals(colName))
-				headMap.put(i, COURSE_CODE);
-			else if("课程名称".equals(colName))
-				headMap.put(i, COURSE_NAME);
-			else if("教学班号".equals(colName))
-				headMap.put(i, CLASS_NUMBER);
-			else if("教师".equals(colName))
-				headMap.put(i, COURSE_TEACHER);
-			else if("学分".equals(colName))
-				headMap.put(i, COURSE_CREDIT);
-			else if("时间".equals(colName))
-				headMap.put(i, COURSE_TIME);
-			else if("地点".equals(colName))
-				headMap.put(i, COURSE_ADDRESS);
-			else if("参考教材".equals(colName))
-				headMap.put(i, COURSE_TEACHING_MATERIAL);
-			//Scores
-			else if("结课考核成绩".equals(colName))
-				headMap.put(i, COURSE_TEST_SCORE);
-			else if("期末总评成绩".equals(colName))
-				headMap.put(i, COURSE_TOTAL_SCORE);
-			else if("成绩".equals(colName))
-				headMap.put(i, COURSE_TOTAL_SCORE);
-			else if("学年".equals(colName))
-				headMap.put(i, COURSE_ACADEMIC_YEAR);
-			else if("学期".equals(colName))
-				headMap.put(i, COURSE_SEMESTER);
-			else if("课程性质".equals(colName))
-				headMap.put(i, COURSE_KIND);
-			else if("绩点".equals(colName))
-				headMap.put(i, COURSE_GRADE_POINT);
-			else
-				headMap.put(i, UNKNOWN_COL);
+			headMap.put(i, HEADINGS.getCode(colName));
 		}
 		return headMap;
 	}
-	
 	public static class ParserException extends Exception{
 		private static final long serialVersionUID = 3737828070910029299L;
 		public ParserException(String message){
@@ -907,13 +853,70 @@ public class SchoolWebpageParser {
 		}
 	}
 	
+	private static final class Headings{
+		private static final int UNKNOWN_COL = -1;
+	    private static final int SEQUENCE_NUMBER = 0;
+	    private static final int COURSE_CODE = 1;
+	    private static final int COURSE_NAME = 2;
+	    private static final int CLASS_NUMBER = 3;
+	    private static final int COURSE_TEACHER = 4;
+	    private static final int COURSE_CREDIT = 5;
+	    private static final int COURSE_TIME = 6;
+	    private static final int COURSE_ADDRESS = 7;
+	    private static final int COURSE_TEACHING_MATERIAL = 8;
+	    //SCORE
+	    private static final int COURSE_TEST_SCORE = 10;
+	    private static final int COURSE_TOTAL_SCORE = 11;
+	    private static final int COURSE_ACADEMIC_YEAR = 12;
+	    private static final int COURSE_SEMESTER = 13;
+	    private static final int COURSE_KIND = 14;
+	    private static final int COURSE_GRADE_POINT = 15;
+		
+	    private static final HashMap<String, Integer> HEADING_STRING2INTEGER = new HashMap<String, Integer>();
+	    public Headings(){
+	    	HEADING_STRING2INTEGER.put("序号",	SEQUENCE_NUMBER);
+	    	HEADING_STRING2INTEGER.put("课程代码",	COURSE_CODE);
+	    	HEADING_STRING2INTEGER.put("课程编码",	COURSE_CODE);
+	    	HEADING_STRING2INTEGER.put("课程名称",	COURSE_NAME);
+	    	HEADING_STRING2INTEGER.put("教学班号",	CLASS_NUMBER);
+	    	HEADING_STRING2INTEGER.put("教师",	COURSE_TEACHER);
+	    	HEADING_STRING2INTEGER.put("学分",	COURSE_CREDIT);
+	    	HEADING_STRING2INTEGER.put("时间",	COURSE_TIME);
+	    	HEADING_STRING2INTEGER.put("地点",	COURSE_ADDRESS);
+	    	HEADING_STRING2INTEGER.put("参考教材",	COURSE_TEACHING_MATERIAL);
+	    	//Scores
+	    	HEADING_STRING2INTEGER.put("结课考核成绩",	COURSE_TEST_SCORE);
+	    	HEADING_STRING2INTEGER.put("期末总评成绩",	COURSE_TOTAL_SCORE);
+	    	HEADING_STRING2INTEGER.put("成绩",		COURSE_TOTAL_SCORE);
+	    	HEADING_STRING2INTEGER.put("学年",		COURSE_ACADEMIC_YEAR);
+	    	HEADING_STRING2INTEGER.put("学期",		COURSE_SEMESTER);
+	    	HEADING_STRING2INTEGER.put("课程性质",		COURSE_KIND);
+	    	HEADING_STRING2INTEGER.put("绩点",		COURSE_GRADE_POINT);
+	    	HEADING_STRING2INTEGER.put("<UNKNOWN_COL>", UNKNOWN_COL);
+	    }
+	    public int getCode(String heading){
+	    	Integer temp = HEADING_STRING2INTEGER.get(heading);
+	    	return temp!=null ? temp:UNKNOWN_COL;
+	    }
+	    public String getString(int headingCode){
+	    	Iterator<Map.Entry<String, Integer>> iter = HEADING_STRING2INTEGER.entrySet().iterator();
+	    	while (iter.hasNext()) {
+	    	    Map.Entry<String, Integer> entry = iter.next();
+	    	    if (entry.getValue().intValue() == headingCode) {
+	    	        return entry.getKey();
+	    	    }
+	    	}
+	    	return "Unkown Code";
+	    }
+	}
+	
 	/**
 	 * 解析监听器，用于返回状体信息，解析进度等。
 	 * @author Bai Jie
 	 */
 	public static interface ParserListener extends Cloneable{
 		/**不能登录*/
-		public static final int ERROR_NULL_POINTER = 1;
+		public static final int NULL_POINTER = 1;
 		public static final int ERROR_CANNOT_LOGIN = 2;
 		public static final int ERROR_IO = 3;
 		public static final int ERROR_UNSUPPORTED_ENCODING = 4;
@@ -922,8 +925,10 @@ public class SchoolWebpageParser {
 		public static final int WARNING_UNKNOWN_COLUMN = 11;
 		public static final int WARNING_CANNOT_PARSE_DATE = 12;
 		public static final int WARNING_CANNOT_PARSE_URL = 13;
-		public static final int WARNING_CANNOT_PARSE_TEACHER = 14;
-		public static final int WARNINT_CANNOT_PARSE_TIME_AND_ADDRESS = 15;
+		public static final int WARNING_CANNOT_PARSE_STRING_DATA = 14;
+		public static final int WARNING_CANNOT_PARSE_NUMBER_DATA = 15;
+		public static final int WARNINT_CANNOT_PARSE_TIME_AND_ADDRESS = 16;
+		public static final int WARNINT_CANNOT_PARSE_SEMESTER = 17;
 		public static final int WARNING_CANNOT_PARSE_STUDENT_INFO = 20;
 		public static final int WARNING_CANNOT_PARSE_STUDENT_BIRTHDAY = 21;
 		public static final int WARNING_CANNOT_PARSE_STUDENT_ADMISSION_TIME = 22;
