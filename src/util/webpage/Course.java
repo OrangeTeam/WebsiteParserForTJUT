@@ -38,7 +38,7 @@ public class Course {
 	private short testScore;
 	/**期末总评成绩*/
 	private short totalScore;
-	/**期末总评成绩*/
+	/**课程性质*/
 	private String kind;
 	
 
