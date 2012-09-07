@@ -290,7 +290,7 @@ public class Course {
 	 */
 	public Course setYear(int year) throws CourseException {
 		if(year<1900 || year>9999)
-			throw new CourseException("Illegal year!");
+			throw new CourseException("Illegal year: "+year);
 		this.year = (short) year;
 		return this;
 	}
@@ -309,7 +309,7 @@ public class Course {
 	}
 	/**
 	 * 取得 结课考核成绩
-	 * @return 结课考核成绩
+	 * @return 结课考核成绩。默认值-1表示未设置
 	 */
 	public short getTestScore() {
 		return testScore;
@@ -321,13 +321,13 @@ public class Course {
 	 */
 	public Course setTestScore(int testScore) throws CourseException {
 		if(testScore<0 || testScore>999)
-			throw new CourseException("Illegel score of test!");
+			throw new CourseException("Illegel score of test: "+testScore);
 		this.testScore = (short) testScore;
 		return this;
 	}
 	/**
 	 * 取得 期末总评成绩
-	 * @return 期末总评成绩
+	 * @return 期末总评成绩。默认值-1表示未设置
 	 */
 	public short getTotalScore() {
 		return totalScore;
@@ -339,10 +339,63 @@ public class Course {
 	 */
 	public Course setTotalScore(int totalScore) throws CourseException {
 		if(totalScore<0 || totalScore>999)
-			throw new CourseException("Illegel final score!");
+			throw new CourseException("Illegel final score: "+totalScore);
 		this.totalScore = (short) totalScore;
 		return this;
 	}
+	/**
+	 * 返回分数score对应的的绩点
+	 * @param score 要计算的分数
+	 * @return 分数score对应的绩点。0-59的绩点为0
+	 * @throws CourseException when score<0 || score>100
+	 */
+	public static float getGradePoint(int score) throws CourseException{
+		if(score<0 || score>100)
+			throw new CourseException("Illegel score: "+score);
+		if(score<60)
+			return 0;
+		else if(score<65)
+			return 1;
+		else if(score<70)
+			return 1.5f;
+		else if(score<75)
+			return 2;
+		else if(score<80)
+			return 2.5f;
+		else if(score<85)
+			return 3;
+		else if(score<90)
+			return 3.5f;
+		else if(score<96)
+			return 4;
+		else
+			return 4.5f;
+	}
+	/**
+	 * 取得绩点。若fromTotalScoreOrTestScore为真，从期末总评成绩计算；否则从结课考核成绩计算
+	 * @param fromTotalScoreOrTestScore 如果是true，从期末总评成绩计算绩点；如果是false，从结课考核成绩计算
+	 * @return 指定成绩的绩点。0-59分的绩点为0
+	 * @throws CourseException 当  尚未设置相关成绩 或者 score<0 || score>100  时
+	 */
+	public float getGradePoint(boolean fromTotalScoreOrTestScore) throws CourseException{
+		short score = -1;
+		if(fromTotalScoreOrTestScore)
+			score = getTotalScore();
+		else
+			score = getTestScore();
+		if(score == -1)
+			throw new CourseException("尚未设置"+(fromTotalScoreOrTestScore?"期末总评成绩":"结课考核成绩"));
+		return getGradePoint(score);
+	}
+	/**
+	 * 取得绩点。根据期末总评成绩计算
+	 * @return 期末总评成绩的绩点。0-59分的绩点为0
+	 * @throws CourseException 当  尚未设置期末总评成绩 或者 score<0 || score>100  时
+	 */
+	public float getGradePoint() throws CourseException{
+		return getGradePoint(true);
+	}
+	
 	/**
 	 * @return the kind
 	 */

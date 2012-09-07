@@ -48,7 +48,9 @@ public class Test {
 		break;
 		case 3:
 			SchoolWebpageParser parser3 = new SchoolWebpageParser(new MyListener(), "20106173", "20106173");
-			System.out.println(parser3.parseScores(Constant.url.个人全部成绩));
+			ArrayList<Course> result3 = parser3.parseScores(Constant.url.个人全部成绩);
+			for(Course course3:result3)
+				System.out.println(course3.getGradePoint() + "\t" + course3.toString());
 		break;
 		default:;
 		}
