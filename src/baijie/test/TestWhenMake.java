@@ -1,8 +1,11 @@
 package baijie.test;
 
+import java.util.ArrayList;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import util.webpage.Course;
 import util.webpage.ReadPageHelper;
 
 public class TestWhenMake {
@@ -12,7 +15,7 @@ public class TestWhenMake {
 	 */
 	public static void main(String[] args) {
 		try{
-			switch(3){
+			switch(4){
 			case 1:
 				ReadPageHelper helper1 = new ReadPageHelper();
 				Document doc1 = helper1.getWithDocument("http://59.67.148.66:8080/view.jsp?id=4002");
@@ -29,6 +32,16 @@ public class TestWhenMake {
 				System.out.println(doc3.select(".content div").html());
 				System.out.println(doc3.baseUri());
 				break;
+			case 4:
+				Course course4 = new Course();
+				ArrayList<String> teachers4 = new ArrayList<String>();
+				teachers4.add("tetew");
+				teachers4.add("45243");
+				course4.setTeachers(teachers4);
+				System.out.println(course4);
+				teachers4.add("jlkjbai");
+//				course4.setTeachers(teachers4);
+				System.out.println(teachers4+"\n"+course4);
 			default:break;
 			}
 		}catch(Exception e){
