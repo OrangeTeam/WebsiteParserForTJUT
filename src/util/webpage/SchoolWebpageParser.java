@@ -530,9 +530,9 @@ public class SchoolWebpageParser {
 	 * @throws IOException 可能是网络异常
 	 */
 	public Post parsePostMainBody(Post target) throws ParserException, IOException{
-		if(target.getSource()==-1 || target.getUrl()==null){
+		if(target.getSource()==Post.SOURCES.UNKNOWN_SOURCE || target.getUrl()==null){
 			this.listener.onError(ParserListener.ERROR_INSUFFICIENT_INFORMATION, "Post的来源或者URL不明，无法解析正文。");
-			throw new ParserException("Post的来源或者URL不明，无法解析正文。"+target.toString());
+			throw new ParserException("Post的来源或者URL不明，无法解析正文。\tPost:"+target.toString());
 		}
 		ReadPageHelper helper = getCurrentHelper();
 		Document doc = null;

@@ -18,6 +18,7 @@ import java.util.TimeZone;
 public class Post implements Cloneable{
 	/**和Post来源相关的常量*/
 	public static final class SOURCES{
+		public static final int UNKNOWN_SOURCE = -1;
 		public static final int WEBSITE_OF_TEACHING_AFFAIRS = 1;
 		public static final int WEBSITE_OF_SCCE = 2;
 		public static final int STUDENT_WEBSITE_OF_SCCE = 3;
@@ -64,23 +65,23 @@ public class Post implements Cloneable{
 	
 
 	/**来源，见{@link Post.SOURCES}*/
-	int source;
+	private int source;
 	/**类别，见{@link Post.CATEGORYS}*/
-	String category;
+	private String category;
 	/**标题*/
-	String title;
+	private String title;
 	/**统一资源定位符*/
-	String url;
+	private String url;
 	/**正文*/
-	String mainBody;
+	private String mainBody;
 	/**作者/发布者*/
-	String author;
+	private String author;
 	/**发布日期*/
-	Date date;
+	private Date date;
 
 	public Post() {
 		super();
-		source = -1; 
+		source = SOURCES.UNKNOWN_SOURCE; 
 		title = url = mainBody = category = null;
 		date = new Date(0);
 	}
@@ -132,7 +133,7 @@ public class Post implements Cloneable{
 		}
 	}
 	/**
-	 * @param source 来源，请用{@link Post.SOURCES}中的常量
+	 * @param source 来源，请一定用{@link Post.SOURCES}中的常量
 	 */
 	public Post setSource(int source) {
 		this.source = source;
@@ -145,7 +146,7 @@ public class Post implements Cloneable{
 		return category;
 	}
 	/**
-	 * @param category 类别，请用{@link Post.CATEGORYS}中的常量
+	 * @param category 类别，请一定用{@link Post.CATEGORYS}中的常量
 	 */
 	public Post setCategory(String category) {
 		this.category = category;
@@ -278,7 +279,7 @@ public class Post implements Cloneable{
 	@Override
 	public String toString(){
 		return getSourceString()+"\t"+getCategory()+"\t"+getTitle()+"\t"+getUrl()+"\t"
-				+getAuthor()+"\t"+getDateString();
+				+getAuthor()+"\t"+getDateString()+"\n"+getMainBody();
 	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#clone()

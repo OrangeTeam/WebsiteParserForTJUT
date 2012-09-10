@@ -55,14 +55,18 @@ public class Test {
 		break;
 		case 4:
 			SchoolWebpageParser parser4 = new SchoolWebpageParser(new MyListener());
-			ArrayList<Post> result4 = parser4.parsePosts(Post.SOURCES.STUDENT_WEBSITE_OF_SCCE, Post.CATEGORYS.SCCE_STUDENT_NEWS, null, null, 10);
-			System.out.println(parser4.parsePostMainBody(result4.get(2)).getMainBody());
+			ArrayList<Post> result4 = parser4.parsePosts(Post.SOURCES.STUDENT_WEBSITE_OF_SCCE, null, null, 10);
+			for(Post post4:result4)
+				System.out.println(parser4.parsePostMainBody(post4)+"\n");
+			System.out.println(parser4.parsePostMainBody(new Post()));
 		break;
 		default:;
 		}
 		}catch(Exception e){
-			System.out.println(e.getMessage());
+			System.err.println("------------------Start catch------------------");
+			System.err.println(e.getMessage());
 			e.printStackTrace();
+			System.err.println("------------------End catch------------------");
 		}
 	}
 	
