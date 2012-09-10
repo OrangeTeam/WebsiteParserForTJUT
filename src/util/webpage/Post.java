@@ -16,6 +16,7 @@ import java.util.TimeZone;
  *
  */
 public class Post implements Cloneable{
+	/**和Post来源相关的常量*/
 	public static final class SOURCES{
 		public static final int WEBSITE_OF_TEACHING_AFFAIRS = 1;
 		public static final int WEBSITE_OF_SCCE = 2;
@@ -23,6 +24,7 @@ public class Post implements Cloneable{
 		public static final String NOTICES_IN_SCCE_URL = "http://59.67.152.3/wnoticemore.aspx";
 		public static final String NEWS_IN_SCCE_URL = "http://59.67.152.3/wnewmore.aspx";
 	}
+	/**和Post类别相关的常量*/
 	public static final class CATEGORYS{
 		public static final String TEACHING_AFFAIRS_NOTICES = "重要通知";
 		public static final String TEACHING_AFFAIRS_COURSE_SELECTION = "选课相关通知";
@@ -61,25 +63,35 @@ public class Post implements Cloneable{
 	}
 	
 
+	/**来源，见{@link Post.SOURCES}*/
 	int source;
+	/**类别，见{@link Post.CATEGORYS}*/
 	String category;
+	/**标题*/
 	String title;
+	/**统一资源定位符*/
 	String url;
+	/**正文*/
+	String mainBody;
+	/**作者/发布者*/
 	String author;
+	/**发布日期*/
 	Date date;
 
 	public Post() {
 		super();
 		source = -1; 
-		title = url = category = null;
+		title = url = mainBody = category = null;
 		date = new Date(0);
 	}
-	public Post(int source, String category, String title, String url, String author, String date) {
+	/**全参构造方法*/
+	public Post(int source, String category, String title, String url, String mainBody, String author, String date) {
 		this();
 		this.source = source;
 		this.category = category;
 		this.title = title;
 		this.url = url;
+		this.mainBody = mainBody;
 		this.author = author;
 		try {
 			setDate(date);
@@ -89,25 +101,27 @@ public class Post implements Cloneable{
 			e.printStackTrace();
 		}
 	}
+	/**拷贝构造方法*/
 	public Post(Post src){
 		this();
 		this.source = src.source;
 		this.category = src.category;
 		this.title = src.title;
 		this.url = src.url;
+		this.mainBody = src.mainBody;
 		this.author = src.author;
 		this.date = (Date) src.date.clone();
 	}
 	
 	/**
-	 * @return the source
+	 * @return 来源，参见{@link Post.SOURCES}
 	 */
 	public int getSource() {
 		return source;
 	}
 	/**
 	 * 以字符串形式返回通知源
-	 * @return 类似“教务处”的字符串
+	 * @return 类似“教务处”的字符串，参见{@link Post.SOURCES}
 	 */
 	public String getSourceString(){
 		switch(source){
@@ -118,73 +132,87 @@ public class Post implements Cloneable{
 		}
 	}
 	/**
-	 * @param source the source to set
+	 * @param source 来源，请用{@link Post.SOURCES}中的常量
 	 */
 	public Post setSource(int source) {
 		this.source = source;
 		return this;
 	}
 	/**
-	 * @return the category
+	 * @return 类别，参见{@link Post.CATEGORYS}
 	 */
 	public String getCategory() {
 		return category;
 	}
 	/**
-	 * @param category the category to set
+	 * @param category 类别，请用{@link Post.CATEGORYS}中的常量
 	 */
 	public Post setCategory(String category) {
 		this.category = category;
 		return this;
 	}
 	/**
-	 * @return the title
+	 * @return 标题
 	 */
 	public String getTitle() {
 		return title;
 	}
 	/**
-	 * @param title the title to set
+	 * @param title 标题
 	 */
 	public Post setTitle(String title) {
 		this.title = title;
 		return this;
 	}
 	/**
-	 * @return the url
+	 * @return the URL
 	 */
 	public String getUrl() {
 		return url;
 	}
 	/**
-	 * @param url the url to set
+	 * @param url the URL to set
 	 */
 	public Post setUrl(String url) {
 		this.url = url;
 		return this;
 	}
 	/**
-	 * @return the author
+	 * @return 正文（包括HTML标签）
+	 */
+	public String getMainBody() {
+		return mainBody;
+	}
+	/**
+	 * @param mainBody 正文
+	 */
+	public Post setMainBody(String mainBody) {
+		this.mainBody = mainBody;
+		return this;
+	}
+	/**
+	 * @return 作者/发布者
 	 */
 	public String getAuthor() {
 		return author;
 	}
 	/**
-	 * @param author the author to set
+	 * @param author 作者/发布者
 	 */
 	public Post setAuthor(String author) {
 		this.author = author;
 		return this;
 	}
 	/**
-	 * 对返回时间的修改不会影响本对象（只读）
-	 * @return the date
+	 * 取得发布日期。对返回时间的修改不会影响本对象（只读）
+	 * @return 发布日期
 	 */
 	public Date getDate() {
 		return (Date)date.clone();
 	}
 	/**
-	 * @param date the date to set
+	 * 设置发布日期。将来对参数date的修改不会影响本对象（拷贝参数date）
+	 * @param date 发布日期
 	 */
 	public Post setDate(Date date) {
 		if(date == null)
