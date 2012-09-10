@@ -521,6 +521,60 @@ public class SchoolWebpageParser {
 		}
 		return result;
 	}
+	/**
+	 * 解析通知正文，解析结果为完整的HTML文档，保存在target中。根据target中来源、URL、标题解析。<br />
+	 * <strong>注：</strong>target中的来源和URL必须有效。
+	 * @param target 要解析的Post
+	 * @return 为方便使用，返回target
+	 * @throws ParserException Post的来源或者URL无效
+	 * @throws IOException 可能是网络异常
+	 */
+	public Post parsePostMainBody(Post target) throws ParserException, IOException{
+		if(target.getSource()==-1 || target.getUrl()==null){
+			this.listener.onError(ParserListener.ERROR_INSUFFICIENT_INFORMATION, "Post的来源或者URL不明，无法解析正文。");
+			throw new ParserException("Post的来源或者URL不明，无法解析正文。"+target.toString());
+		}
+		ReadPageHelper helper = getCurrentHelper();
+		Document doc = null;
+		String rawMainBody;
+		final String format = 
+				"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n" +
+				"\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n" +
+				"<html xmlns='http://www.w3.org/1999/xhtml'>\n\t<head>\n" +
+				"\t\t<meta  http-equiv='Content-Type' content='text/html; charset=UTF-16' />\n" +
+				"\t\t<base href='%s' />\n" +
+				"\t\t<title>%s</title>\n" +
+				"\t</head>\n" +
+				"\t<body>\n" +
+				"\t\t%s\n" +
+				"\t</body>\n" +
+				"</html>";
+		try{
+			switch(target.getSource()){
+			case Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS:
+				doc = helper.getWithDocument(target.getUrl());
+				rawMainBody = doc.select("table tr:eq(2) table td:eq(1) table table tr:eq(4) td").html();
+				break;
+			case Post.SOURCES.WEBSITE_OF_SCCE:
+				doc = helper.getWithDocumentForParsePostsFromSCCE(target.getUrl());
+				rawMainBody = doc.select("#Label2").html();
+				break;
+			case Post.SOURCES.STUDENT_WEBSITE_OF_SCCE:
+				doc = helper.getWithDocumentForParsePostsFromSCCE(target.getUrl());
+				rawMainBody = doc.select(".content div").html();
+				break;
+			default:
+				rawMainBody = "未知来源。若看到此信息说明程序异常，请联系开发组。";
+				break;
+			}
+		}catch(IOException e){
+			this.listener.onError(ParserListener.ERROR_IO, "遇到IO。请检查网络连接。详情："+e.getMessage());
+			throw e;
+		}
+		rawMainBody = String.format(format, doc.baseUri(), target.getTitle(), rawMainBody);
+		target.setMainBody(rawMainBody);
+		return target;
+	}
 	
 	private ReadPageHelper getCurrentHelperAfterLogin() throws ParserException, IOException{
 		ReadPageHelper readHelper = getCurrentHelper();
@@ -915,12 +969,12 @@ public class SchoolWebpageParser {
 	 * @author Bai Jie
 	 */
 	public static interface ParserListener extends Cloneable{
-		/**不能登录*/
 		public static final int NULL_POINTER = 1;
 		public static final int ERROR_CANNOT_LOGIN = 2;
 		public static final int ERROR_IO = 3;
 		public static final int ERROR_UNSUPPORTED_ENCODING = 4;
 		public static final int ERROR_CANNOT_PARSE_TABLE_HEADING = 5;
+		public static final int ERROR_INSUFFICIENT_INFORMATION = 6;
 		public static final int WARNING_CANNOT_PARSE_PAGE = 10;
 		public static final int WARNING_UNKNOWN_COLUMN = 11;
 		public static final int WARNING_CANNOT_PARSE_DATE = 12;

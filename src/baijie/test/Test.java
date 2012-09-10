@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import util.webpage.Constant;
 import util.webpage.Course;
+import util.webpage.Post;
 import util.webpage.SchoolWebpageParser;
 import util.webpage.SchoolWebpageParser.ParserListener;
 import util.webpage.SchoolWebpageParser.ParserListenerAdapter;
@@ -16,7 +17,7 @@ public class Test {
 	 */
 	public static void main(String[] args) {
 		try{
-		switch(3){
+		switch(4){
 		case 1:
 			SchoolWebpageParser parser1 = new SchoolWebpageParser();
 			parser1.setUser("20106173", "20106173");
@@ -51,6 +52,11 @@ public class Test {
 			ArrayList<Course> result3 = parser3.parseScores(Constant.url.个人全部成绩);
 			for(Course course3:result3)
 				System.out.println(course3.getGradePoint() + "\t" + course3.toString());
+		break;
+		case 4:
+			SchoolWebpageParser parser4 = new SchoolWebpageParser(new MyListener());
+			ArrayList<Post> result4 = parser4.parsePosts(Post.SOURCES.STUDENT_WEBSITE_OF_SCCE, Post.CATEGORYS.SCCE_STUDENT_NEWS, null, null, 10);
+			System.out.println(parser4.parsePostMainBody(result4.get(2)).getMainBody());
 		break;
 		default:;
 		}
