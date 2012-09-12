@@ -900,10 +900,13 @@ public class SchoolWebpageParser {
 			super(message + " @SchoolWebpageParser");
 		}
 		public ParserException(){
-			this("encounter Exception when parse school page.");
+			super("encounter Exception when parse school page.");
+		}
+		public ParserException(String message, Throwable cause) {
+			super(message + " @SchoolWebpageParser", cause);
 		}
 		public ParserException(Throwable cause){
-			super(cause);
+			super("encounter Exception when parse school page.", cause);
 		}
 	}
 	

@@ -349,8 +349,11 @@ public class Student implements Cloneable {
 		public StudentException(String m){
 			super(m);
 		}
+		public StudentException(String message, Throwable cause) {
+			super(message, cause);
+		}
 		public StudentException(Throwable cause){
-			super(cause);
+			super("Encounter exception in Student.", cause);
 		}
 	}
 }

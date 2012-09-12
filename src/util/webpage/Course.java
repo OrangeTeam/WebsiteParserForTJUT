@@ -513,6 +513,12 @@ public class Course {
 		public CourseException(){
 			super("Encounter exception in Course class");
 		}
+		public CourseException(String message, Throwable cause) {
+			super(message, cause);
+		}
+		public CourseException(Throwable cause) {
+			super("Encounter exception in Course class", cause);
+		}
 	}
 
 
@@ -1046,6 +1052,12 @@ public class Course {
 			}
 			public TimeAndAddressException(){
 				super("Encounter Exception in class TimeAndAddress.");
+			}
+			public TimeAndAddressException(String message, Throwable cause) {
+				super(message, cause);
+			}
+			public TimeAndAddressException(Throwable cause) {
+				super("Encounter Exception in class TimeAndAddress.", cause);
 			}
 		}
 	}
