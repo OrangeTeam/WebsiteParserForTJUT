@@ -15,10 +15,13 @@ import java.util.TimeZone;
  *
  */
 public class Student implements Cloneable {
+	/**学号*/
 	String number;
+	/**姓名*/
 	String name;
 	/**性别 。true表示男，false表示女，null表示未知*/
 	Boolean isMale;
+	/**生日*/
 	Date birthday;
 	/**入学时间*/
 	Date admissionTime;
@@ -26,7 +29,9 @@ public class Student implements Cloneable {
 	byte academicPeriod;
 	/**学院名称*/
 	String schoolName;
+	/**专业名称*/
 	String majorName;
+	/**班级名称*/
 	String className;
 
 	public Student(){
@@ -98,6 +103,10 @@ public class Student implements Cloneable {
 	public Boolean isMale() {
 		return isMale;
 	}
+	/**
+	 * 取得性别
+	 * @return 男 or 女 or 不明
+	 */
 	public String getGender(){
 		if(this.isMale == null)
 			return "不明";
@@ -119,34 +128,62 @@ public class Student implements Cloneable {
 	public Date getBirthday() {
 		return (Date) birthday.clone();
 	}
+	/**
+	 * 取得生日字符串
+	 * @return 生日。类似2012-07-16的字符串 
+	 * @see #getDateString(Date date)
+	 * @see #getDateString(Date date, String delimiter)
+	 */
 	public String getBirthdayString(){
 		return getDateString(this.birthday);
 	}
 	/**
+	 * 设置生日
 	 * @param birthday 生日
 	 */
 	public Student setBirthday(Date birthday) {
 		this.birthday = (Date) birthday.clone();
 		return this;
 	}
+	/**
+	 * 设置生日。（参数依据中华人民共和国地区设置）
+	 * @param birthday 生日。类似2012-07-16或2012-07-16的字符串
+	 * @throws ParseException if the beginning of the specified string cannot be parsed.
+	 * @see #convertToDate(String date)
+	 */
 	public Student setBirthday(String birthday) throws ParseException{
 		this.birthday = convertToDate(birthday);
 		return this;
 	}
+	/**
+	 * 设置生日。（参数依据东8时区及中华人民共和国区域设置）
+	 * @param year 年
+	 * @param month 月
+	 * @param date 日
+	 * @see #convertToDate(int year, int month, int date)
+	 */
 	public Student setBirthday(int year, int month, int date){
 		this.birthday = convertToDate(year, month, date);
 		return this;
 	}
 	/**
+	 * 设置入学时间
 	 * @return 入学时间
 	 */
 	public Date getAdmissionTime() {
 		return (Date) admissionTime.clone();
 	}
+	/**
+	 * 取得入学时间。
+	 * @return 入学时间。类似2012-07-16的字符串
+	 * @see #getDateString(Date date)
+	 * @see #getDateString(Date date, String delimiter)
+	 */
 	public String getAdmissionTimeString(){
 		return getDateString(this.admissionTime);
 	}
 	/**
+	 * 设置入学时间。
 	 * @param admissionTime 入学时间
 	 */
 	public Student setAdmissionTime(Date admissionTime) {
@@ -154,12 +191,22 @@ public class Student implements Cloneable {
 		return this;
 	}
 	/**
-	 * @param admissionTime 入学时间
+	 * 设置入学时间。（参数依据中华人民共和国地区设置）
+	 * @param admissionTime 入学时间。类似2012-07-16或2012-07-16的字符串
+	 * @throws ParseException if the beginning of the specified string cannot be parsed.
+	 * @see #convertToDate(String date)
 	 */
 	public Student setAdmissionTime(String admissionTime) throws ParseException{
 		this.admissionTime = convertToDate(admissionTime);
 		return this;
 	}
+	/**
+	 * 设置入学时间。（参数依据东8时区及中华人民共和国区域设置）
+	 * @param year 年
+	 * @param month 月
+	 * @param date 日
+	 * @see #convertToDate(int year, int month, int date)
+	 */
 	public Student setAdmissionTime(int year, int month, int date){
 		this.admissionTime = convertToDate(year, month, date);
 		return this;
@@ -220,7 +267,7 @@ public class Student implements Cloneable {
 		return this;
 	}
 	/**
-	 * @return 免冠头像照片的URL。如果没有设置number，返回null
+	 * @return 免冠头像照片的URL。如果没有设置{@link #number}，返回null
 	 */
 	public String getUrlOfFacedPhoto(){
 		if(this.number == null)
@@ -228,12 +275,27 @@ public class Student implements Cloneable {
 		else
 			return "http://59.67.148.66/cet46/photo/apply/"+number+".jpg";
 	}
-	
-
+	/**
+	 * 把类似2012-07-16或2012-7-16的字符串，依据中华人民共和国地区设置，解析为Date
+	 * @param date 要被解析的日期。类似2012-07-16或2012-07-16的字符串
+	 * @return 日期解析后的Date对象
+	 * @throws ParseException if the beginning of the specified string cannot be parsed.
+	 * @see SimpleDateFormat
+	 * @see Date
+	 */
 	public static Date convertToDate(String date) throws ParseException{
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.PRC);
 		return dateFormat.parse(date);
 	}
+	/**
+	 * 依据指定年、月、日，以东8时区及中华人民共和国区域设置，生成相应Date对象
+	 * @param year 年
+	 * @param month 月
+	 * @param date 日
+	 * @return 对应日期的Date对象
+	 * @see Calendar
+	 * @see Date
+	 */
 	public static Date convertToDate(int year, int month, int date){
 		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+08"), Locale.PRC);
 		calendar.clear();
@@ -242,6 +304,7 @@ public class Student implements Cloneable {
 	}
 	/**
 	 * 以字符串显示日期，用指定的分隔符（YYYY(delimiter)MM(delimiter)DD）
+	 * @param date 日期
 	 * @param delimiter 日期分隔符
 	 * @return 类似2012(delimiter)07(delimiter)16的字符串
 	 */
