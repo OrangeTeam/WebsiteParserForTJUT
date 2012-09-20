@@ -17,7 +17,7 @@ public class Test {
 	 */
 	public static void main(String[] args) {
 		try{
-		switch(4){
+		switch(5){
 		case 1:
 			SchoolWebpageParser parser1 = new SchoolWebpageParser();
 			parser1.setUser("20106173", "20106173");
@@ -59,6 +59,14 @@ public class Test {
 			for(Post post4:result4)
 				System.out.println(parser4.parsePostMainBody(post4)+"\n");
 			System.out.println(parser4.parsePostMainBody(new Post()));
+		break;
+		case 5:
+			SchoolWebpageParser parser5 = new SchoolWebpageParser(new MyListener());
+			String[] categories = new String[]{Post.CATEGORYS.IN_SCCE[4],Post.CATEGORYS.IN_TEACHING_AFFAIRS_WEBSITE[4],
+					Post.CATEGORYS.IN_STUDENT_WEBSITE_OF_SCCE[4]};
+			ArrayList<Post> result5 = parser5.parsePosts(categories, null, null, -1);
+			for(Post post:result5)
+				System.out.println(post);
 		break;
 		default:;
 		}
