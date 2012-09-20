@@ -64,9 +64,10 @@ public class Test {
 			SchoolWebpageParser parser5 = new SchoolWebpageParser(new MyListener());
 			String[] categories = new String[]{Post.CATEGORYS.IN_SCCE[4],Post.CATEGORYS.IN_TEACHING_AFFAIRS_WEBSITE[4],
 					Post.CATEGORYS.IN_STUDENT_WEBSITE_OF_SCCE[4]};
-			ArrayList<Post> result5 = parser5.parsePosts(categories, null, null, -1);
+			ArrayList<Post> result5 = parser5.parsePostsFromSCCEStudent(Post.CATEGORYS.IN_STUDENT_WEBSITE_OF_SCCE[5], null, null, 1);
 			for(Post post:result5)
 				System.out.println(post);
+			System.out.println(result5.size()+" 条");
 		break;
 		default:;
 		}
