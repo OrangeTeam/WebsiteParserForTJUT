@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import util.webpage.Constant;
 import util.webpage.Course;
 import util.webpage.Post;
+import util.webpage.ReadPageHelper;
 import util.webpage.SchoolWebpageParser;
 import util.webpage.SchoolWebpageParser.ParserListener;
 import util.webpage.SchoolWebpageParser.ParserListenerAdapter;
@@ -62,12 +63,16 @@ public class Test {
 		break;
 		case 5:
 			SchoolWebpageParser parser5 = new SchoolWebpageParser(new MyListener());
+			MyOnReadPageHelper onReadPageHelper = new MyOnReadPageHelper();
+			parser5.setOnReadPageListener(onReadPageHelper);
 			String[] categories = new String[]{Post.CATEGORYS.IN_SCCE[4],Post.CATEGORYS.IN_TEACHING_AFFAIRS_WEBSITE[4],
 					Post.CATEGORYS.IN_STUDENT_WEBSITE_OF_SCCE[4]};
-			ArrayList<Post> result5 = parser5.parsePostsFromSCCEStudent(Post.CATEGORYS.IN_STUDENT_WEBSITE_OF_SCCE[5], null, null, 1);
-			for(Post post:result5)
-				System.out.println(post);
-			System.out.println(result5.size()+" 条");
+			ArrayList<Post> result5 = null;
+//			result5 = parser5.parsePostsFromSCCEStudent(Post.CATEGORYS.IN_STUDENT_WEBSITE_OF_SCCE[5], null, null, 1);
+			result5 = parser5.parsePosts(null, null, -1); 
+//			for(Post post:result5)
+//				System.out.println(post);
+			System.out.println("共 "+result5.size()+" 条， "+onReadPageHelper.pageNumber+" 页 "+onReadPageHelper.totalSize/1024.0/1024+" MB");
 		break;
 		default:;
 		}
@@ -79,6 +84,20 @@ public class Test {
 		}
 	}
 	
+	private static class MyOnReadPageHelper implements ReadPageHelper.OnReadPageListener{
+		int totalSize = 0;
+		int pageNumber = 0;
+
+		@Override
+		public void onGet(String url, int statusCode, String statusMessage,
+				int pageSize) {
+			System.out.println("URL: "+url+"\nStatus Code: "+statusCode+"\tStatusMessage: "
+					+statusMessage+"\t Page Size: "+pageSize);
+			totalSize+=pageSize;
+			pageNumber++;
+		}
+		
+	}
 	private static class MyListener extends ParserListenerAdapter{
 		public MyListener(){
 			super();
