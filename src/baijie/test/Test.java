@@ -18,11 +18,11 @@ public class Test {
 	 */
 	public static void main(String[] args) {
 		try{
-		switch(5){
+		switch(1){
 		case 1:
 			SchoolWebpageParser parser1 = new SchoolWebpageParser();
 			parser1.setUser("20106173", "20106173");
-			ArrayList<Course> result1 = parser1.parseCourse(Constant.url.本学期修读课程);
+			ArrayList<Course> result1 = parser1.parseScores(Constant.url.已选下学期课程);
 			if(result1.isEmpty())
 				System.out.println("result1 is empty!");
 			else
