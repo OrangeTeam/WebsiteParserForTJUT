@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import util.webpage.Constant;
 import util.webpage.Course;
 import util.webpage.ReadPageHelper;
 
@@ -15,7 +16,7 @@ public class TestWhenMake {
 	 */
 	public static void main(String[] args) {
 		try{
-			switch(4){
+			switch(5){
 			case 1:
 				ReadPageHelper helper1 = new ReadPageHelper();
 				Document doc1 = helper1.getWithDocument("http://59.67.148.66:8080/view.jsp?id=4002");
@@ -42,6 +43,16 @@ public class TestWhenMake {
 				teachers4.add("jlkjbai");
 //				course4.setTeachers(teachers4);
 				System.out.println(teachers4+"\n"+course4);
+				break;
+			case 5:
+				ReadPageHelper helper5 = new ReadPageHelper("20106173", "20106173");
+				helper5.setCharset("GB2312");
+				if(helper5.doLogin()){
+					Document result5 = helper5.getWithDocument(Constant.url.本学期修读课程);
+					System.out.println(result5.html());
+				}else
+					System.out.println("登录失败！");
+				break;
 			default:break;
 			}
 		}catch(Exception e){

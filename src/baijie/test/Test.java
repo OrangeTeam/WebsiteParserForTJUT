@@ -22,8 +22,11 @@ public class Test {
 		case 1:
 			SchoolWebpageParser parser1 = new SchoolWebpageParser();
 			parser1.setUser("20106173", "20106173");
-			ArrayList<Course> result1 = parser1.parseCourse(Constant.url.已选下学期课程);
-			System.out.println(result1);
+			ArrayList<Course> result1 = parser1.parseCourse(Constant.url.本学期修读课程);
+			if(result1.isEmpty())
+				System.out.println("result1 is empty!");
+			else
+				System.out.println(result1);
 		break;
 		case 2:
 			ParserListener listener2 = new ParserListenerAdapter(){
