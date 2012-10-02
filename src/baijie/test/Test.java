@@ -21,6 +21,7 @@ public class Test {
 		switch(1){
 		case 1:
 			SchoolWebpageParser parser1 = new SchoolWebpageParser();
+			parser1.setOnReadPageListener(new MyOnReadPageHelper());
 			parser1.setUser("20106173", "20106173");
 			ArrayList<Course> result1 = parser1.parseScores(Constant.url.已选下学期课程);
 			if(result1.isEmpty())
@@ -68,8 +69,8 @@ public class Test {
 			SchoolWebpageParser parser5 = new SchoolWebpageParser(new MyListener());
 			MyOnReadPageHelper onReadPageHelper = new MyOnReadPageHelper();
 			parser5.setOnReadPageListener(onReadPageHelper);
-			String[] categories = new String[]{Post.CATEGORYS.IN_SCCE[4],Post.CATEGORYS.IN_TEACHING_AFFAIRS_WEBSITE[4],
-					Post.CATEGORYS.IN_STUDENT_WEBSITE_OF_SCCE[4]};
+//			String[] categories = new String[]{Post.CATEGORYS.IN_SCCE[4],Post.CATEGORYS.IN_TEACHING_AFFAIRS_WEBSITE[4],
+//					Post.CATEGORYS.IN_STUDENT_WEBSITE_OF_SCCE[4]};
 			ArrayList<Post> result5 = null;
 //			result5 = parser5.parsePostsFromSCCEStudent(Post.CATEGORYS.IN_STUDENT_WEBSITE_OF_SCCE[5], null, null, 1);
 			result5 = parser5.parsePosts(null, null, -1); 
@@ -92,14 +93,12 @@ public class Test {
 		int pageNumber = 0;
 
 		@Override
-		public void onGet(String url, int statusCode, String statusMessage,
-				int pageSize) {
+		public void onRequest(String url, int statusCode, String statusMessage, int pageSize){
 			System.out.println("URL: "+url+"\nStatus Code: "+statusCode+"\tStatusMessage: "
 					+statusMessage+"\t Page Size: "+pageSize);
 			totalSize+=pageSize;
 			pageNumber++;
 		}
-		
 	}
 	private static class MyListener extends ParserListenerAdapter{
 		public MyListener(){
