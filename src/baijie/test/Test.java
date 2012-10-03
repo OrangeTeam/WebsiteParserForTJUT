@@ -1,6 +1,5 @@
 package baijie.test;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import util.webpage.Constant;
@@ -24,7 +23,7 @@ public class Test {
 			SchoolWebpageParser parser1 = new SchoolWebpageParser();
 			parser1.setOnReadPageListener(new MyOnReadPageHelper());
 			parser1.setUser("20106173", "20106173");
-			ArrayList<Course> result1 = parser1.parseScores(Constant.url.已选下学期课程);
+			List<Course> result1 = parser1.parseScores(Constant.url.已选下学期课程);
 			if(result1.isEmpty())
 				System.out.println("result1 is empty!");
 			else
@@ -55,7 +54,7 @@ public class Test {
 		break;
 		case 3:
 			SchoolWebpageParser parser3 = new SchoolWebpageParser(new MyListener(), "20106173", "20106173");
-			ArrayList<Course> result3 = parser3.parseScores(Constant.url.个人全部成绩);
+			List<Course> result3 = parser3.parseScores(Constant.url.个人全部成绩);
 			for(Course course3:result3)
 				System.out.println(course3.getGradePoint() + "\t" + course3.toString());
 		break;
