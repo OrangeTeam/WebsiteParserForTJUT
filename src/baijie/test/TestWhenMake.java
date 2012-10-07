@@ -1,7 +1,12 @@
 package baijie.test;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
+import org.jsoup.HttpStatusException;
+import org.jsoup.Jsoup;
+import org.jsoup.Connection.Method;
+import org.jsoup.Connection.Response;
 import org.jsoup.nodes.Document;
 
 import util.webpage.Constant;
@@ -15,7 +20,7 @@ public class TestWhenMake {
 	 */
 	public static void main(String[] args) {
 		try{
-			switch(5){
+			switch(7){
 			case 1:
 				ReadPageHelper helper1 = new ReadPageHelper();
 				Document doc1 = helper1.getWithDocument("http://59.67.148.66:8080/view.jsp?id=4002");
@@ -44,7 +49,7 @@ public class TestWhenMake {
 				System.out.println(teachers4+"\n"+course4);
 				break;
 			case 5:
-				ReadPageHelper helper5 = new ReadPageHelper("20106173", "20106173");
+				ReadPageHelper helper5 = new ReadPageHelper("20106173", "2010617");
 				helper5.setCharset("GB2312");
 				if(helper5.doLogin()){
 					Document result5 = helper5.getWithDocument(Constant.url.本学期修读课程);
@@ -52,12 +57,35 @@ public class TestWhenMake {
 				}else
 					System.out.println("登录失败！");
 				break;
+			case 6:
+				doLogin(Constant.url.LOGIN_PAGE);
+				break;
+			case 7:
+				ReadPageHelper helper7 = new ReadPageHelper();
+				helper7.setUser("20106173", "20106173");
+				System.out.println(helper7.doLogin());
+				break;
 			default:break;
 			}
+		}catch(HttpStatusException e){
+			e.printStackTrace();
+		}catch(IOException e){
+			e.printStackTrace();
 		}catch(Exception e){
 			System.err.println(e.getMessage());
 			e.printStackTrace();
 		}
 
+	}
+
+	public static boolean doLogin(String loginPageURL) throws IOException{
+		Response res = Jsoup
+				.connect(loginPageURL).followRedirects(false)
+				.data("name","2010617","pswd", "20106173")
+				.method(Method.POST).execute();
+		System.err.println(""+loginPageURL+res.statusCode()+res.statusMessage()+res.bodyAsBytes().length);
+
+		//System.out.println(res.body());
+		return false;
 	}
 }
