@@ -16,8 +16,8 @@ public class TestHessianGetter {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		String url = "http://baijie1991-hrd.appspot.com/getter";
-		int maxAttempts = 7;
+		String url = "http://schoolwebpageparser.appspot.com/getter";
+		int maxAttempts = 10;
 		int timeout = 2000;
 //		String url = "http://localhost:8888/getter";
 		
