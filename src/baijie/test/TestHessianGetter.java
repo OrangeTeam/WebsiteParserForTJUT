@@ -8,7 +8,7 @@ import util.webpage.Post;
 
 import com.caucho.hessian.client.HessianProxyFactory;
 import com.caucho.hessian.client.HessianRuntimeException;
-import com.caucho.hessian.client.MyHessianURLConnectionFactory;
+import com.caucho.hessian.client.MyHessianSocketConnectionFactory;
 
 public class TestHessianGetter {
 
@@ -22,10 +22,10 @@ public class TestHessianGetter {
 //		String url = "http://localhost:8888/getter";
 		
 		HessianProxyFactory factory = new HessianProxyFactory();
-		MyHessianURLConnectionFactory mHessianURLConnectionFactory =
-				new MyHessianURLConnectionFactory();
-		mHessianURLConnectionFactory.setHessianProxyFactory(factory);
-		factory.setConnectionFactory(mHessianURLConnectionFactory);
+		MyHessianSocketConnectionFactory mHessianSocketConnectionFactory =
+				new MyHessianSocketConnectionFactory();
+		mHessianSocketConnectionFactory.setHessianProxyFactory(factory);
+		factory.setConnectionFactory(mHessianSocketConnectionFactory);
 		factory.setConnectTimeout(timeout);
 		GetterInterface getter;
 		for(int counter = 1;counter <= maxAttempts;counter++){
