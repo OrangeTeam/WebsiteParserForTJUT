@@ -18,7 +18,7 @@ public class TestHessianGetter {
 	public static void main(String[] args) {
 		String url = "http://schoolwebpageparser.appspot.com/getter";
 		int maxAttempts = 10;
-		int timeout = 2000;
+		int timeout = 1000;
 //		String url = "http://localhost:8888/getter";
 		
 		HessianProxyFactory factory = new HessianProxyFactory();
@@ -26,6 +26,7 @@ public class TestHessianGetter {
 				new MyHessianSocketConnectionFactory();
 		mHessianSocketConnectionFactory.setHessianProxyFactory(factory);
 		factory.setConnectionFactory(mHessianSocketConnectionFactory);
+
 		factory.setConnectTimeout(timeout);
 		GetterInterface getter;
 		for(int counter = 1;counter <= maxAttempts;counter++){
@@ -36,9 +37,11 @@ public class TestHessianGetter {
 				System.out.println(getter.getPosts(Post.convertToDate(2012, 10, 1), null, -1));
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
-			} catch (HessianRuntimeException e){
-				if(e.getCause() instanceof SocketTimeoutException)
+			} catch (Exception e){
+				if(e.getCause() instanceof SocketTimeoutException){
+					System.out.println("SocketTimeoutException: "+e.getMessage());
 					continue;
+				}
 				else
 					e.printStackTrace();
 			}
