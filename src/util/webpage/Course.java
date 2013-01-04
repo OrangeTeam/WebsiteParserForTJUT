@@ -335,7 +335,7 @@ public class Course implements Cloneable{
 	/**
 	 * 设置 结课考核成绩
 	 * @param testScore 结课考核成绩 
-	 * @throws CourseException when isInfinite(testScore) || isNaN(testScore) || testScore<-1 || testScore>999
+	 * @throws CourseException when isInfinite(testScore) || isNaN(testScore) || testScore<0 || testScore>999
 	 */
 	public Course setTestScore(float testScore) throws CourseException {
 		if(Float.isInfinite(testScore) || Float.isNaN(testScore) || testScore<0 || testScore>999)
@@ -353,7 +353,7 @@ public class Course implements Cloneable{
 	/**
 	 * 设置 期末总评成绩
 	 * @param totalScore 期末总评成绩 
-	 * @throws CourseException when isInfinite(totalScore) || isNaN(totalScore) || totalScore<-1 || totalScore>999
+	 * @throws CourseException when isInfinite(totalScore) || isNaN(totalScore) || totalScore<0 || totalScore>999
 	 */
 	public Course setTotalScore(float totalScore) throws CourseException {
 		if(Float.isInfinite(totalScore) || Float.isNaN(totalScore) || totalScore<0 || totalScore>999)
@@ -365,10 +365,10 @@ public class Course implements Cloneable{
 	 * 返回分数score对应的的绩点
 	 * @param score 要计算的分数
 	 * @return 分数score对应的绩点。0-59的绩点为0
-	 * @throws CourseException when score<0 || score>100
+	 * @throws CourseException when isInfinite(score) || isNaN(score) || score<0 || score>100
 	 */
 	public static float getGradePoint(float score) throws CourseException{
-		if(score<0 || score>100)
+		if(Float.isInfinite(score) || Float.isNaN(score) || score<0 || score>100)
 			throw new CourseException("Illegel score: "+score);
 		if(score<60)
 			return 0;
