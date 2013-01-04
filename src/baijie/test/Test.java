@@ -18,7 +18,7 @@ public class Test {
 	 */
 	public static void main(String[] args) {
 		try{
-		switch(1){
+		switch(2){
 		case 1:
 			SchoolWebpageParser parser1 = new SchoolWebpageParser();
 			parser1.setOnReadPageListener(new MyOnReadPageHelper());
@@ -50,7 +50,7 @@ public class Test {
 				
 			};
 			SchoolWebpageParser parser2 = new SchoolWebpageParser(listener2, "20106173", "20106173");
-			System.out.println(parser2.parseScores(Constant.url.个人全部成绩));
+			System.out.println(parser2.parseScores(Constant.url.期末最新成绩));
 		break;
 		case 3:
 			SchoolWebpageParser parser3 = new SchoolWebpageParser(new MyListener(), "20106173", "20106173");

@@ -958,12 +958,11 @@ public class SchoolWebpageParser {
 		if(temp == null)
 			return;
 		try{
-			int data = Integer.parseInt(temp);
 			switch(colContent){
-			case Headings.COURSE_CREDIT:result.setCredit(data);break;
-			case Headings.COURSE_TEST_SCORE:result.setTestScore(data);break;
-			case Headings.COURSE_TOTAL_SCORE:result.setTotalScore(data);break;
-			case Headings.COURSE_ACADEMIC_YEAR:result.setYear(data);break;
+			case Headings.COURSE_CREDIT:result.setCredit(Integer.parseInt(temp));break;
+			case Headings.COURSE_TEST_SCORE:result.setTestScore(Float.parseFloat(temp));break;
+			case Headings.COURSE_TOTAL_SCORE:result.setTotalScore(Float.parseFloat(temp));break;
+			case Headings.COURSE_ACADEMIC_YEAR:result.setYear(Integer.parseInt(temp));break;
 			default:listener.onWarn(ParserListener.WARNING_UNKNOWN_COLUMN, 
 					"未知的数字数据项"+colContent+"("+HEADINGS.getString(colContent)+")。");
 			}

@@ -36,9 +36,9 @@ public class Course implements Cloneable{
 	/**true表示上半学期，false表示下半学期，null表示未知*/
 	private Boolean isFirstSemester;
 	/**结课考核成绩*/
-	private short testScore;
+	private float testScore;
 	/**期末总评成绩*/
-	private short totalScore;
+	private float totalScore;
 	/**课程性质*/
 	private String kind;
 	
@@ -52,7 +52,7 @@ public class Course implements Cloneable{
 		credit = 0;
 		year = 0;
 		isFirstSemester = null;
-		testScore = totalScore = -1;
+		testScore = totalScore = Float.NaN;
 		teachers = new ArrayList<String>();
 		timeAndAddress = new ArrayList<TimeAndAddress>();
 	}
@@ -327,38 +327,38 @@ public class Course implements Cloneable{
 	}
 	/**
 	 * 取得 结课考核成绩
-	 * @return 结课考核成绩。默认值-1表示未设置
+	 * @return 结课考核成绩。默认值{@link Float#NaN}表示未设置
 	 */
-	public short getTestScore() {
+	public float getTestScore() {
 		return testScore;
 	}
 	/**
 	 * 设置 结课考核成绩
 	 * @param testScore 结课考核成绩 
-	 * @throws CourseException when testScore<-1 || testScore>999
+	 * @throws CourseException when isInfinite(testScore) || isNaN(testScore) || testScore<-1 || testScore>999
 	 */
-	public Course setTestScore(int testScore) throws CourseException {
-		if(testScore<-1 || testScore>999)
+	public Course setTestScore(float testScore) throws CourseException {
+		if(Float.isInfinite(testScore) || Float.isNaN(testScore) || testScore<0 || testScore>999)
 			throw new CourseException("Illegel score of test: "+testScore);
-		this.testScore = (short) testScore;
+		this.testScore = testScore;
 		return this;
 	}
 	/**
 	 * 取得 期末总评成绩
-	 * @return 期末总评成绩。默认值-1表示未设置
+	 * @return 期末总评成绩。默认值{@link Float#NaN}表示未设置
 	 */
-	public short getTotalScore() {
+	public float getTotalScore() {
 		return totalScore;
 	}
 	/**
 	 * 设置 期末总评成绩
 	 * @param totalScore 期末总评成绩 
-	 * @throws CourseException when totalScore<-1 || totalScore>999
+	 * @throws CourseException when isInfinite(totalScore) || isNaN(totalScore) || totalScore<-1 || totalScore>999
 	 */
-	public Course setTotalScore(int totalScore) throws CourseException {
-		if(totalScore<-1 || totalScore>999)
+	public Course setTotalScore(float totalScore) throws CourseException {
+		if(Float.isInfinite(totalScore) || Float.isNaN(totalScore) || totalScore<0 || totalScore>999)
 			throw new CourseException("Illegel final score: "+totalScore);
-		this.totalScore = (short) totalScore;
+		this.totalScore = totalScore;
 		return this;
 	}
 	/**
@@ -367,7 +367,7 @@ public class Course implements Cloneable{
 	 * @return 分数score对应的绩点。0-59的绩点为0
 	 * @throws CourseException when score<0 || score>100
 	 */
-	public static float getGradePoint(int score) throws CourseException{
+	public static float getGradePoint(float score) throws CourseException{
 		if(score<0 || score>100)
 			throw new CourseException("Illegel score: "+score);
 		if(score<60)
@@ -396,12 +396,12 @@ public class Course implements Cloneable{
 	 * @throws CourseException 当  尚未设置相关成绩  时
 	 */
 	public float getGradePoint(boolean fromTotalScoreOrTestScore) throws CourseException{
-		short score = -1;
+		float score;
 		if(fromTotalScoreOrTestScore)
 			score = getTotalScore();
 		else
 			score = getTestScore();
-		if(score == -1)
+		if(Float.isNaN(score))
 			throw new CourseException("尚未设置"+(fromTotalScoreOrTestScore?"期末总评成绩":"结课考核成绩"));
 		return getGradePoint(score);
 	}
