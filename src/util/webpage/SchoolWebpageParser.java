@@ -534,10 +534,11 @@ public class SchoolWebpageParser {
 			if(max>=0 && result.size()>=max)
 				break;
 			cols = postTr.getElementsByTag("td");
-			//验证通知对象
-			String temp = ReadPageHelper.deleteSpace(cols.get(4).text());
-			if(temp.equals("教师") || temp.equals("全体教师"))
-				continue;
+			//TODO 因为期中期末时间地点通对象也是教师，为显示期中期末通知，暂去掉下边的检测
+//			//验证通知对象
+//			String temp = ReadPageHelper.deleteSpace(cols.get(4).text());
+//			if(temp.equals("教师") || temp.equals("全体教师"))
+//				continue;
 			
 			post = new Post();
 			//验证Category
