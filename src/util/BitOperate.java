@@ -22,7 +22,7 @@ public class BitOperate {
     	return original | (1<<location); 
     }
     /**
-     * locations中有多个，把original的每个location位设为1.location从低位到高位,从0起 
+     * locations中有多个，把original的每个location位设为1.location从低位到高位，从0起 
      * @param original 基数
      * @param locations 位置（第几位）
      * @return 计算结果
@@ -34,6 +34,20 @@ public class BitOperate {
     		result = add1onCertainBit(result, location);
     	return result;
     }
+	/**
+	 * 根据locations为origin置1。例如locations[3]==true，则origin的第3位置1。location从低位到高位，从0起 
+	 * @param origin 基数
+	 * @param locations 与要置为1的位相应的locations元素为true；否则为false
+	 * @return 计算结果
+	 * @throws BitOperateException 当 locations[≥32]==true
+	 */
+	public static int add1onSomeBits(int origin, boolean[] locations) throws BitOperateException{
+		int result = origin;
+		for(int position = 0 ; position < locations.length ; position++)
+			if(locations[position])
+				result = add1onCertainBit(result, position);
+		return result;
+	}
     /** 把original的第location位设为0.location从低位到高位,从0起 
      * @throws BitOperateException */
     public static int add0onCertainBit(int original, int location) throws BitOperateException{
@@ -213,6 +227,25 @@ public class BitOperate {
     				BitOperateException.TOO_LARGE_POSITON);
     	return ( tested & (~0<<position) ) != 0;
     }
+	/**
+	 * 测试指定数字的各个位，返回相应的布尔数组，如果是1，相应数组元素为true；如果是0，则为false。
+	 * @param tested 被测试数
+	 * @param mostSignificantBit 测试的最高位。仅测试0～mostSignificantBit位
+	 * @return 测试结果
+	 * @throws BitOperateException 最高位参数超出0-31
+	 */
+	public static boolean[] is1onEachBit(int tested, int mostSignificantBit) throws BitOperateException{
+		if(mostSignificantBit < 0)
+			throw new BitOperateException("negative bit position.", 
+					BitOperateException.NEGATIVE_POSITION);
+		if(mostSignificantBit > 31)
+			throw new BitOperateException("too large bit position.(>31)", 
+					BitOperateException.TOO_LARGE_POSITON);
+		boolean[] result = new boolean[mostSignificantBit+1];
+		for(int position=0, tester=1 ; position <= mostSignificantBit ; position++, tester<<=1)
+			result[position] = (tested & tester) != 0;
+		return result;
+	}
 
     public static class BitOperateException extends Exception{
 		private static final long serialVersionUID = 6979403183991540981L;

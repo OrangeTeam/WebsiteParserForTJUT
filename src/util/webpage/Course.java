@@ -628,19 +628,33 @@ public class Course implements Cloneable{
 			period = aCourseTime.period;
 			address = aCourseTime.address;
 		}
-		
-		
-	    
-	    /**
-	     * 类似getDay，0-20位的1/0表示是否有这一周。如16进制0x00 00 01 02 表示8、1周有课 
+
+
+
+		/**
+		 * 类似getDay，0-20位的1/0表示是否有这一周。如16进制0x00 00 01 02 表示8、1周有课 
 		 * @return the week
 		 */
 		public int getWeek() {
 			return week;
 		}
 		/**
+		 * 取得各个周是否有课。如果有课，返回值相应的元素为true；否则为false。0-20位置分别表示第0-20周。
+		 * 例如第1、4周有课，则result[1]、result[4]为true，其它为false
+		 * @return 各个周的有课情况。长度为21
+		 */
+		public boolean[] getWeekByBooleanArray(){
+			try {
+				return BitOperate.is1onEachBit(week, 20);
+			} catch (BitOperateException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		/**
 		 * 类似setDay，0-20位的1/0表示是否有这一周。如16进制0x00 00 01 02 表示8、1周有课 
 		 * @param week the week to set
+		 * @return this（builder）
 		 * @throws BitOperateException 当 week中1超出0-20位的范围
 		 */
 		public TimeAndAddress setWeek(int week) throws BitOperateException {
@@ -651,11 +665,41 @@ public class Course implements Cloneable{
 			return this;
 		}
 		/**
+		 * 设置周次。若参数中weeks[a]==true，则第a周置为有课。weeks.length应小于等于21
+		 * @param weeks 第0-20个元素分别表示0-20周。true的位置设为有课
+		 * @return 参数合法返回this（builder），参数非法抛出异常
+		 * @throws BitOperateException 当 weeks[≥21]==true或weeks.length太大
+		 */
+		public TimeAndAddress setWeek(boolean[] weeks) throws BitOperateException{
+			int save = this.week;
+			this.week = 0;
+			try {
+				addWeeks(weeks);
+			} catch (BitOperateException e) {
+				this.week = save;
+				throw e;
+			}
+			return this;
+		}
+		/**
 		 * 返回值0-6位分别表示周日到周六，1表有这一天，0表无。如二进制0010 0010表示星期一、星期五
 		 * @return the day of week
 		 */
 		public byte getDay() {
 			return day;
+		}
+		/**
+		 * 取得各个星期是否有课。如果有课，返回值相应的元素为true；否则为false。0-6位置分别表示周日到周六。
+		 * 例如第星期日、星期四有课，则result[0]、result[4]为true，其它为false
+		 * @return 各个星期的有课情况。长度为7，最大到result[6]（周六）
+		 */
+		public boolean[] getDayByBooleanArray(){
+			try {
+				return BitOperate.is1onEachBit(day, 6);
+			} catch (BitOperateException e) {
+				e.printStackTrace();
+				return null;
+			}
 		}
 		/**
 		 * 参数的0-6位分别表示周日到周六，（第7位也表示周日，但用0更好）.1表有这一天，0表无。如二进制0010 0010表示星期一、星期五
@@ -674,11 +718,43 @@ public class Course implements Cloneable{
 			return this;
 		}
 		/**
-		 * 类似getDay，1-13为表1-13节课
+		 * 设置星期。例如参数中daysOfWeek[0]==true或daysOfWeek[7]==true，则星期日置为有课。
+		 * daysOfWeek.length应小于等于8
+		 * @param daysOfWeek 0、7位置表示周日，1-6表周一到周六。true表示相应星期应置为有课
+		 * @return 参数合法返回this（builder），参数非法抛出异常
+		 * @throws BitOperateException 当 dayOfWeek[≥8]==true或daysOfWeek.length太大
+		 */
+		public TimeAndAddress setDay(boolean[] daysOfWeek) throws BitOperateException{
+			byte save = this.day;
+			this.day = 0;
+			try {
+				addDays(daysOfWeek);
+			} catch (BitOperateException e) {
+				this.day = save;
+				throw e;
+			}
+			return this;
+		}
+		/**
+		 * 类似getDay，1-13位表1-13节课
 		 * @return the period
 		 */
 		public short getPeriod() {
 			return period;
+		}
+		/**
+		 * 取得各个节次是否有课。如果有课，返回值相应的元素为true；否则为false。1-13位置分别表示1-13节课。
+		 * 例如第1、4节有课，则result[1]、result[4]为true，其它为false。<br />
+		 * <strong>注</strong>：result[0]永远为false
+		 * @return 各个节次的有课情况。长度为14，result[0]===false
+		 */
+		public boolean[] getPeriodByBooleanArray(){
+			try {
+				return BitOperate.is1onEachBit(period, 13);
+			} catch (BitOperateException e) {
+				e.printStackTrace();
+				return null;
+			}
 		}
 		/**
 		 * 类似setDay，1-13为表1-13节课
@@ -693,6 +769,24 @@ public class Course implements Cloneable{
 				throw new BitOperateException("Illegal period: 0.", 
 						BitOperateException.ILLEGAL_POSITION);
 			this.period = (short)period;
+			return this;
+		}
+		/**
+		 * 设置课时（第几节课）。若参数中periods[a]==true，则第a节课置为有课。
+		 * weeks.length应小于等于14且periods[0]≠true
+		 * @param periods 1-13元素分别表第1到13节课。true表示相应节次应置为有课
+		 * @return 参数合法返回this（builder），参数非法抛出异常
+		 * @throws BitOperateException 当 periods[≥14]==true 或者 periods[0]==true 或者 periods.length太大
+		 */
+		public TimeAndAddress setPeriod(boolean[] periods) throws BitOperateException{
+			short save = this.period;
+			this.period = 0;
+			try {
+				addPeriods(periods);
+			} catch (BitOperateException e) {
+				this.period = save;
+				throw e;
+			}
 			return this;
 		}
 		/**
@@ -778,6 +872,16 @@ public class Course implements Cloneable{
 		 */
 		public TimeAndAddress addWeeks(int[] weeks) throws BitOperateException{
 			int result = BitOperate.add1onCertainBit(this.week, weeks);
+			return setWeek(result);
+		}
+		/**
+		 * 批量增加周次。若参数中weeks[a]==true，则第a周置为有课。weeks.length应小于等于21
+		 * @param weeks 第0-20个元素分别表示0-20周。true的位置设为有课
+		 * @return 参数合法返回this（builder），参数非法抛出异常
+		 * @throws BitOperateException 当 weeks[≥21]==true或weeks.length太大
+		 */
+		public TimeAndAddress addWeeks(boolean[] weeks) throws BitOperateException{
+			int result = BitOperate.add1onSomeBits(this.week, weeks);
 			return setWeek(result);
 		}
 		/**
@@ -955,6 +1059,17 @@ public class Course implements Cloneable{
 			return setDay(result);
 		}
 		/**
+		 * 批量增加星期。例如参数中daysOfWeek[0]==true或daysOfWeek[7]==true，则星期日置为有课。
+		 * daysOfWeek.length应小于等于8
+		 * @param daysOfWeek 0、7位置表示周日，1-6表周一到周六。true表示相应星期应置为有课
+		 * @return 参数合法返回this（builder），参数非法抛出异常
+		 * @throws BitOperateException 当 dayOfWeek[≥8]==true或daysOfWeek.length太大
+		 */
+		public TimeAndAddress addDays(boolean[] daysOfWeek) throws BitOperateException{
+			int result = BitOperate.add1onSomeBits(this.day, daysOfWeek);
+			return setDay(result);
+		}
+		/**
 		 * 检查是否设置了某星期(day of week),，已设置返回true
 		 * @param testedDayOfWeek 被检查的星期数，0、7都表示周日，1-6分别表示周一~周六
 		 * @return 若设置了此星期返回true，没有设置返回false
@@ -1068,6 +1183,17 @@ public class Course implements Cloneable{
 		 */
 		public TimeAndAddress addPeriods(int[] periods) throws BitOperateException{
 			int result = BitOperate.add1onCertainBit(period, periods);
+			return setPeriod(result);
+		}
+		/**
+		 * 批量增加课时（第几节课）。若参数中periods[a]==true，则第a节课置为有课。
+		 * weeks.length应小于等于14且periods[0]≠true
+		 * @param periods 1-13元素分别表第1到13节课。true表示相应节次应置为有课
+		 * @return 参数合法返回this（builder），参数非法抛出异常
+		 * @throws BitOperateException 当 periods[≥14]==true 或者 periods[0]==true 或者 periods.length太大
+		 */
+		public TimeAndAddress addPeriods(boolean[] periods) throws BitOperateException{
+			int result = BitOperate.add1onSomeBits(period, periods);
 			return setPeriod(result);
 		}
 		/**
