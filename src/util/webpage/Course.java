@@ -1230,7 +1230,7 @@ public class Course implements Cloneable{
 		 * @return 参数合法返回this（builder），参数非法抛出异常
 		 * @throws BitOperateException 当 period超出1~13的范围 时
 		 */
-		public TimeAndAddress remvoePeriod(int period) throws BitOperateException{
+		public TimeAndAddress removePeriod(int period) throws BitOperateException{
 			if(period > 13)
 				throw new BitOperateException("Too large period number.(>13)", 
 						BitOperateException.TOO_LARGE_POSITON);
