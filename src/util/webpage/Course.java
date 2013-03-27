@@ -12,6 +12,43 @@ import util.webpage.Course.TimeAndAddress.TimeAndAddressException;
  * @improver Bai Jie
  */
 public class Course implements Cloneable{
+	/**
+	 * {@link Course}中各属性的标识常量
+	 */
+	public static class Property {
+		public static final int ID					= 0x1;
+		public static final int CODE				= 0x2;
+		public static final int NAME				= 0x3;
+		public static final int TEACHERS			= 0x4;
+		public static final int CREDIT				= 0x5;
+		public static final int TEACHING_CLASS		= 0x6;
+		public static final int TIME_AND_ADDRESS	= 0x7;
+		public static final int TEACHING_MATERIAL	= 0x8;
+		public static final int NOTE				= 0x9;
+		public static final int YEAR				= 0xa;
+		public static final int IS_FIRST_SEMESTER	= 0xb;
+		public static final int TEST_SCORE			= 0xc;
+		public static final int TOTAL_SCORE			= 0xd;
+		public static final int KIND				= 0xe;
+	}
+	/**
+	 * {@link Course}中各属性的默认值
+	 */
+	public static class DefaultValue {
+		public static final int		ID					= 0;
+		public static final String	CODE				= null;
+		public static final String	NAME				= null;
+		public static final byte	CREDIT				= 0;//TODO -1更好？
+		public static final String	TEACHING_CLASS		= null;
+		public static final String	TEACHING_MATERIAL	= null;
+		public static final String	NOTE				= null;
+		public static final short	YEAR				= 0;
+		public static final Boolean	IS_FIRST_SEMESTER	= null;
+		public static final float	TEST_SCORE			= Float.NaN;
+		public static final float	TOTAL_SCORE			= Float.NaN;
+		public static final String	KIND				= null;
+	}
+
 	/**本地数据库使用的ID*/
 	private int id;
 	/**课程代码*/
@@ -19,14 +56,14 @@ public class Course implements Cloneable{
 	/**课程名称*/
 	private String name;
 	/**课程教师<br />暂没教师详情*/
-	private ArrayList<String> teachers;
+	private ArrayList<String> teachers = new ArrayList<String>();
 	/**学分*/
 	private byte credit;
 	/**教学班号*/
-	private String classNumber;
+	private String teachingClass;
 	
 	/**时间地点列表*/
-	private ArrayList<TimeAndAddress> timeAndAddress;
+	private ArrayList<TimeAndAddress> timeAndAddress = new ArrayList<TimeAndAddress>();
 	//暂没参考教材
 	private String teachingMaterial;
 	/**备注*/
@@ -47,28 +84,21 @@ public class Course implements Cloneable{
 	 * 无参构造方法，各属性设为默认空值
 	 */
 	public Course(){
-		id = 0;
-		code = name = classNumber = teachingMaterial = note = kind= null;
-		credit = 0;
-		year = 0;
-		isFirstSemester = null;
-		testScore = totalScore = Float.NaN;
-		teachers = new ArrayList<String>();
-		timeAndAddress = new ArrayList<TimeAndAddress>();
+		clear();
 	}
 	/**
 	 * @param code 课程代码
 	 * @param name 课程名称
 	 * @param credit 课程学分
-	 * @param classNumber 教学班号
+	 * @param teachingClass 教学班号
 	 * @throws CourseException credit<=0,或者credit大于Byte.MAX_VALUE
 	 */
-	public Course(String code, String name, int credit, String classNumber) throws CourseException{
+	public Course(String code, String name, int credit, String teachingClass) throws CourseException{
 		this();
 		this.code = code;
 		this.name = name;
 		setCredit(credit);
-		this.classNumber = classNumber;
+		this.teachingClass = teachingClass;
 	}
 	/**
 	 * @param code 课程代码
@@ -111,11 +141,10 @@ public class Course implements Cloneable{
 	}
 	/**拷贝构造方法*/
 	public Course(Course src){
-		this();
 		this.code = src.code;
 		this.name = src.name;
 		this.credit = src.credit;
-		this.classNumber = src.classNumber;
+		this.teachingClass = src.teachingClass;
 		this.testScore = src.testScore;
 		this.totalScore = src.totalScore;
 		this.year = src.year;
@@ -128,8 +157,99 @@ public class Course implements Cloneable{
 		setTimeAndAddresse(src.timeAndAddress);
 		this.kind = src.kind;
 	}
-	
-	
+
+	/**
+	 * 所有的属性均没有被设置过
+	 * @return 如果所有的属性均没有被设置过，返回true；如果其中某项被设置过，返回false
+	 */
+	public boolean isEmpty(){
+		return isEmpty(Property.CODE) && isEmpty(Property.CREDIT) && isEmpty(Property.ID)
+				&& isEmpty(Property.IS_FIRST_SEMESTER) && isEmpty(Property.KIND)
+				&& isEmpty(Property.NAME) && isEmpty(Property.NOTE)
+				&& isEmpty(Property.TEACHERS) && isEmpty(Property.TEACHING_CLASS)
+				&& isEmpty(Property.TEACHING_MATERIAL) && isEmpty(Property.TEST_SCORE)
+				&& isEmpty(Property.TIME_AND_ADDRESS) && isEmpty(Property.TOTAL_SCORE)
+				&& isEmpty(Property.YEAR);
+	}
+	/**
+	 * 指定的属性是否尚未设置
+	 * @param property 要测试的属性。请使用{@link Property}中的常量
+	 * @return 如果指定的属性尚未设置，返回true；否则返回false
+	 * @see DefaultValue
+	 */
+	public boolean isEmpty(int property){
+		switch(property){
+		case Property.CODE:
+			return code				== DefaultValue.CODE;
+		case Property.CREDIT:
+			return credit			== DefaultValue.CREDIT;
+		case Property.ID:
+			return id				== DefaultValue.ID;
+		case Property.IS_FIRST_SEMESTER:
+			return isFirstSemester	== DefaultValue.IS_FIRST_SEMESTER;
+		case Property.KIND:
+			return kind				== DefaultValue.KIND;
+		case Property.NAME:
+			return name				== DefaultValue.NAME;
+		case Property.NOTE:
+			return note				== DefaultValue.NOTE;
+		case Property.TEACHING_CLASS:
+			return teachingClass	== DefaultValue.TEACHING_CLASS;
+		case Property.TEACHING_MATERIAL:
+			return teachingMaterial	== DefaultValue.TEACHING_MATERIAL;
+		case Property.YEAR:
+			return year				== DefaultValue.YEAR;
+		case Property.TEST_SCORE:
+			return Float.isNaN(testScore);
+		case Property.TOTAL_SCORE:
+			return Float.isNaN(totalScore);
+		case Property.TEACHERS:
+			return teachers.isEmpty();
+		case Property.TIME_AND_ADDRESS:
+			return timeAndAddress.isEmpty();
+		default:throw new IllegalArgumentException("非法属性参数：" + property);
+		}
+	}
+	/**
+	 * 清空所有属性（设为默认值）。调用后{@link #isEmpty()}会返回true
+	 * @return 当前{@link Course}，用于链式调用
+	 * @see DefaultValue
+	 */
+	public Course clear(){
+		clear(Property.CODE).clear(Property.CREDIT).clear(Property.ID)
+		.clear(Property.IS_FIRST_SEMESTER).clear(Property.KIND).clear(Property.NAME)
+		.clear(Property.NOTE).clear(Property.TEACHERS).clear(Property.TEACHING_CLASS)
+		.clear(Property.TEACHING_MATERIAL).clear(Property.TEST_SCORE)
+		.clear(Property.TIME_AND_ADDRESS).clear(Property.TOTAL_SCORE).clear(Property.YEAR);
+		return this;
+	}
+	/**
+	 * 清空指定属性（设为默认值）。调用后{@link #isEmpty(int)}会返回true
+	 * @param property 要设置的属性。请使用{@link Property}中的常量
+	 * @return 当前{@link Course}，用于链式调用
+	 * @see DefaultValue
+	 */
+	public Course clear(int property){
+		switch(property){
+		case Property.CODE:				code			= DefaultValue.CODE;break;
+		case Property.CREDIT:			credit			= DefaultValue.CREDIT;break;
+		case Property.ID:				id				= DefaultValue.ID;break;
+		case Property.IS_FIRST_SEMESTER:isFirstSemester	= DefaultValue.IS_FIRST_SEMESTER;break;
+		case Property.KIND:				kind			= DefaultValue.KIND;break;
+		case Property.NAME:				name			= DefaultValue.NAME;break;
+		case Property.NOTE:				note			= DefaultValue.NOTE;break;
+		case Property.TEACHING_CLASS:	teachingClass	= DefaultValue.TEACHING_CLASS;break;
+		case Property.TEACHING_MATERIAL:teachingMaterial= DefaultValue.TEACHING_MATERIAL;break;
+		case Property.YEAR:				year			= DefaultValue.YEAR;break;
+		case Property.TEST_SCORE:		testScore		= DefaultValue.TEST_SCORE;break;
+		case Property.TOTAL_SCORE:		totalScore		= DefaultValue.TOTAL_SCORE;break;
+		case Property.TEACHERS:			teachers.clear();break;
+		case Property.TIME_AND_ADDRESS:	timeAndAddress.clear();break;
+		default:throw new IllegalArgumentException("非法属性参数：" + property);
+		}
+		return this;
+	}
+
 	/**
 	 * @return the id
 	 */
@@ -230,13 +350,13 @@ public class Course implements Cloneable{
 	 * @return 教学班号
 	 */
 	public String getClassNumber() {
-		return classNumber;
+		return teachingClass;
 	}
 	/**
-	 * @param classNumber 教学班号
+	 * @param teachingClass 教学班号
 	 */
-	public Course setClassNumber(String classNumber) {
-		this.classNumber = classNumber;
+	public Course setClassNumber(String teachingClass) {
+		this.teachingClass = teachingClass;
 		return this;
 	}
 	/**
@@ -552,6 +672,26 @@ public class Course implements Cloneable{
 
 
 	public static class TimeAndAddress{
+		/**
+		 * {@link TimeAndAddress}中各属性的标识常量
+		 * @see TimeAndAddress#isEmpty(int)
+		 */
+		public static class Property {
+			public static final int WEEK	= 1;
+			public static final int DAY		= 2;
+			public static final int PERIOD	= 3;
+			public static final int ADDRESS	= 4;
+		}
+		/**
+		 * {@link TimeAndAddress}中各属性的默认值
+		 */
+		public static class DefaultValue {
+			public static final int		WEEK	= 0;
+			public static final byte	DAY		= 0;
+			public static final short	PERIOD	= 0;
+			public static final String	ADDRESS	= null;
+		}
+
 		/**周<br />第0-20位分别表第0-20周*/
 		private int week;
 		/**星期 day of week<br />第0位表周日，1-6位表周一到周六*/
@@ -604,7 +744,6 @@ public class Course implements Cloneable{
 		 */
 		public TimeAndAddress(int weekNumber,int dayOfWeek,int period,String address) 
 				throws BitOperateException{
-			//this();	//有没有必要呢
 			setWeek(weekNumber).setDay(dayOfWeek).setPeriod(period).setAddress(address);
 		}
 		/**
@@ -616,10 +755,7 @@ public class Course implements Cloneable{
 			setAddress(address);
 		}
 		public TimeAndAddress(){
-			this.week = 0;
-			this.day = 0;
-			this.period = 0;
-			this.address = "";
+			clear();
 		}
 		/**拷贝构造方法*/
 		public TimeAndAddress(TimeAndAddress aCourseTime){
@@ -629,8 +765,81 @@ public class Course implements Cloneable{
 			address = aCourseTime.address;
 		}
 
-
-
+		/**
+		 * 所有的属性均没有被设置过
+		 * @return 如果所有的属性均没有被设置过，返回true；如果其中某项被设置过，返回false
+		 */
+		public boolean isEmpty(){
+			return isEmpty(Property.WEEK) && isEmpty(Property.DAY)
+					&& isEmpty(Property.PERIOD) && isEmpty(Property.ADDRESS);
+		}
+		/**
+		 * 指定的属性是否尚未设置
+		 * @param property 要测试的属性。请使用{@link Property}中的常量
+		 * @return 如果指定的属性尚未设置，返回true；否则返回false
+		 * @see DefaultValue
+		 */
+		public boolean isEmpty(int property){
+			switch(property){
+			case Property.WEEK:		return week == DefaultValue.WEEK;
+			case Property.DAY:		return day == DefaultValue.DAY;
+			case Property.PERIOD:	return period == DefaultValue.PERIOD;
+			case Property.ADDRESS:
+				return address == DefaultValue.ADDRESS || address.length() == 0;
+			default:throw new IllegalArgumentException("非法属性参数：" + property);
+			}
+		}
+		/**
+		 * 清空所有属性（设为默认值）。调用后{@link #isEmpty()}会返回true
+		 * @return 当前{@link TimeAndAddreee}，用于链式调用
+		 * @see DefaultValue
+		 */
+		public TimeAndAddress clear(){
+			clear(Property.WEEK).clear(Property.DAY).clear(Property.PERIOD)
+				.clear(Property.ADDRESS);
+			return this;
+		}
+		/**
+		 * 清空指定属性（设为默认值）。调用后{@link #isEmpty(int)}会返回true
+		 * @param property 要设置的属性。请使用{@link Property}中的常量
+		 * @return 当前{@link TimeAndAddreee}，用于链式调用
+		 * @see DefaultValue
+		 */
+		public TimeAndAddress clear(int property){
+			switch(property){
+			case Property.WEEK:		week	= DefaultValue.WEEK;	break;
+			case Property.DAY:		day		= DefaultValue.DAY;		break;
+			case Property.PERIOD:	period	= DefaultValue.PERIOD;	break;
+			case Property.ADDRESS:	address	= DefaultValue.ADDRESS;	break;
+			default:throw new IllegalArgumentException("非法属性参数：" + property);
+			}
+			return this;
+		}
+		/**
+		 * 所有的属性均已设置
+		 * @return 如果所有的属性均已设置，返回true；如果其中某项没有设置，返回false
+		 */
+		public boolean isComplete(){
+			return isComplete(false);
+		}
+		/**
+		 * 除地址外（即只考虑时间），所有的属性均已设置；或包括地址在内，所有的属性均已设置
+		 * @param withoutAddress true表示不算地址（即只考虑时间）；false表示考虑地址
+		 * @return withoutAddress为true时，WEEK、DAY、PERIOD均已设置则返回true；否则返回false。
+		 * withoutAddress为false时，所有的属性均已设置则返回true，否则返回false
+		 */
+		public boolean isComplete(boolean withoutAddress){
+			return !(isEmpty(Property.WEEK) || isEmpty(Property.DAY) ||
+					isEmpty(Property.PERIOD) ||
+					(!withoutAddress && isEmpty(Property.ADDRESS)) );
+			/* ==
+			 * isn'tEmpty(Week) && isn'tEmpty(day) && isn'tEmpty(period)&&
+			 * !(!withoutAddress && isEmpty(Property.ADDRESS))
+			 * ==
+			 * isn'tEmpty(Week) && isn'tEmpty(day) && isn'tEmpty(period)&&
+			 * (withoutAddress || isn'tEmpty(address))
+			 */
+		}
 		/**
 		 * 类似getDay，0-20位的1/0表示是否有这一周。如16进制0x00 00 01 02 表示8、1周有课 
 		 * @return the week
@@ -672,7 +881,7 @@ public class Course implements Cloneable{
 		 */
 		public TimeAndAddress setWeek(boolean[] weeks) throws BitOperateException{
 			int save = this.week;
-			this.week = 0;
+			clear(Property.WEEK);
 			try {
 				addWeeks(weeks);
 			} catch (BitOperateException e) {
@@ -726,7 +935,7 @@ public class Course implements Cloneable{
 		 */
 		public TimeAndAddress setDay(boolean[] daysOfWeek) throws BitOperateException{
 			byte save = this.day;
-			this.day = 0;
+			clear(Property.DAY);
 			try {
 				addDays(daysOfWeek);
 			} catch (BitOperateException e) {
@@ -780,7 +989,7 @@ public class Course implements Cloneable{
 		 */
 		public TimeAndAddress setPeriod(boolean[] periods) throws BitOperateException{
 			short save = this.period;
-			this.period = 0;
+			clear(Property.PERIOD);
 			try {
 				addPeriods(periods);
 			} catch (BitOperateException e) {
@@ -797,11 +1006,8 @@ public class Course implements Cloneable{
 		}
 		/**
 		 * @param address the address to set
-		 * @throws NullPointerException when address is null
 		 */
-		public TimeAndAddress setAddress(String address) throws NullPointerException {
-			if(address == null)
-				throw new NullPointerException("Shouldn't set address to null.");
+		public TimeAndAddress setAddress(String address) {
 			this.address = address;
 			return this;
 		}
