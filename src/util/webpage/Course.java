@@ -1002,7 +1002,7 @@ public class Course implements Cloneable{
 		 * @return the address
 		 */
 		public String getAddress() {
-			return address;
+			return !isEmpty(Property.ADDRESS) ? address : "地点未知";
 		}
 		/**
 		 * @param address the address to set
@@ -1120,7 +1120,7 @@ public class Course implements Cloneable{
 		 * @return 类似 “1,5,7,9,11,13-15 周” 的字符串
 		 */
 		public String getWeekString(){
-			return BitOperate.convertIntToString(week) + " 周";
+			return !isEmpty(Property.WEEK) ? BitOperate.convertIntToString(week) + " 周" : "周数未知";
 		}
 		
 		/**
@@ -1323,6 +1323,8 @@ public class Course implements Cloneable{
 		 * @return 类似 “星期一,星期三 至 星期五” 或者 "周一，周三 至 周五" 的字符串
 		 */
 		public String getDayString(boolean xingqiOrZhou){
+			if(isEmpty(Property.DAY))
+				return "星期未知";
 			String prefix = xingqiOrZhou?"星期":"周";
 			String result = BitOperate.convertIntToString(day);
 			result = result.replace("0", prefix+"日");
@@ -1465,11 +1467,21 @@ public class Course implements Cloneable{
 		 * @return 类似 “3-4,5,7,9,11-13 节” 的字符串
 		 */
 		public String getPeriodString(){
-			return BitOperate.convertIntToString(period) + " 节";
+			return !isEmpty(Property.PERIOD) ? BitOperate.convertIntToString(period) + " 节" : "节次未知";
 		}
-		
-		public String toString(){
-			return getWeekString()+" "+getDayString()+" "+getPeriodString()+" "+getAddress();
+
+		@Override
+		public String toString() {
+			return toString(true);
+		}
+		/**
+		 * 返回该对象的字符串表示。
+		 * @param xingqiOrZhou 若为true，星期用“星期*”的形式表示；若为false，星期用“周*”的形式表示
+		 * @return 该对象的字符串表示
+		 */
+		public String toString(boolean xingqiOrZhou) {
+			return getWeekString() + " " + getDayString(xingqiOrZhou) + " "
+					+ getPeriodString() + " " + getAddress();
 		}
 		/**处理TimeAndAddress，遇到不可处理情况时的异常*/
 		public static class TimeAndAddressException extends Exception{
