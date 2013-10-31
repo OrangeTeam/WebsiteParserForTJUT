@@ -22,7 +22,7 @@ public class ReadPageHelper implements Cloneable{
 	private int timeout;
 	private String userName, password, charset, charsetForParsePostsFromSCCE;
 	private boolean isNewUser;
-	private Cookie teachingAffairsSession, SCCESession;
+	private Cookie teachingAffairsSession, teachingAffairsToken, SCCESession;
 	/**保留的session的过期时间，单位milliseconds*/
 	private int expire;
 
@@ -33,7 +33,7 @@ public class ReadPageHelper implements Cloneable{
 		this.charsetForParsePostsFromSCCE = null;
 		this.isNewUser = false;
 		this.teachingAffairsSession = this.SCCESession = null;
-		this.expire = 60 * 60 *1000;//	1 hour 
+		this.expire = 15 * 60 *1000;//	15 minutes
 	}
 	public ReadPageHelper(String userName, String password){
 		this();
@@ -158,19 +158,21 @@ public class ReadPageHelper implements Cloneable{
 			return false;
 		Response res = Jsoup
 				.connect(loginPageURL).timeout(timeout).followRedirects(false).ignoreHttpErrors(true)
-				.data("name",userName,"pswd", password)
+				.data("Login.Token1",userName,"Login.Token2", password)
 				.method(Method.POST).execute();
 		if(listener != null)
 			listener.onRequest(loginPageURL, res.statusCode(), res.statusMessage(), res.bodyAsBytes().length);
 		String body = new String(res.bodyAsBytes(), charset!=null?charset:DefaultCharset);
 		int status = res.statusCode();
-		//用户名或密码错误
-		if(status==HttpURLConnection.HTTP_INTERNAL_ERROR || (status==HttpURLConnection.HTTP_OK && body.contains("密码错误")))
-			return false;
-		this.teachingAffairsSession = getCookie1FromMap(res.cookies());
-		if(this.teachingAffairsSession != null && (status == HttpURLConnection.HTTP_MOVED_TEMP || status == HttpURLConnection.HTTP_MOVED_PERM || status == HttpURLConnection.HTTP_SEE_OTHER))
-			return true;
-		else{
+		if(status == HttpURLConnection.HTTP_OK) {
+			if(body.matches("(?si:.*(success|succeed).*)")) { //成功登录
+				this.teachingAffairsToken = getCookie1FromMap(res.cookies());
+				fetchTeachingAffairsSession();
+				return true;
+			} else { //用户名或密码错误
+				return false;
+			}
+		} else{
 			throw new HttpStatusException("收到未知的服务器响应，请确认与教务处网站的连通性。Header:\n"+res.headers()+"\nBody:\n"+body, status, loginPageURL);
 		}
 	}
@@ -181,6 +183,19 @@ public class ReadPageHelper implements Cloneable{
 	 */
 	public boolean doLogin() throws IOException{
 		return doLogin(Constant.url.LOGIN_PAGE);
+	}
+	/**
+	 * 取得教务处网站（含课程信息等）的会话cookie
+	 * @throws IOException
+	 * @precondition 已设置teachingAffairsToken
+	 */
+	private void fetchTeachingAffairsSession() throws IOException {
+		Response res = Jsoup
+				.connect(Constant.url.TEACHING_AFFAIRS_SESSION_PAGE)
+				.timeout(timeout).followRedirects(false).ignoreHttpErrors(true)
+				.cookie(teachingAffairsToken.cookieKey, teachingAffairsToken.cookieValue)
+				.method(Method.GET).execute();
+		teachingAffairsSession = getCookie1FromMap(res.cookies());
 	}
 	/**
 	 * 准备
@@ -274,6 +289,8 @@ public class ReadPageHelper implements Cloneable{
 		Connection conn = Jsoup.connect(url).timeout(timeout).followRedirects(false);
 		if(teachingAffairsSession != null && !teachingAffairsSession.isEmpty())
 			conn.cookie(teachingAffairsSession.cookieKey, teachingAffairsSession.cookieValue);
+		if(teachingAffairsToken != null && !teachingAffairsToken.isEmpty())
+			conn.cookie(teachingAffairsToken.cookieKey, teachingAffairsToken.cookieValue);
 		if(SCCESession != null && !SCCESession.isEmpty())
 			conn.cookie(SCCESession.cookieKey, SCCESession.cookieValue);
 		
@@ -315,6 +332,10 @@ public class ReadPageHelper implements Cloneable{
 			clone.teachingAffairsSession = this.teachingAffairsSession.clone();
 		else
 			clone.teachingAffairsSession = null;
+		if(this.teachingAffairsToken != null)
+			clone.teachingAffairsToken = this.teachingAffairsToken.clone();
+		else
+			clone.teachingAffairsToken = null;
 		return clone;
 	}
 

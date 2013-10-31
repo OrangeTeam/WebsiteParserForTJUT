@@ -18,7 +18,7 @@ public class Test {
 	 */
 	public static void main(String[] args) {
 		try{
-		switch(2){
+		switch(6){
 		case 1:
 			SchoolWebpageParser parser1 = new SchoolWebpageParser();
 			parser1.setOnReadPageListener(new MyOnReadPageHelper());
@@ -78,6 +78,11 @@ public class Test {
 //				System.out.println(post);
 			System.out.println("共 "+result5.size()+" 条， "+onReadPageHelper.pageNumber+" 页 "+onReadPageHelper.totalSize/1024.0/1024+" MB");
 		break;
+		case 6:
+			ReadPageHelper helper = new ReadPageHelper("20106173", "?t/t\\t&t@t t", "UTF-8");
+			System.out.println(helper.doLogin());
+			System.out.println(helper.getWithDocument(Constant.url.LEARNING_COURSES));
+			break;
 		default:;
 		}
 		}catch(Exception e){
