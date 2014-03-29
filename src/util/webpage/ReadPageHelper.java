@@ -274,18 +274,26 @@ public class ReadPageHelper implements Cloneable{
 		return request(url, Method.POST, null).parse().outerHtml();
 	}
 	/**
+	 * @see #request(String, Method, String, Map)
+	 */
+	public Response request(String url, Method method, String charset) throws IOException{
+		return request(url, method, charset, null);
+	}
+	/**
 	 * Execute the request.
 	 * @param url URL to connect to
 	 * @param method {@link Method}
 	 * @param charset set character set to be used
+	 * @param data map of request data parameters
 	 * @return a response object
 	 * @throws java.net.MalformedURLException if the request URL is not a HTTP or HTTPS URL, or is otherwise malformed
 	 * @throws org.jsoup.HttpStatusException if the response is not OK and HTTP response errors are not ignored
 	 * @throws org.jsoup.UnsupportedMimeTypeException if the response mime type is not supported and those errors are not ignored
 	 * @throws java.net.SocketTimeoutException if the connection times out
 	 * @throws IOException on error
+	 * @see Connection
 	 */
-	private Response request(String url, Method method, String charset) throws IOException{
+	public Response request(String url, Method method, String charset, Map<String, String> data) throws IOException{
 		Connection conn = Jsoup.connect(url).timeout(timeout).followRedirects(false);
 		if(teachingAffairsSession != null && !teachingAffairsSession.isEmpty())
 			conn.cookie(teachingAffairsSession.cookieKey, teachingAffairsSession.cookieValue);
@@ -293,7 +301,9 @@ public class ReadPageHelper implements Cloneable{
 			conn.cookie(teachingAffairsToken.cookieKey, teachingAffairsToken.cookieValue);
 		if(SCCESession != null && !SCCESession.isEmpty())
 			conn.cookie(SCCESession.cookieKey, SCCESession.cookieValue);
-		
+
+		if(data != null)
+			conn.data(data);
 		Response response = conn.method(method).execute();
 		if(charset != null)
 			response.charset(charset);
