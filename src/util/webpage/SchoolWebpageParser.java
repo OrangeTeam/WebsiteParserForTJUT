@@ -13,16 +13,31 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jsoup.Connection;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import util.BitOperate.BitOperateException;
 import util.webpage.Course.CourseException;
+import util.webpage.Course.TimeAndAddress;
 import util.webpage.Course.TimeAndAddress.TimeAndAddressException;
 import util.webpage.Student.StudentException;
 
 public class SchoolWebpageParser {
+	/** 数字范围的模式字符串。其实例如：1-6, 4, 5 3 23 */
+	private static final String NUＭBER_RANGE_PATTERN_STRING = "\\d[\\d\\s,\\-]*";
+	/** 周次字符串的模式，其group 1是数字部分。其实例如：1,4周, 3周 5 ,1-6周,9-12周(单) 1-6,4,5 周(单)，
+	 * 它们的group 1分别为：<br/>1,4<br/>3<br/>5 ,1-6<br/>9-12<br/>1-6,4,5 */
+	private static final Pattern WEEK_PATTERN =
+			Pattern.compile("(" + NUＭBER_RANGE_PATTERN_STRING + ")" + "周[\\(\\)单双]*");
+	/** 节次（or课时or第几节课）字符串的模式，其group 1是数字部分。类似{@link #WEEK_PATTERN} */
+	private static final Pattern PERIOD_PATTERN =
+			Pattern.compile("(" + NUＭBER_RANGE_PATTERN_STRING + ")" + "节");
+	/** 星期的模式。其实例如：周二至周五 , 周二 至 周五 周四 周日 */
+	private static final Pattern DAY_OF_WEEK_PATTERN =
+			Pattern.compile("周[一二三四五六日]([\\s,周日一二三四五六至到]*[一二三四五六日])?");
+
 	private ParserListener listener;
 	private ReadPageHelper autoReadHelper;
 	private ReadPageHelper readHelper;
@@ -36,7 +51,7 @@ public class SchoolWebpageParser {
 		super();
 		listener = new ParserListenerAdapter();
 		autoReadHelper = new ReadPageHelper();
-		autoReadHelper.setCharset("GB2312");
+		autoReadHelper.setCharset("UTF-8");
 		autoReadHelper.setCharsetForParsePostsFromSCCE("UTF-8");
 		readHelper = null;
 	}
@@ -730,42 +745,22 @@ public class SchoolWebpageParser {
 		target.setMainBody(rawMainBody);
 		return target;
 	}
-	/**
-	 * 从URL指定的页面，解析课程信息，同时返回对应同学信息（如果studentInfoToReturn!=null）
-	 * @param url 要读取的页面地址
-	 * @param studentInfoToReturn 与课程信息相对应的同学的信息，被保存在这里，会覆盖原有数据
-	 * @return 满足条件的课程信息
-	 * @throws ParserException 不能正确读取课程表表头时
-	 * @throws IOException 网络连接出现异常
-	 */
-	public List<Course> parseCourse(String url, 
-			Student studentInfoToReturn) throws ParserException, IOException{
-		try{
-			Document doc = this.getCurrentHelperAfterLogin().getWithDocument(url);
-			if(doc == null || doc.getElementsByTag("table").isEmpty()){
-				listener.onWarn(ParserListener.WARNING_RESULT_IS_EMPTY, "结果为空，可能已选课程等页面已失效。");
-				return new LinkedList<Course>();
-			}
-			//student
-			if(studentInfoToReturn != null){
-				Pattern pattern = Pattern.compile
-						("学号(?:：|:)(.*)姓名(?:：|:)(.*)学院(?:：|:)(.*)专业(?:：|:)(.*)班级(?:：|:)(.*\\d+班)");
-				Matcher matcher = pattern.matcher(doc.body().child(1).text());
-				if(matcher.find()){
-					studentInfoToReturn.setNumber( matcher.group(1).replaceAll("[\u3000\u00a0]", " ").trim() );
-					studentInfoToReturn.setName( matcher.group(2).replaceAll("[\u3000\u00a0]", " ").trim() );
-					studentInfoToReturn.setSchoolName( matcher.group(3).replaceAll("[\u3000\u00a0]", " ").trim());
-					studentInfoToReturn.setMajorName( matcher.group(4).replaceAll("[\u3000\u00a0]", " ").trim() );
-					studentInfoToReturn.setClassName( matcher.group(5).replaceAll("[\u3000\u00a0]", " ").trim() );	
-				}else
-					listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_STUDENT_INFO, "解析课程信息时，无法匹配学生信息，解析学生信息失败。");
-			}
-			//courses
-			return readCourseTable(doc.getElementsByTag("table").get(0));
-		}catch(IOException e){
-			listener.onError(ParserListener.ERROR_IO, "遇到IO异常，无法打开页面，解析课程信息失败。 "+e.getMessage());
-			throw e;
-		}
+	//TODO 这是教务处网站的解析方法，不是师生服务网站的
+	public Student parseStudentInformation(String url) throws IOException, ParserException {
+		Document doc = this.getCurrentHelperAfterLogin().getWithDocument(url);
+		Student studentInfoToReturn = new Student();
+		Pattern pattern = Pattern.compile
+				("学号(?:：|:)(.*)姓名(?:：|:)(.*)学院(?:：|:)(.*)专业(?:：|:)(.*)班级(?:：|:)(.*\\d+班)");
+		Matcher matcher = pattern.matcher(doc.body().child(1).text());
+		if(matcher.find()){
+			studentInfoToReturn.setNumber( matcher.group(1).replaceAll("[\u3000\u00a0]", " ").trim() );
+			studentInfoToReturn.setName( matcher.group(2).replaceAll("[\u3000\u00a0]", " ").trim() );
+			studentInfoToReturn.setSchoolName( matcher.group(3).replaceAll("[\u3000\u00a0]", " ").trim());
+			studentInfoToReturn.setMajorName( matcher.group(4).replaceAll("[\u3000\u00a0]", " ").trim() );
+			studentInfoToReturn.setClassName( matcher.group(5).replaceAll("[\u3000\u00a0]", " ").trim() );
+		}else
+			listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_STUDENT_INFO, "解析课程信息时，无法匹配学生信息，解析学生信息失败。");
+		return null;
 	}
 	/**
 	 * 从URL指定的页面，使用指定的网络连接方法（readPageHelper），解析课程信息
@@ -775,7 +770,24 @@ public class SchoolWebpageParser {
 	 * @throws IOException 网络连接出现异常
 	 */
 	public List<Course> parseCourse(String url) throws ParserException, IOException{
-		return parseCourse(url, null);
+		try{
+			Map<String, String> data = new HashMap<>(1);
+			data.put("iDisplayLength", "30000"); //TODO 检测是否超过30000个课程
+			ReadPageHelper helper = this.getCurrentHelperAfterLogin();
+			Document doc = helper.request(url, Connection.Method.POST, helper.getCharset(), data).parse();
+			if(doc == null || doc.getElementsByTag("table").isEmpty()){
+				listener.onWarn(ParserListener.WARNING_RESULT_IS_EMPTY, "结果为空，可能已选课程等页面已失效。");
+				return new LinkedList<Course>();
+			}
+			//courses
+			List<Course> result = new LinkedList<Course>();
+			for(Element table : doc.select("div.ks-tabs-panel table.ui_table"))
+				result.addAll(readCourseTable(table));
+			return result;
+		}catch(IOException e){
+			listener.onError(ParserListener.ERROR_IO, "遇到IO异常，无法打开页面，解析课程信息失败。 "+e.getMessage());
+			throw e;
+		}
 	}
 	/**
 	 * 从URL指定的页面，使用指定的网络连接方法（readPageHelper），解析成绩，同时返回对应同学信息（如果studentInfoToReturn!=null）
@@ -865,11 +877,12 @@ public class SchoolWebpageParser {
 	    for(Element course:courses){
 	    	if(course.text().trim().length()==0)
 	    		continue;
-	    	if(course.getElementsByTag("td").first().text().trim().matches("\\d+"))
+			Elements cols = course.getElementsByTag("td");
+			if(cols.size() > 1)
 				result.add(readCourse(course, headingMap));
-	    	else if(course.getElementsByTag("td").size()>1)
-	    	    headingMap = getHeading(course);
-	    	else
+			else if(cols.isEmpty())
+				headingMap = getHeading(course.getElementsByTag("th"));
+			else		// have and only one column
 	    		listener.onInformation(ParserListener.INFO_SKIP, "Skip: "+course.text());
 	    }
 		return result;
@@ -895,12 +908,15 @@ public class SchoolWebpageParser {
 			case Headings.COURSE_TEACHER: case Headings.COURSE_KIND: case Headings.COURSE_SEMESTER:
 				parseAsString(result, fieldCode.intValue(), cols.get(i).text());
 				break;
+			case Headings.COURSE_ACADEMIC_YEAR_AND_SEMESTER:
+				//TODO 学年学期：“2013-2014学年第一学期”的解析
+				break;
 			case Headings.COURSE_CREDIT: case Headings.COURSE_TEST_SCORE: case Headings.COURSE_TOTAL_SCORE: 
 			case Headings.COURSE_ACADEMIC_YEAR:
 				parseAsNumber(result, fieldCode.intValue(), cols.get(i).text());
 				break;
-			case Headings.COURSE_TIME:rawTime= cols.get(i).getElementsByTag("font").get(0).html();break;
-			case Headings.COURSE_ADDRESS:rawAddress=cols.get(i).getElementsByTag("font").get(0).html();break;
+			case Headings.COURSE_TIME:rawTime= cols.get(i).getElementsByTag("span").html();break;
+			case Headings.COURSE_ADDRESS:rawAddress=cols.get(i).getElementsByTag("span").html();break;
 			case Headings.SEQUENCE_NUMBER: case Headings.COURSE_TEACHING_MATERIAL: case Headings.COURSE_GRADE_POINT:
 				listener.onInformation(ParserListener.INFO_SKIP, "忽略"+HEADINGS.getString(fieldCode)+"："+cols.get(i).text().trim());
 				break;
@@ -913,6 +929,7 @@ public class SchoolWebpageParser {
 				readTimeAndAddress(result, rawTime, rawAddress);
 			}catch(Exception e){
 				listener.onWarn(ParserListener.WARNINT_CANNOT_PARSE_TIME_AND_ADDRESS, "解析时间地点失败。因为：" + e.getMessage());
+				e.printStackTrace();
 			}
 		}
 		return result;
@@ -976,68 +993,122 @@ public class SchoolWebpageParser {
 					"数据超过合理范围，解析数字数据项"+HEADINGS.getString(colContent)+"失败.详情："+e.getMessage() );
 		}
 	}
-	private static void readTimeAndAddress(Course result, String rawTime, String rawAddress) 
+	private void readTimeAndAddress(Course result, String rawTime, String rawAddress) 
 			throws ParserException, TimeAndAddressException, BitOperateException {
 		if(rawTime==null)
-			throw new ParserException("Error: rawTime == null");
+			throw new NullPointerException("Error: rawTime == null");
 		if(rawAddress==null)
-			throw new ParserException("Error: rawAddress == null");
-		String[] times, addresses ,timesSplited;
-		times = splitTimeOrAddress(rawTime);
-		addresses = splitTimeOrAddress(rawAddress);
+			throw new NullPointerException("Error: rawAddress == null");
+		String[] times, addresses;
+		times = splitRawTime(rawTime);
+		addresses = splitRawAddress(rawAddress);
 		if(times.length != addresses.length)
 			throw new ParserException("Error: times.length != addresses.length");
 		for(int index = 0;index<times.length;index++){
-			timesSplited = splitTime(times[index]);
-			result.addTimeAndAddress(timesSplited[0], timesSplited[1], 
-					timesSplited[2], addresses[index]);
+			result.addTimeAndAddress(parseTime(times[index]).setAddress(addresses[index]));
 		}
 	}
-	private static String[] splitTime(String time) throws ParserException{
-		int counter = 0;
-		String[] result = new String[3];
-		Pattern pattern = Pattern.compile(
-				"(\\d[\\d\\s\u00a0\u3000;；,，\\-－\u2013\u2014\u2015]*\\d)|" +
-				"((星期|周)[一二三四五六日]([\\s\u00a0\u3000;；,，星期周日一二三四五六至到]*[一二三四五六日])?)");
-		Matcher matcher = pattern.matcher(time);
+
+	private TimeAndAddress parseTime(String time) throws ParserException, BitOperateException, TimeAndAddressException{
+		TimeAndAddress result = new TimeAndAddress();
+		Matcher matcher = WEEK_PATTERN.matcher(time);
 		while(matcher.find())
-			if(counter<3){
-				result[counter] = matcher.group();
-				counter++;
-			}
-			else
-				throw new ParserException("Unexpected time String: "+time);
-		if(counter != 3)
-			throw new ParserException("Unexpected time String: "+time);
+			addWeek(result, matcher.group(), matcher.group(1));
+		matcher = DAY_OF_WEEK_PATTERN.matcher(matcher.replaceAll(""));
+		while(matcher.find())
+			result.addDays(matcher.group());
+		matcher = PERIOD_PATTERN.matcher(matcher.replaceAll(""));
+		while(matcher.find())
+			result.addPeriods(matcher.group(1));
+		String remnants = matcher.replaceAll("").replace(",", "").trim();
+		if(remnants.length() != 0)
+			listener.onWarn(ParserListener.WARNINT_CANNOT_PARSE_TIME_AND_ADDRESS, "部分时间地点信息无法解析："+remnants);
 		return result;
 	}
-	private static String[] splitTimeOrAddress(String timeOrAddress){
+	/**
+	 * 把weekToken加入指定的{@link TimeAndAddress}
+	 * @param taa 把weekToken加入此{@link TimeAndAddress}
+	 * @param weekToken 周次字符串，如：1-6,9,11 周(单)
+	 * @param weekNumber weekToken的数字部分，如：1-6,9,11
+	 * @throws BitOperateException 当 参数非法（非以上格式，无法解析，或者超出0-20的范围）时
+	 * @see TimeAndAddress#addWeeks(String, Boolean)
+	 */
+	private static void addWeek(TimeAndAddress taa, String weekToken, String weekNumber) throws BitOperateException {
+		Boolean oddOrEven = null;
+		if(weekToken.contains("单"))
+			oddOrEven = true;
+		else if (weekToken.contains("双"))
+			oddOrEven = false;
+		taa.addWeeks(weekNumber, oddOrEven);
+	}
+
+	private static String normalizeTime(String time) {
+		time = time.replaceAll("[－\u2013\u2014\u2015]", "-");
+		time = time.replaceAll("[\\s\u00a0\u3000]+", " ");
+		time = time.replaceAll(";；，", ",");
+		time = time.replaceAll("（", "(");
+		time = time.replaceAll("）", ")");
+		time = time.replaceAll("\\s+\\(\\s", "(");	// 去掉'('前后的空格
+		time = time.replaceAll("\\s+\\)", ")");	// 去掉')'前的空格
+		time = time.replaceAll("星期", "周");
+		time = time.replaceAll("单\\s*周", "单");
+		time = time.replaceAll("双\\s*周", "双");
+		time = time.replaceAll("到", "至");
+		return time;
+	}
+	/**
+	 * 拆分成多组，每组对应一个{@link Course.TimeAndAddress}。
+	 * @param rawTime 类似 ”1-5周&lt;br /&gt;8-14周 星期五 3-4节&lt;br /&gt;1-6周(单)&lt;br /&gt;9-12周(单) 星期二 7-8节“
+	 * @return 类似 ["1-5周,8-14周 星期五 3-4节","1-6周(单),9-12周(单) 星期二 7-8节"]
+	 */
+	private static String[] splitRawTime(String rawTime) {
+		rawTime = normalizeTime(rawTime);
+		LinkedList<String> result = new LinkedList<String>();
+		String[] token = rawTime.split("<[^><]*>");
+		StringBuilder buffer = new StringBuilder();
+		for(String s:token){
+			s = ReadPageHelper.trim(s);
+			if(s.length() == 0)
+				continue;
+			if(WEEK_PATTERN.matcher(s).matches())
+				buffer.append(s + ",");
+			else {
+				result.add(buffer.toString() + s);
+				buffer.setLength(0);
+			}
+		}
+		return result.toArray(new String[0]);
+	}
+	/**
+	 * 拆分成多组，每组对应一个{@link Course.TimeAndAddress}。
+	 * @param rawAddress
+	 * @return
+	 */
+	private static String[] splitRawAddress(String rawAddress){
 		String[] first;
 		LinkedList<String> second = new LinkedList<String>();
-		first = timeOrAddress.split("<[^><]*>");
+		first = rawAddress.split("<[^><]*>");
 		for(String s:first){
 			s.trim();
 			if(s.length()>0)
 				second.add(s);
 		}
-		return (String[])second.toArray(new String[0]);
+		return second.toArray(new String[0]);
 	}
-	private HashMap<Integer, Integer> getHeading(Element heading) throws ParserException {
-		String colName = null;
-		HashMap<Integer, Integer> headMap = new HashMap<Integer, Integer>(8);
-		Elements cols = null;
-		cols = heading.getElementsByTag("td");
-		if(cols == null || cols.isEmpty()){
-			cols = heading.getElementsByTag("th");
-			if(cols == null || cols.isEmpty()){
-				listener.onError(ParserListener.ERROR_CANNOT_PARSE_TABLE_HEADING, "heading中没有<td>或<th>标签,无法解析表头。");
-				throw new ParserException("Can't getHeading because no td|th tag in first line.");
-			}
+	/**
+	 * 解析课程表头，取得课程表列顺序
+	 * @param tableHeaders 课程表头。&lt;th&gt; cells列表
+	 * @return 列序号到字段意义的映射，用于查看每列的意义。
+	 */
+	private HashMap<Integer, Integer> getHeading(Elements tableHeaders) {
+		if(tableHeaders.isEmpty()) {
+			listener.onError(ParserListener.ERROR_CANNOT_PARSE_TABLE_HEADING, "课程表头为空,无法解析表头。");
+			throw new IllegalArgumentException("encounter empty table headers");
 		}
-		for(int i=0;i<cols.size();i++){
-			colName = ReadPageHelper.deleteSpace(cols.get(i).text());
-			//assert colName != null;
-			headMap.put(i, HEADINGS.getCode(colName));
+		int index = 0;
+		HashMap<Integer, Integer> headMap = new HashMap<Integer, Integer>(15);
+		for(Element th:tableHeaders) {
+			headMap.put(index++, HEADINGS.getCode(ReadPageHelper.deleteSpace(th.text())));
 		}
 		return headMap;
 	}
@@ -1056,9 +1127,11 @@ public class SchoolWebpageParser {
 			super("encounter Exception when parse school page.", cause);
 		}
 	}
-	
+
 	private static final class Headings{
+		//TODO 以下改为enmu
 		private static final int UNKNOWN_COL = -1;
+		/** 课表（表格）序号，无语义（忽略） */
 	    private static final int SEQUENCE_NUMBER = 0;
 	    private static final int COURSE_CODE = 1;
 	    private static final int COURSE_NAME = 2;
@@ -1068,6 +1141,7 @@ public class SchoolWebpageParser {
 	    private static final int COURSE_TIME = 6;
 	    private static final int COURSE_ADDRESS = 7;
 	    private static final int COURSE_TEACHING_MATERIAL = 8;
+		private static final int COURSE_ACADEMIC_YEAR_AND_SEMESTER = 9;
 	    //SCORE
 	    private static final int COURSE_TEST_SCORE = 10;
 	    private static final int COURSE_TOTAL_SCORE = 11;
@@ -1079,15 +1153,20 @@ public class SchoolWebpageParser {
 	    private static final HashMap<String, Integer> HEADING_STRING2INTEGER = new HashMap<String, Integer>();
 	    public Headings(){
 	    	HEADING_STRING2INTEGER.put("序号",	SEQUENCE_NUMBER);
+			HEADING_STRING2INTEGER.put("课程号",	COURSE_CODE);
 	    	HEADING_STRING2INTEGER.put("课程代码",	COURSE_CODE);
 	    	HEADING_STRING2INTEGER.put("课程编码",	COURSE_CODE);
 	    	HEADING_STRING2INTEGER.put("课程名称",	COURSE_NAME);
 	    	HEADING_STRING2INTEGER.put("教学班号",	CLASS_NUMBER);
+			HEADING_STRING2INTEGER.put("上课教师",	COURSE_TEACHER);
 	    	HEADING_STRING2INTEGER.put("教师",	COURSE_TEACHER);
 	    	HEADING_STRING2INTEGER.put("学分",	COURSE_CREDIT);
+			HEADING_STRING2INTEGER.put("上课时间",	COURSE_TIME);
 	    	HEADING_STRING2INTEGER.put("时间",	COURSE_TIME);
+			HEADING_STRING2INTEGER.put("上课地点",	COURSE_ADDRESS);
 	    	HEADING_STRING2INTEGER.put("地点",	COURSE_ADDRESS);
 	    	HEADING_STRING2INTEGER.put("参考教材",	COURSE_TEACHING_MATERIAL);
+			HEADING_STRING2INTEGER.put("学年学期",	COURSE_ACADEMIC_YEAR_AND_SEMESTER);
 	    	//Scores
 	    	HEADING_STRING2INTEGER.put("结课考核成绩",	COURSE_TEST_SCORE);
 	    	HEADING_STRING2INTEGER.put("期末总评成绩",	COURSE_TOTAL_SCORE);
