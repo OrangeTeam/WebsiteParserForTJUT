@@ -37,6 +37,10 @@ public class SchoolWebpageParser {
 	/** 星期的模式。其实例如：周二至周五 , 周二 至 周五 周四 周日 */
 	private static final Pattern DAY_OF_WEEK_PATTERN =
 			Pattern.compile("周[一二三四五六日]([\\s,周日一二三四五六至到]*[一二三四五六日])?");
+	/** 学年学期（{@link Headings#COURSE_ACADEMIC_YEAR_AND_SEMESTER}）的模式，有3个捕获组。
+	 * 例如2013-2014学年第二学期的group1、2、3分别为2013、2014、二。 */
+	private static final Pattern ACADEMIC_YEAR_AND_SEMESTER_PATTERN =
+			Pattern.compile("(\\d{4})-(\\d{4})学年第?([一二三四五])学期");
 
 	private ParserListener listener;
 	private ReadPageHelper autoReadHelper;
@@ -906,10 +910,8 @@ public class SchoolWebpageParser {
 			switch(fieldCode.intValue()){
 			case Headings.COURSE_CODE: case Headings.COURSE_NAME: case Headings.CLASS_NUMBER: 
 			case Headings.COURSE_TEACHER: case Headings.COURSE_KIND: case Headings.COURSE_SEMESTER:
-				parseAsString(result, fieldCode.intValue(), cols.get(i).text());
-				break;
 			case Headings.COURSE_ACADEMIC_YEAR_AND_SEMESTER:
-				//TODO 学年学期：“2013-2014学年第一学期”的解析
+				parseAsString(result, fieldCode.intValue(), cols.get(i).text());
 				break;
 			case Headings.COURSE_CREDIT: case Headings.COURSE_TEST_SCORE: case Headings.COURSE_TOTAL_SCORE: 
 			case Headings.COURSE_ACADEMIC_YEAR:
@@ -959,16 +961,55 @@ public class SchoolWebpageParser {
 		case Headings.COURSE_KIND:result.setKind(temp);break;
 		case Headings.COURSE_SEMESTER:
 			if(temp.equals("1"))
-				result.setIsFirstSemester(true);
+				result.setSemester(Course.Semester.FIRST_SEMESTER);
 			else if(temp.equals("2"))
-				result.setIsFirstSemester(false);
+				result.setSemester(Course.Semester.SECOND_SEMESTER);
 			else{
-				result.setIsFirstSemester(null);
+				result.setSemester(null);
 				listener.onWarn(ParserListener.WARNINT_CANNOT_PARSE_SEMESTER, "未知的学期数据"+temp+"，解析学期失败。");
 			}
 			break;
+		case Headings.COURSE_ACADEMIC_YEAR_AND_SEMESTER:
+			parseAcademicYearAndSemester(result, colContent, temp);
+			break;
 		default:listener.onWarn(ParserListener.WARNING_UNKNOWN_COLUMN, 
 				"未知的字符串数据项"+colContent+"("+HEADINGS.getString(colContent)+")。");
+		}
+	}
+	private void parseAcademicYearAndSemester(Course result, int colContent, String rawYearAndSemester) {
+		result.clear(Course.Property.YEAR);
+		result.setSemester(null);
+		Matcher matcher = ACADEMIC_YEAR_AND_SEMESTER_PATTERN.matcher(rawYearAndSemester);
+		if(!matcher.matches()) {
+			listener.onWarn(ParserListener.WARNINT_CANNOT_PARSE_ACADEMIC_YEAR_AND_SEMESTER,
+					"未知的学年学期格式"+rawYearAndSemester+"，解析学年学期失败。");
+		}
+		// 学年
+		try {
+			int year1 = Integer.parseInt(matcher.group(1));
+			int year2 = Integer.parseInt(matcher.group(2));
+			if(year2 - year1 == 1) {
+				result.setYear(year1);
+			} else {
+				listener.onWarn(ParserListener.WARNINT_CANNOT_PARSE_ACADEMIC_YEAR_AND_SEMESTER,
+						"非预期的学年："+rawYearAndSemester+"不是一年，解析学年失败。");
+			}
+		} catch (NumberFormatException e) {
+			listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_NUMBER_DATA,
+					"不能把字符串数据转换为数字，解析数字数据项"+HEADINGS.getString(colContent)+"失败。详情："+e.getMessage() );
+		} catch (CourseException e) {
+			listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_NUMBER_DATA,
+					"数据超过合理范围，解析数字数据项"+HEADINGS.getString(colContent)+"失败.详情："+e.getMessage() );
+		}
+		// 学期
+		switch(matcher.group(3)) {
+		case "一":result.setSemester(Course.Semester.FIRST_SEMESTER);break;
+		case "二":result.setSemester(Course.Semester.SECOND_SEMESTER);break;
+		case "三":result.setSemester(Course.Semester.THIRD_SEMESTER);break;
+		case "四":result.setSemester(Course.Semester.FOURTH_SEMESTER);break;
+		case "五":result.setSemester(Course.Semester.FIFTH_SEMESTER);break;
+		default:
+			throw new AssertionError("非预期的学期："+rawYearAndSemester+"中无”[一二三四五]学期“，解析学期失败。");
 		}
 	}
 	private void parseAsNumber(Course result, int colContent, String rawData){
@@ -1219,6 +1260,7 @@ public class SchoolWebpageParser {
 		public static final int WARNING_CANNOT_PARSE_NUMBER_DATA = 16;
 		public static final int WARNINT_CANNOT_PARSE_TIME_AND_ADDRESS = 17;
 		public static final int WARNINT_CANNOT_PARSE_SEMESTER = 18;
+		public static final int WARNINT_CANNOT_PARSE_ACADEMIC_YEAR_AND_SEMESTER = 19;
 		public static final int WARNING_CANNOT_PARSE_STUDENT_INFO = 20;
 		public static final int WARNING_CANNOT_PARSE_STUDENT_BIRTHDAY = 21;
 		public static final int WARNING_CANNOT_PARSE_STUDENT_ADMISSION_TIME = 22;

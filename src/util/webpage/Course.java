@@ -7,9 +7,9 @@ import util.BitOperate.BitOperateException;
 import util.webpage.Course.TimeAndAddress.TimeAndAddressException;
 
 /**
- * <strong>Note:</strong>大部分用于设置的方法返回this，做Builder
+ * <strong>Note:</strong>大部分用于设置的方法返回this，可以链式调用
  * @author Zhou Peican
- * @improver Bai Jie
+ * @author Bai Jie
  */
 public class Course implements Cloneable{
 	/**
@@ -26,7 +26,7 @@ public class Course implements Cloneable{
 		public static final int TEACHING_MATERIAL	= 0x8;
 		public static final int NOTE				= 0x9;
 		public static final int YEAR				= 0xa;
-		public static final int IS_FIRST_SEMESTER	= 0xb;
+		public static final int SEMESTER	= 0xb;
 		public static final int TEST_SCORE			= 0xc;
 		public static final int TOTAL_SCORE			= 0xd;
 		public static final int KIND				= 0xe;
@@ -43,10 +43,20 @@ public class Course implements Cloneable{
 		public static final String	TEACHING_MATERIAL	= null;
 		public static final String	NOTE				= null;
 		public static final short	YEAR				= 0;
-		public static final Boolean	IS_FIRST_SEMESTER	= null;
+		public static final Semester	SEMESTER	= null;
 		public static final float	TEST_SCORE			= Float.NaN;
 		public static final float	TOTAL_SCORE			= Float.NaN;
 		public static final String	KIND				= null;
+	}
+	/**
+	 * 学期
+	 */
+	public static enum Semester {
+		FIRST_SEMESTER,
+		SECOND_SEMESTER,
+		THIRD_SEMESTER,
+		FOURTH_SEMESTER,
+		FIFTH_SEMESTER
 	}
 
 	/**本地数据库使用的ID*/
@@ -70,8 +80,8 @@ public class Course implements Cloneable{
 	private String note;
 	/**学年*/
 	private short year;
-	/**true表示上半学期，false表示下半学期，null表示未知*/
-	private Boolean isFirstSemester;
+	/**学期*/
+	private Semester semester;
 	/**结课考核成绩*/
 	private float testScore;
 	/**期末总评成绩*/
@@ -108,23 +118,23 @@ public class Course implements Cloneable{
 	 * @param testScore 结课考核成绩
 	 * @param totalScore 期末总评成绩
 	 * @param year 学年
-	 * @param isFirstSemester 学期。true表示上半学期，false表示下半学期，null表示未知
+	 * @param semester 学期
 	 * @throws CourseException credit<=0,或者credit大于Byte.MAX_VALUE 或者 成绩超出0~999的范围 或者 学年year超出1900~9999的范围
 	 */
 	public Course(String code, String name, int credit, String classNumber, int testScore, 
-			int totalScore, int year, Boolean isFirstSemester) throws CourseException{
+			int totalScore, int year, Semester semester) throws CourseException{
 		this(code, name, credit, classNumber);
 		setTestScore(testScore);
 		setTotalScore(totalScore);
 		setYear(year);
-		this.isFirstSemester = isFirstSemester;
+		setSemester(semester);
 	}
 	/**全参构造方法
 	 * @throws CourseException 请见{@link #Course(String, String, int, String, int, int, int, Boolean)}*/
 	public Course(int id, String code, String name, String[] teachers, int credit, String classNumber, 
 			TimeAndAddress[] timeAndAddresses, String teachingMaterial, String note, int year,
-			Boolean isFirstSemester, int testScore, int totalScore, String kind) throws CourseException{
-		this(code, name, credit, classNumber, testScore, totalScore, year, isFirstSemester);
+			Semester semester, int testScore, int totalScore, String kind) throws CourseException{
+		this(code, name, credit, classNumber, testScore, totalScore, year, semester);
 		this.id = id;
 		this.teachingMaterial = teachingMaterial;
 		//对teachers数组初始化
@@ -148,7 +158,7 @@ public class Course implements Cloneable{
 		this.testScore = src.testScore;
 		this.totalScore = src.totalScore;
 		this.year = src.year;
-		this.isFirstSemester = src.isFirstSemester;
+		this.semester = src.semester;
 		
 		this.id = src.id;
 		this.teachingMaterial = src.teachingMaterial;
@@ -164,7 +174,7 @@ public class Course implements Cloneable{
 	 */
 	public boolean isEmpty(){
 		return isEmpty(Property.CODE) && isEmpty(Property.CREDIT) && isEmpty(Property.ID)
-				&& isEmpty(Property.IS_FIRST_SEMESTER) && isEmpty(Property.KIND)
+				&& isEmpty(Property.SEMESTER) && isEmpty(Property.KIND)
 				&& isEmpty(Property.NAME) && isEmpty(Property.NOTE)
 				&& isEmpty(Property.TEACHERS) && isEmpty(Property.TEACHING_CLASS)
 				&& isEmpty(Property.TEACHING_MATERIAL) && isEmpty(Property.TEST_SCORE)
@@ -185,8 +195,8 @@ public class Course implements Cloneable{
 			return credit			== DefaultValue.CREDIT;
 		case Property.ID:
 			return id				== DefaultValue.ID;
-		case Property.IS_FIRST_SEMESTER:
-			return isFirstSemester	== DefaultValue.IS_FIRST_SEMESTER;
+		case Property.SEMESTER:
+			return semester	== DefaultValue.SEMESTER;
 		case Property.KIND:
 			return kind				== DefaultValue.KIND;
 		case Property.NAME:
@@ -217,7 +227,7 @@ public class Course implements Cloneable{
 	 */
 	public Course clear(){
 		clear(Property.CODE).clear(Property.CREDIT).clear(Property.ID)
-		.clear(Property.IS_FIRST_SEMESTER).clear(Property.KIND).clear(Property.NAME)
+		.clear(Property.SEMESTER).clear(Property.KIND).clear(Property.NAME)
 		.clear(Property.NOTE).clear(Property.TEACHERS).clear(Property.TEACHING_CLASS)
 		.clear(Property.TEACHING_MATERIAL).clear(Property.TEST_SCORE)
 		.clear(Property.TIME_AND_ADDRESS).clear(Property.TOTAL_SCORE).clear(Property.YEAR);
@@ -234,7 +244,7 @@ public class Course implements Cloneable{
 		case Property.CODE:				code			= DefaultValue.CODE;break;
 		case Property.CREDIT:			credit			= DefaultValue.CREDIT;break;
 		case Property.ID:				id				= DefaultValue.ID;break;
-		case Property.IS_FIRST_SEMESTER:isFirstSemester	= DefaultValue.IS_FIRST_SEMESTER;break;
+		case Property.SEMESTER:	semester	= DefaultValue.SEMESTER;break;
 		case Property.KIND:				kind			= DefaultValue.KIND;break;
 		case Property.NAME:				name			= DefaultValue.NAME;break;
 		case Property.NOTE:				note			= DefaultValue.NOTE;break;
@@ -433,16 +443,16 @@ public class Course implements Cloneable{
 		return this;
 	}
 	/**
-	 * @return 学期。true表示上半学期，false表示下半学期，null表示未知
+	 * @return 学期
 	 */
-	public Boolean isFirstSemester() {
-		return isFirstSemester;
+	public Semester getSemester() {
+		return semester;
 	}
 	/**
-	 * @param isFirstSemester 学期。true表示上半学期，false表示下半学期，null表示未知
+	 * @param semester 学期
 	 */
-	public Course setIsFirstSemester(Boolean isFirstSemester) {
-		this.isFirstSemester = isFirstSemester;
+	public Course setSemester(Semester semester) {
+		this.semester = semester;
 		return this;
 	}
 	/**
@@ -640,7 +650,7 @@ public class Course implements Cloneable{
 	public String toString(){
 		return getCode()+"\t"+getName()+"\t"+getClassNumber()+"\t"+getTeacherString()+"\t"
 				+getCredit()+"\t"+getTestScore()+"\t"+getTotalScore()+"\t"+getYear()+"\t"
-				+isFirstSemester()+"\t"+getKind()+"\t"+getNote()+"\n"+getTimeAndAddressString();
+				+getSemester()+"\t"+getKind()+"\t"+getNote()+"\n"+getTimeAndAddressString();
 	}
 
 	/* (non-Javadoc)
@@ -1130,7 +1140,6 @@ public class Course implements Cloneable{
 		 * @precondition 不含“\\s\u00a0\u3000;；,，星期周日一二三四五六至到”以外字符
 		 * @throws BitOperateException daysStr中有不可识别的符号[^\\s\u00a0\u3000;；,，星期周日一二三四五六至到] 或者 超过0~7的范围 或者 start>end
 		 * @throws TimeAndAddressException 连续遇到[至到] 或者 [至到]的位置不对 或者 星期字符串不合语法，不含[一~六]或"日"
-
 		 */
 		public TimeAndAddress addDays(String daysStr) 
 				throws BitOperateException, TimeAndAddressException{
