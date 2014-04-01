@@ -332,7 +332,7 @@ public class SchoolWebpageParser {
     public List<Post> parseCommonPosts(Date start, Date end, int max) throws UnsupportedEncodingException, IOException{
     	LinkedList<Post> result = new LinkedList<Post>();
     	if(max>=0 && result.size()>=max)
-			return result;;
+			return result;
 		result.addAll(parsePosts(Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS,Post.CATEGORYS.IN_TEACHING_AFFAIRS_WEBSITE_COMMON, start, end, max));
 		if(max>=0 && result.size()>=max)
 			return result;
@@ -909,12 +909,12 @@ public class SchoolWebpageParser {
 			}
 			switch(fieldCode.intValue()){
 			case Headings.COURSE_CODE: case Headings.COURSE_NAME: case Headings.CLASS_NUMBER: 
-			case Headings.COURSE_TEACHER: case Headings.COURSE_KIND: case Headings.COURSE_SEMESTER:
+			case Headings.COURSE_TEACHER: case Headings.COURSE_KIND:
 			case Headings.COURSE_ACADEMIC_YEAR_AND_SEMESTER:
 				parseAsString(result, fieldCode.intValue(), cols.get(i).text());
 				break;
 			case Headings.COURSE_CREDIT: case Headings.COURSE_TEST_SCORE: case Headings.COURSE_TOTAL_SCORE: 
-			case Headings.COURSE_ACADEMIC_YEAR:
+			case Headings.COURSE_ACADEMIC_YEAR: case Headings.COURSE_SEMESTER:
 				parseAsNumber(result, fieldCode.intValue(), cols.get(i).text());
 				break;
 			case Headings.COURSE_TIME:rawTime= cols.get(i).getElementsByTag("span").html();break;
@@ -959,16 +959,6 @@ public class SchoolWebpageParser {
 		case Headings.CLASS_NUMBER:result.setClassNumber(temp);break;
 		case Headings.COURSE_TEACHER:result.addTeacher(temp);break;
 		case Headings.COURSE_KIND:result.setKind(temp);break;
-		case Headings.COURSE_SEMESTER:
-			if(temp.equals("1"))
-				result.setSemester(Course.Semester.FIRST_SEMESTER);
-			else if(temp.equals("2"))
-				result.setSemester(Course.Semester.SECOND_SEMESTER);
-			else{
-				result.setSemester(null);
-				listener.onWarn(ParserListener.WARNINT_CANNOT_PARSE_SEMESTER, "未知的学期数据"+temp+"，解析学期失败。");
-			}
-			break;
 		case Headings.COURSE_ACADEMIC_YEAR_AND_SEMESTER:
 			parseAcademicYearAndSemester(result, colContent, temp);
 			break;
@@ -977,8 +967,6 @@ public class SchoolWebpageParser {
 		}
 	}
 	private void parseAcademicYearAndSemester(Course result, int colContent, String rawYearAndSemester) {
-		result.clear(Course.Property.YEAR);
-		result.setSemester(null);
 		Matcher matcher = ACADEMIC_YEAR_AND_SEMESTER_PATTERN.matcher(rawYearAndSemester);
 		if(!matcher.matches()) {
 			listener.onWarn(ParserListener.WARNINT_CANNOT_PARSE_ACADEMIC_YEAR_AND_SEMESTER,
@@ -1002,14 +990,25 @@ public class SchoolWebpageParser {
 					"数据超过合理范围，解析数字数据项"+HEADINGS.getString(colContent)+"失败.详情："+e.getMessage() );
 		}
 		// 学期
-		switch(matcher.group(3)) {
-		case "一":result.setSemester(Course.Semester.FIRST_SEMESTER);break;
-		case "二":result.setSemester(Course.Semester.SECOND_SEMESTER);break;
-		case "三":result.setSemester(Course.Semester.THIRD_SEMESTER);break;
-		case "四":result.setSemester(Course.Semester.FOURTH_SEMESTER);break;
-		case "五":result.setSemester(Course.Semester.FIFTH_SEMESTER);break;
-		default:
-			throw new AssertionError("非预期的学期："+rawYearAndSemester+"中无”[一二三四五]学期“，解析学期失败。");
+		try {
+			result.setSemester((byte) valueOfChineseNumber(matcher.group(3)));
+		} catch (CourseException e) {
+			listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_NUMBER_DATA,
+					"数据超过合理范围，解析数字数据项"+HEADINGS.getString(colContent)+"失败.详情："+e.getMessage() );
+		}
+	}
+	/**
+	 * @param chineseNumber 一~五
+	 * @return 与chineseNumber对应的数字
+	 */
+	private int valueOfChineseNumber(String chineseNumber) {
+		switch(chineseNumber) {
+		case "一":return 1;
+		case "二":return 2;
+		case "三":return 3;
+		case "四":return 4;
+		case "五":return 5;
+		default: throw new UnsupportedOperationException("Unsupported Number: " + chineseNumber);
 		}
 	}
 	private void parseAsNumber(Course result, int colContent, String rawData){
@@ -1022,6 +1021,7 @@ public class SchoolWebpageParser {
 			case Headings.COURSE_TEST_SCORE:result.setTestScore(Float.parseFloat(temp));break;
 			case Headings.COURSE_TOTAL_SCORE:result.setTotalScore(Float.parseFloat(temp));break;
 			case Headings.COURSE_ACADEMIC_YEAR:result.setYear(Integer.parseInt(temp));break;
+			case Headings.COURSE_SEMESTER:result.setSemester(Byte.valueOf(temp));break;
 			default:listener.onWarn(ParserListener.WARNING_UNKNOWN_COLUMN, 
 					"未知的数字数据项"+colContent+"("+HEADINGS.getString(colContent)+")。");
 			}

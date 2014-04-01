@@ -43,20 +43,10 @@ public class Course implements Cloneable{
 		public static final String	TEACHING_MATERIAL	= null;
 		public static final String	NOTE				= null;
 		public static final short	YEAR				= 0;
-		public static final Semester	SEMESTER	= null;
+		public static final Byte	SEMESTER	= null;
 		public static final float	TEST_SCORE			= Float.NaN;
 		public static final float	TOTAL_SCORE			= Float.NaN;
 		public static final String	KIND				= null;
-	}
-	/**
-	 * 学期
-	 */
-	public static enum Semester {
-		FIRST_SEMESTER,
-		SECOND_SEMESTER,
-		THIRD_SEMESTER,
-		FOURTH_SEMESTER,
-		FIFTH_SEMESTER
 	}
 
 	/**本地数据库使用的ID*/
@@ -80,8 +70,8 @@ public class Course implements Cloneable{
 	private String note;
 	/**学年*/
 	private short year;
-	/**学期*/
-	private Semester semester;
+	/**学期，如1、2、3分别代表第一、二、三学期*/
+	private Byte semester;
 	/**结课考核成绩*/
 	private float testScore;
 	/**期末总评成绩*/
@@ -122,7 +112,7 @@ public class Course implements Cloneable{
 	 * @throws CourseException credit<=0,或者credit大于Byte.MAX_VALUE 或者 成绩超出0~999的范围 或者 学年year超出1900~9999的范围
 	 */
 	public Course(String code, String name, int credit, String classNumber, int testScore, 
-			int totalScore, int year, Semester semester) throws CourseException{
+			int totalScore, int year, Byte semester) throws CourseException{
 		this(code, name, credit, classNumber);
 		setTestScore(testScore);
 		setTotalScore(totalScore);
@@ -133,7 +123,7 @@ public class Course implements Cloneable{
 	 * @throws CourseException 请见{@link #Course(String, String, int, String, int, int, int, Boolean)}*/
 	public Course(int id, String code, String name, String[] teachers, int credit, String classNumber, 
 			TimeAndAddress[] timeAndAddresses, String teachingMaterial, String note, int year,
-			Semester semester, int testScore, int totalScore, String kind) throws CourseException{
+			Byte semester, int testScore, int totalScore, String kind) throws CourseException{
 		this(code, name, credit, classNumber, testScore, totalScore, year, semester);
 		this.id = id;
 		this.teachingMaterial = teachingMaterial;
@@ -443,15 +433,18 @@ public class Course implements Cloneable{
 		return this;
 	}
 	/**
-	 * @return 学期
+	 * @return 学期，如1、2、3分别代表第一、二、三学期
 	 */
-	public Semester getSemester() {
+	public Byte getSemester() {
 		return semester;
 	}
 	/**
-	 * @param semester 学期
+	 * @param semester 学期，如1、2、3分别代表第一、二、三学期
+	 * @throws CourseException when semester != null && (semester < 1 || semester > 5)
 	 */
-	public Course setSemester(Semester semester) {
+	public Course setSemester(Byte semester) throws CourseException {
+		if(semester != null && (semester < 1 || semester > 5))
+			throw new CourseException("Illegal semester: "+semester);
 		this.semester = semester;
 		return this;
 	}
