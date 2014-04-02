@@ -779,23 +779,24 @@ public class SchoolWebpageParser {
 	}
 	/**
 	 * 从URL指定的页面，使用指定的网络连接方法（readPageHelper），解析成绩
-	 * @param url 要读取的页面地址
+	 * @param academicYear 学年
+	 * @param semester 学期
 	 * @return 满足条件的包含成绩信息的课程类
 	 * @throws ParserException 不能正确读取课程表表头时
 	 * @throws IOException 网络连接出现异常
 	 */
-	public List<Course> parseScores(String url) throws ParserException, IOException{
+	public List<Course> parseScores(int academicYear, int semester) throws ParserException, IOException{
 		try{
-			Document doc = getCurrentHelperAfterLogin().getWithDocument(url);
-			if(doc == null || doc.getElementsByTag("table").isEmpty()){
-				listener.onWarn(ParserListener.WARNING_RESULT_IS_EMPTY, "结果为空，可能最新成绩等页面已失效。");
-				return new LinkedList<Course>();
-			}
+			Map<String, String> data = new HashMap<>();
+			data.put("qXndm_ys", academicYear + "-" + (academicYear+1));
+			data.put("qXqdm_ys", String.valueOf(semester));
+			ReadPageHelper helper = this.getCurrentHelperAfterLogin();
+			Document doc = helper.request(Constant.url.ALL_PERSONAL_GRADES, Connection.Method.POST, helper.getCharset(), data).parse();
 			//courses
-			if(url.equals(Constant.url.ALL_PERSONAL_GRADES))
-				return readCourseTable(doc.getElementsByTag("table").get(1));
-			else
-				return readCourseTable(doc.getElementsByTag("table").first());
+			List<Course> result = readCourseTable(doc.select("div#tab01 [tabid~=0*1] table.ui_table").first()); //TODO tabid的设置
+			if(result.isEmpty())
+				listener.onWarn(ParserListener.WARNING_RESULT_IS_EMPTY, "结果为空，可能最新成绩等页面已失效。");
+			return result;
 		}catch(IOException e){
 			listener.onError(ParserListener.ERROR_IO, "遇到IO异常，无法打开页面，解析成绩信息失败。 "+e.getMessage());
 			throw e;
@@ -944,6 +945,7 @@ public class SchoolWebpageParser {
 		String temp = pretreatmentString(colContent, rawData);
 		if(temp == null)
 			return;
+		temp = temp.replaceAll("\\.0*$", ""); //在师生服务网站查成绩时，学分用浮点数表示，这里删除多余的".0"
 		try{
 			switch(colContent){
 			case Headings.COURSE_CREDIT:result.setCredit(Integer.parseInt(temp));break;
