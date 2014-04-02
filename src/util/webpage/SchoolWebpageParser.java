@@ -22,7 +22,6 @@ import util.BitOperate.BitOperateException;
 import util.webpage.Course.CourseException;
 import util.webpage.Course.TimeAndAddress;
 import util.webpage.Course.TimeAndAddress.TimeAndAddressException;
-import util.webpage.Student.StudentException;
 
 public class SchoolWebpageParser {
 	/** 数字范围的模式字符串。其实例如：1-6, 4, 5 3 23 */
@@ -749,22 +748,9 @@ public class SchoolWebpageParser {
 		target.setMainBody(rawMainBody);
 		return target;
 	}
-	//TODO 这是教务处网站的解析方法，不是师生服务网站的
+	//TODO 实现它
 	public Student parseStudentInformation(String url) throws IOException, ParserException {
-		Document doc = this.getCurrentHelperAfterLogin().getWithDocument(url);
-		Student studentInfoToReturn = new Student();
-		Pattern pattern = Pattern.compile
-				("学号(?:：|:)(.*)姓名(?:：|:)(.*)学院(?:：|:)(.*)专业(?:：|:)(.*)班级(?:：|:)(.*\\d+班)");
-		Matcher matcher = pattern.matcher(doc.body().child(1).text());
-		if(matcher.find()){
-			studentInfoToReturn.setNumber( matcher.group(1).replaceAll("[\u3000\u00a0]", " ").trim() );
-			studentInfoToReturn.setName( matcher.group(2).replaceAll("[\u3000\u00a0]", " ").trim() );
-			studentInfoToReturn.setSchoolName( matcher.group(3).replaceAll("[\u3000\u00a0]", " ").trim());
-			studentInfoToReturn.setMajorName( matcher.group(4).replaceAll("[\u3000\u00a0]", " ").trim() );
-			studentInfoToReturn.setClassName( matcher.group(5).replaceAll("[\u3000\u00a0]", " ").trim() );
-		}else
-			listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_STUDENT_INFO, "解析课程信息时，无法匹配学生信息，解析学生信息失败。");
-		return null;
+		throw new UnsupportedOperationException("尚未实现");
 	}
 	/**
 	 * 从URL指定的页面，使用指定的网络连接方法（readPageHelper），解析课程信息
@@ -779,58 +765,15 @@ public class SchoolWebpageParser {
 			data.put("iDisplayLength", "30000"); //TODO 检测是否超过30000个课程
 			ReadPageHelper helper = this.getCurrentHelperAfterLogin();
 			Document doc = helper.request(url, Connection.Method.POST, helper.getCharset(), data).parse();
-			if(doc == null || doc.getElementsByTag("table").isEmpty()){
-				listener.onWarn(ParserListener.WARNING_RESULT_IS_EMPTY, "结果为空，可能已选课程等页面已失效。");
-				return new LinkedList<Course>();
-			}
 			//courses
 			List<Course> result = new LinkedList<Course>();
 			for(Element table : doc.select("div.ks-tabs-panel table.ui_table"))
 				result.addAll(readCourseTable(table));
+			if(result.isEmpty())
+				listener.onWarn(ParserListener.WARNING_RESULT_IS_EMPTY, "结果为空，可能已选课程等页面已失效。");
 			return result;
 		}catch(IOException e){
 			listener.onError(ParserListener.ERROR_IO, "遇到IO异常，无法打开页面，解析课程信息失败。 "+e.getMessage());
-			throw e;
-		}
-	}
-	/**
-	 * 从URL指定的页面，使用指定的网络连接方法（readPageHelper），解析成绩，同时返回对应同学信息（如果studentInfoToReturn!=null）
-	 * @param url 要读取的页面地址
-	 * @param studentInfoToReturn 与成绩信息相对应的同学的信息，被保存在这里，会覆盖原有数据
-	 * @return 满足条件的包含成绩信息的课程类
-	 * @throws ParserException 不能正确读取课程表表头时
-	 * @throws IOException 网络连接出现异常
-	 */
-	public List<Course> parseScores(String url, 
-			Student studentInfoToReturn) throws ParserException, IOException{
-		try{
-			Document doc = getCurrentHelperAfterLogin().getWithDocument(url);
-			if(doc == null || doc.getElementsByTag("table").isEmpty()){
-				listener.onWarn(ParserListener.WARNING_RESULT_IS_EMPTY, "结果为空，可能最新成绩等页面已失效。");
-				return new LinkedList<Course>();
-			}
-			//student
-			if(studentInfoToReturn != null){
-				if(url.equals(Constant.url.ALL_PERSONAL_GRADES)){
-					setStudentInformation(doc.getElementsByTag("table").first(), studentInfoToReturn);
-				}else{
-					Pattern pattern = Pattern.compile
-							("学号(?:：|:)(.*)姓名(?:：|:)(.*)");
-					Matcher matcher = pattern.matcher(doc.body().getElementsByTag("p").get(2).text());
-					if(matcher.find()){
-						studentInfoToReturn.setNumber( matcher.group(1).replaceAll("[\u3000\u00a0]", " ").trim() );
-						studentInfoToReturn.setName( matcher.group(2).replaceAll("[\u3000\u00a0]", " ").trim() );
-					}else
-						listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_STUDENT_INFO, "解析成绩信息时，无法匹配学生信息，解析学生信息失败。");
-				}
-			}
-			//courses
-			if(url.equals(Constant.url.ALL_PERSONAL_GRADES))
-				return readCourseTable(doc.getElementsByTag("table").get(1));
-			else
-				return readCourseTable(doc.getElementsByTag("table").first());
-		}catch(IOException e){
-			listener.onError(ParserListener.ERROR_IO, "遇到IO异常，无法打开页面，解析成绩信息失败。 "+e.getMessage());
 			throw e;
 		}
 	}
@@ -842,38 +785,24 @@ public class SchoolWebpageParser {
 	 * @throws IOException 网络连接出现异常
 	 */
 	public List<Course> parseScores(String url) throws ParserException, IOException{
-		return parseScores(url, null);
+		try{
+			Document doc = getCurrentHelperAfterLogin().getWithDocument(url);
+			if(doc == null || doc.getElementsByTag("table").isEmpty()){
+				listener.onWarn(ParserListener.WARNING_RESULT_IS_EMPTY, "结果为空，可能最新成绩等页面已失效。");
+				return new LinkedList<Course>();
+			}
+			//courses
+			if(url.equals(Constant.url.ALL_PERSONAL_GRADES))
+				return readCourseTable(doc.getElementsByTag("table").get(1));
+			else
+				return readCourseTable(doc.getElementsByTag("table").first());
+		}catch(IOException e){
+			listener.onError(ParserListener.ERROR_IO, "遇到IO异常，无法打开页面，解析成绩信息失败。 "+e.getMessage());
+			throw e;
+		}
 	}
-	private void setStudentInformation(Element studentInfoTable, Student studentInfoToReturn){
-		Elements rows = studentInfoTable.getElementsByTag("tr");
-		studentInfoToReturn.setNumber(rows.get(0).getElementsByTag("td").get(1).text().replaceAll("[\u3000\u00a0]", " ").trim());
-		studentInfoToReturn.setName(rows.get(0).getElementsByTag("td").get(3).text().replaceAll("[\u3000\u00a0]", " ").trim());
-		if(rows.get(0).getElementsByTag("td").get(5).text().replaceAll("[\u3000\u00a0]", " ").trim().equals("男"))
-			studentInfoToReturn.setIsMale(true);
-		else if(rows.get(0).getElementsByTag("td").get(5).text().replaceAll("[\u3000\u00a0]", " ").trim().equals("女"))
-			studentInfoToReturn.setIsMale(false);
-		try {
-			studentInfoToReturn.setBirthday(rows.get(1).getElementsByTag("td").get(1).text().replaceAll("[\u3000\u00a0]", " ").trim());
-		} catch (ParseException e) {
-			listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_STUDENT_BIRTHDAY, "无法解析日期，解析生日失败。"+e.getMessage());
-		}
-		try {
-			studentInfoToReturn.setAcademicPeriod(Integer.parseInt(rows.get(1).getElementsByTag("td").get(3).text().replaceAll("[\u3000\u00a0]", " ").trim()));
-		} catch (NumberFormatException e) {
-			listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_STUDENT_ACADEMIC_PERIOD, "无法解析数字，解析学制失败。"+e.getMessage());
-		} catch (StudentException e) {
-			listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_STUDENT_ACADEMIC_PERIOD, "解析的数字超出合理范围，解析学制失败。"+e.getMessage());
-		}
-		try {
-			studentInfoToReturn.setAdmissionTime(rows.get(1).getElementsByTag("td").get(5).text().replaceAll("[\u3000\u00a0]", " ").trim());
-		} catch (ParseException e) {
-			listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_STUDENT_ADMISSION_TIME, "无法解析日期，解析入学时间失败。"+e.getMessage());
-		}
-		studentInfoToReturn.setSchoolName(rows.get(2).getElementsByTag("td").get(1).text().replaceAll("[\u3000\u00a0]", " ").trim());
-		studentInfoToReturn.setMajorName(rows.get(2).getElementsByTag("td").get(3).text().replaceAll("[\u3000\u00a0]", " ").trim());
-		studentInfoToReturn.setClassName(rows.get(2).getElementsByTag("td").get(5).text().replaceAll("[\u3000\u00a0]", " ").trim());
-	}
-	private List<Course> readCourseTable(Element table) throws ParserException {
+
+	private List<Course> readCourseTable(Element table) {
 	    LinkedList<Course> result = new LinkedList<Course>();
 	    Elements courses = table.getElementsByTag("tr");
 	    
