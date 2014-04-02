@@ -778,7 +778,48 @@ public class SchoolWebpageParser {
 		}
 	}
 	/**
-	 * 从URL指定的页面，使用指定的网络连接方法（readPageHelper），解析成绩
+	 * {@link #parseScores(int, int)}的包装方法，解析多个学期的成绩
+	 * <p>本方法的参数是学年学期表，如需解析m个学年，n个学期的成绩，则此表格式为int[m][n]，
+	 * 其中每行的第0个元素是学年，第1~n个元素为学期号。</p><p>示例：</p><pre>
++------+---+---+
+| 2010 | 1 | 2 |
++------+---+---+---+
+| 2011 | 1 | 2 | 3 |
++------+---+---+---+
+| 2012 | 1 |
++------+---+
+	 * </pre><p><strong>提示</strong>：
+	 * 允许{@code academicYearAndSemesters[i].length != academicYearAndSemesters[j].length}</p>
+	 * @param academicYearAndSemesters 学年学期表
+	 * @return 指定学年学期课程的成绩，其外层{@link Map}的{@code key}为学年，内层的{@code key}为学期
+	 * <p>示例：{@code result.get(2011).get(1)}</p>
+	 * @see #parseScores(int, int)
+	 */
+	public Map<Integer, Map<Integer, List<Course>>>
+	parseScores(int[][] academicYearAndSemesters) throws ParserException, IOException {
+		Map<Integer, Map<Integer, List<Course>>> result = new HashMap<>(academicYearAndSemesters.length);
+		for(int[] year : academicYearAndSemesters) {
+			Map<Integer, List<Course>> coursesInTheYear = new HashMap<>(year.length);
+			result.put(year[0], coursesInTheYear);
+			for(int index = 1 ; index < year.length ; index++) {
+				int semester = year[index];
+				for(int counter = 5 ; counter >= 1 ; counter--) {
+					try {
+						coursesInTheYear.put(semester, parseScores(year[0], semester));
+						break; //成功，不用再重试
+					} catch (IOException e) {
+						if(counter > 1)
+							continue; //再重试一遍 TODO 加日志
+						else
+							throw e; //最后一次重试失败，直接重抛异常
+					}
+				}
+			}
+		}
+		return result;
+	}
+	/**
+	 * 使用指定的网络连接方法（readPageHelper），解析成绩
 	 * @param academicYear 学年
 	 * @param semester 学期
 	 * @return 满足条件的包含成绩信息的课程类
