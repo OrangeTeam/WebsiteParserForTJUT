@@ -312,6 +312,7 @@ public class ReadPageHelper implements Cloneable{
 		}
 		return response;
 	}
+	//TODO 移到工具包
 	/** 修剪头尾不可见符，包括\s\u00a0\u3000 */
 	public static String trim(String src){
 		if(src!=null)

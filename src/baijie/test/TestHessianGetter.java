@@ -34,7 +34,7 @@ public class TestHessianGetter {
 			try {
 				getter = (GetterInterface) factory.create(GetterInterface.class, url);
 				System.out.println(getter.echo("Low Low Low.中文哦，hi哈"));
-				System.out.println(getter.getPosts(Post.convertToDate(2012, 10, 1), null, -1));
+				System.out.println(getter.getPosts(Post.convertToDate(2014, 3, 1), null, -1));
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			} catch (Exception e){

@@ -763,7 +763,7 @@ public class SchoolWebpageParser {
 		for(Element group : groups) {
 			String groupName = group.getElementsByTag("h4").text();
 			Elements tables = group.getElementsByTag("table");
-			if(groupName.isEmpty() || tables.isEmpty()) {
+			if(groupName.length() == 0 || tables.isEmpty()) {
 				listener.onWarn(ParserListener.WARNING_STRUCTURE_CHANGED, "解析个人信息时，遇到空键值对group");
 			} else {
 				if(tables.size() > 1)
