@@ -748,9 +748,32 @@ public class SchoolWebpageParser {
 		target.setMainBody(rawMainBody);
 		return target;
 	}
-	//TODO 实现它
-	public Student parseStudentInformation(String url) throws IOException, ParserException {
-		throw new UnsupportedOperationException("尚未实现");
+	/**
+	 * 解析个人信息
+	 * @return 解析结果，外层{@link Map}的{@code key}是组别(group)名，内层的{@code key}是字段名。
+	 * <p>示例：result.get("基本信息").get("姓名")</p>
+	 * @throws IOException 网络连接出现异常时
+	 * @throws ParserException 登录失败时
+	 */
+	//TODO 完善部分内部代码的解析，如现在的“证件类型=1”中的1
+	public Map<String, Map<String, String>> parsePersonalInformation() throws IOException, ParserException {
+		Document doc = getCurrentHelperAfterLogin().getWithDocument(Constant.url.PERSONAL_INFORMATION);
+		Elements groups = doc.select("#form1 .tableGroup");
+		Map<String, Map<String, String>> result = new HashMap<>(groups.size());
+		for(Element group : groups) {
+			String groupName = group.getElementsByTag("h4").text();
+			Elements tables = group.getElementsByTag("table");
+			if(groupName.isEmpty() || tables.isEmpty()) {
+				listener.onWarn(ParserListener.WARNING_STRUCTURE_CHANGED, "解析个人信息时，遇到空键值对group");
+			} else {
+				if(tables.size() > 1)
+					listener.onWarn(ParserListener.WARNING_STRUCTURE_CHANGED, "解析个人信息时，键值对group中有多个tables");
+				Map<String, String> keyValues = readKeyValues(tables.first());
+				if(!keyValues.isEmpty())
+					result.put(groupName, keyValues);
+			}
+		}
+		return result;
 	}
 	/**
 	 * 从URL指定的页面，使用指定的网络连接方法（readPageHelper），解析课程信息
@@ -842,6 +865,20 @@ public class SchoolWebpageParser {
 			listener.onError(ParserListener.ERROR_IO, "遇到IO异常，无法打开页面，解析成绩信息失败。 "+e.getMessage());
 			throw e;
 		}
+	}
+
+	private Map<String, String> readKeyValues(Element from) {
+		Map<String, String> result = new HashMap<>();
+		for(Element valueElement : from.select("td:has(input[value~=\\S+])")) {
+			try {
+				String key = valueElement.previousElementSibling().text(); //previousElementSibling() may be null
+				String value = valueElement.getElementsByTag("input").attr("value");
+				result.put(key, value);
+			} catch (NullPointerException e) {
+				listener.onWarn(ParserListener.WARNING_STRUCTURE_CHANGED, "解析键值对时，找不到值的键");
+			}
+		}
+		return result;
 	}
 
 	private List<Course> readCourseTable(Element table) {
@@ -1219,6 +1256,8 @@ public class SchoolWebpageParser {
 		public static final int ERROR_CANNOT_PARSE_TABLE_HEADING = 5;
 		/**Post的来源或者URL不明，无法解析Post正文。*/
 		public static final int ERROR_INSUFFICIENT_INFORMATION = 6;
+		/** 文档结构发生了变化 */
+		public static final int WARNING_STRUCTURE_CHANGED = 9;
 		/**不能读取总页面数，这样的话可能仅读取第一页*/
 		public static final int WARNING_CANNOT_PARSE_PAGE_NUMBER = 10;
 		/**结果为空，可能最新成绩、已选课程等页面已失效*/
