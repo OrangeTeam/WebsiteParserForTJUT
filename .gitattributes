@@ -11,6 +11,7 @@ project.properties text
 # Declare files that will always have CRLF line endings on checkout.
 *.cs     diff=csharp
 *.sln    text eol=crlf
+*.bat    text eol=crlf
 
 # Declare files that will always have LF line endings on checkout.
 *.java   text eol=lf

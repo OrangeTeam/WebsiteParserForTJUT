@@ -322,8 +322,8 @@ public class ReadPageHelper implements Cloneable{
 		if(data != null)
 			conn.data(data);
 		Response response = conn.method(method).execute();
-		if(charset != null)
-			response.charset(charset);
+//		if(charset != null)
+//			response.charset(charset);
 		if(listener != null){
 			listener.onRequest(url, response.statusCode(), response.statusMessage(), response.bodyAsBytes().length);
 		}
