@@ -277,14 +277,31 @@ public class ReadPageHelper implements Cloneable{
 	 * @see #request(String, Method, String, Map)
 	 */
 	public Response request(String url, Method method, String charset) throws IOException{
-		return request(url, method, charset, null);
+		return request(url, method, charset, (String[])null);
+	}
+	/**
+	 * Execute the request.
+	 * @param data map of request data parameters
+	 * @see #request(String, Method, String, String...)
+	 */
+	public Response request(String url, Method method, String charset, Map<String, String> data) throws IOException{
+		String[] dataArray = null;
+		if(data != null) {
+			dataArray = new String[data.entrySet().size() * 2];
+			int counter = 0;
+			for(Map.Entry<String, String> entry : data.entrySet()) {
+				dataArray[counter++] = entry.getKey();
+				dataArray[counter++] = entry.getValue();
+			}
+		}
+		return request(url, method, charset, dataArray);
 	}
 	/**
 	 * Execute the request.
 	 * @param url URL to connect to
 	 * @param method {@link Method}
 	 * @param charset set character set to be used
-	 * @param data map of request data parameters
+	 * @param data a set of key value pairs. see {@link Connection#data(String...)}
 	 * @return a response object
 	 * @throws java.net.MalformedURLException if the request URL is not a HTTP or HTTPS URL, or is otherwise malformed
 	 * @throws org.jsoup.HttpStatusException if the response is not OK and HTTP response errors are not ignored
@@ -293,7 +310,7 @@ public class ReadPageHelper implements Cloneable{
 	 * @throws IOException on error
 	 * @see Connection
 	 */
-	public Response request(String url, Method method, String charset, Map<String, String> data) throws IOException{
+	public Response request(String url, Method method, String charset, String... data) throws IOException{
 		Connection conn = Jsoup.connect(url).timeout(timeout).followRedirects(false);
 		if(teachingAffairsSession != null && !teachingAffairsSession.isEmpty())
 			conn.cookie(teachingAffairsSession.cookieKey, teachingAffairsSession.cookieValue);
