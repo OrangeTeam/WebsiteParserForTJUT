@@ -1,9 +1,10 @@
-package util;
+package com.orange.parser.util;
 
 import java.util.Date;
 import java.util.List;
 
-import util.webpage.Post;
+import com.orange.parser.entity.Post;
+
 
 public interface GetterInterface {
 	/**

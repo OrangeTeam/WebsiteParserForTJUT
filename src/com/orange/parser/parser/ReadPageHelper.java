@@ -1,4 +1,4 @@
-package util.webpage;
+package com.orange.parser.parser;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;

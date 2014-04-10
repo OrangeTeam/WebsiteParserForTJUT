@@ -1,10 +1,11 @@
-package util.webpage;
+package com.orange.parser.entity;
 
 import java.util.ArrayList;
 
-import util.BitOperate;
-import util.BitOperate.BitOperateException;
-import util.webpage.Course.TimeAndAddress.TimeAndAddressException;
+import com.orange.parser.entity.Course.TimeAndAddress.TimeAndAddressException;
+import com.orange.parser.util.BitOperate;
+import com.orange.parser.util.BitOperate.BitOperateException;
+
 
 /**
  * <strong>Note:</strong>大部分用于设置的方法返回this，可以链式调用

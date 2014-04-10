@@ -1,4 +1,4 @@
-package util.webpage;
+package com.orange.parser.parser;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -18,10 +18,13 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import util.BitOperate.BitOperateException;
-import util.webpage.Course.CourseException;
-import util.webpage.Course.TimeAndAddress;
-import util.webpage.Course.TimeAndAddress.TimeAndAddressException;
+import com.orange.parser.entity.Course;
+import com.orange.parser.entity.Post;
+import com.orange.parser.entity.Course.CourseException;
+import com.orange.parser.entity.Course.TimeAndAddress;
+import com.orange.parser.entity.Course.TimeAndAddress.TimeAndAddressException;
+import com.orange.parser.util.BitOperate.BitOperateException;
+
 
 public class SchoolWebpageParser {
 	/** 数字范围的模式字符串。其实例如：1-6, 4, 5 3 23 */
