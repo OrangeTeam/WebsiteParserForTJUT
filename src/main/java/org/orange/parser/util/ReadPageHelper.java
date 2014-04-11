@@ -1,4 +1,4 @@
-package org.orange.parser.parser;
+package org.orange.parser.util;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -13,6 +13,7 @@ import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.UnsupportedMimeTypeException;
 import org.jsoup.nodes.Document;
+import org.orange.parser.parser.Constant;
 
 public class ReadPageHelper implements Cloneable{
 	private static final String DEFAULT_CHARSET = "GB2312";

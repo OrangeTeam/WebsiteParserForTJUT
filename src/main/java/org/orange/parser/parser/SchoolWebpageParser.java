@@ -23,6 +23,7 @@ import org.orange.parser.entity.Course.CourseException;
 import org.orange.parser.entity.Course.TimeAndAddress;
 import org.orange.parser.entity.Course.TimeAndAddress.TimeAndAddressException;
 import org.orange.parser.util.BitOperate.BitOperateException;
+import org.orange.parser.util.ReadPageHelper;
 
 
 public class SchoolWebpageParser {
