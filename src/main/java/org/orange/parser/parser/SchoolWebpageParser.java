@@ -751,33 +751,7 @@ public class SchoolWebpageParser {
 		target.setMainBody(rawMainBody);
 		return target;
 	}
-	/**
-	 * 解析个人信息
-	 * @return 解析结果，外层{@link Map}的{@code key}是组别(group)名，内层的{@code key}是字段名。
-	 * <p>示例：result.get("基本信息").get("姓名")</p>
-	 * @throws IOException 网络连接出现异常时
-	 * @throws ParseException 登录失败时
-	 */
-	//TODO 完善部分内部代码的解析，如现在的“证件类型=1”中的1
-	public Map<String, Map<String, String>> parsePersonalInformation() throws IOException, ParseException {
-		Document doc = getCurrentHelperAfterLogin().getWithDocument(Constant.url.PERSONAL_INFORMATION);
-		Elements groups = doc.select("#form1 .tableGroup");
-		Map<String, Map<String, String>> result = new HashMap<>(groups.size());
-		for(Element group : groups) {
-			String groupName = group.getElementsByTag("h4").text();
-			Elements tables = group.getElementsByTag("table");
-			if(groupName.length() == 0 || tables.isEmpty()) {
-				listener.onWarn(ParseListener.WARNING_STRUCTURE_CHANGED, "解析个人信息时，遇到空键值对group");
-			} else {
-				if(tables.size() > 1)
-					listener.onWarn(ParseListener.WARNING_STRUCTURE_CHANGED, "解析个人信息时，键值对group中有多个tables");
-				Map<String, String> keyValues = readKeyValues(tables.first());
-				if(!keyValues.isEmpty())
-					result.put(groupName, keyValues);
-			}
-		}
-		return result;
-	}
+
 	/**
 	 * 从URL指定的页面，使用指定的网络连接方法（readPageHelper），解析课程信息
 	 * @param url 要读取的页面地址
@@ -868,20 +842,6 @@ public class SchoolWebpageParser {
 			listener.onError(ParseListener.ERROR_IO, "遇到IO异常，无法打开页面，解析成绩信息失败。 "+e.getMessage());
 			throw e;
 		}
-	}
-
-	private Map<String, String> readKeyValues(Element from) {
-		Map<String, String> result = new HashMap<>();
-		for(Element valueElement : from.select("td:has(input[value~=\\S+])")) {
-			try {
-				String key = valueElement.previousElementSibling().text(); //previousElementSibling() may be null
-				String value = valueElement.getElementsByTag("input").attr("value");
-				result.put(key, value);
-			} catch (NullPointerException e) {
-				listener.onWarn(ParseListener.WARNING_STRUCTURE_CHANGED, "解析键值对时，找不到值的键");
-			}
-		}
-		return result;
 	}
 
 	private List<Course> readCourseTable(Element table) {

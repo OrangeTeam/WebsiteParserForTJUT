@@ -15,5 +15,5 @@ dependencies {
     compile 'org.jsoup:jsoup:1.7.3'
     compile 'com.caucho:hessian:4.0.7'
 
-    //testCompile "junit:junit:4.11"
+    testCompile "junit:junit:4.11"
 }
