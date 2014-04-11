@@ -28,14 +28,14 @@ import org.orange.parser.util.BitOperate.BitOperateException;
 
 public class SchoolWebpageParser {
 	/** 数字范围的模式字符串。其实例如：1-6, 4, 5 3 23 */
-	private static final String NUＭBER_RANGE_PATTERN_STRING = "\\d[\\d\\s,\\-]*";
+	private static final String NUMBER_RANGE_PATTERN_STRING = "\\d[\\d\\s,\\-]*";
 	/** 周次字符串的模式，其group 1是数字部分。其实例如：1,4周, 3周 5 ,1-6周,9-12周(单) 1-6,4,5 周(单)，
 	 * 它们的group 1分别为：<br/>1,4<br/>3<br/>5 ,1-6<br/>9-12<br/>1-6,4,5 */
 	private static final Pattern WEEK_PATTERN =
-			Pattern.compile("(" + NUＭBER_RANGE_PATTERN_STRING + ")" + "周[\\(\\)单双]*");
+			Pattern.compile("(" + NUMBER_RANGE_PATTERN_STRING + ")" + "周[\\(\\)单双]*");
 	/** 节次（or课时or第几节课）字符串的模式，其group 1是数字部分。类似{@link #WEEK_PATTERN} */
 	private static final Pattern PERIOD_PATTERN =
-			Pattern.compile("(" + NUＭBER_RANGE_PATTERN_STRING + ")" + "节");
+			Pattern.compile("(" + NUMBER_RANGE_PATTERN_STRING + ")" + "节");
 	/** 星期的模式。其实例如：周二至周五 , 周二 至 周五 周四 周日 */
 	private static final Pattern DAY_OF_WEEK_PATTERN =
 			Pattern.compile("周[一二三四五六日]([\\s,周日一二三四五六至到]*[一二三四五六日])?");

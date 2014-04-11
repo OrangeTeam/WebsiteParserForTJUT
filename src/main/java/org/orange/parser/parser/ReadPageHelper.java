@@ -15,7 +15,7 @@ import org.jsoup.UnsupportedMimeTypeException;
 import org.jsoup.nodes.Document;
 
 public class ReadPageHelper implements Cloneable{
-	private static final String DefaultCharset = "GB2312";
+	private static final String DEFAULT_CHARSET = "GB2312";
 	private OnReadPageListener listener = null;
 	
 	/**网络连接的超时时间，单位milliseconds*/
@@ -162,7 +162,7 @@ public class ReadPageHelper implements Cloneable{
 				.method(Method.POST).execute();
 		if(listener != null)
 			listener.onRequest(loginPageURL, res.statusCode(), res.statusMessage(), res.bodyAsBytes().length);
-		String body = new String(res.bodyAsBytes(), charset!=null?charset:DefaultCharset);
+		String body = new String(res.bodyAsBytes(), charset!=null?charset: DEFAULT_CHARSET);
 		int status = res.statusCode();
 		if(status == HttpURLConnection.HTTP_OK) {
 			if(body.matches("(?si:.*(success|succeed).*)")) { //成功登录

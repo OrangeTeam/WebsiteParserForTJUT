@@ -49,8 +49,6 @@
 package com.caucho.hessian.client;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.logging.Level;
@@ -61,7 +59,7 @@ import java.util.logging.Logger;
  * factory is java.net
  */
 public class MyHessianURLConnectionFactory implements HessianConnectionFactory {
-  private static final Logger log
+  private static final Logger LOG
     = Logger.getLogger(MyHessianURLConnectionFactory.class.getName());
   
   private HessianProxyFactory _proxyFactory;
@@ -77,8 +75,8 @@ public class MyHessianURLConnectionFactory implements HessianConnectionFactory {
   public HessianConnection open(URL url)
     throws IOException
   {
-    if (log.isLoggable(Level.FINER))
-      log.finer(this + " open(" + url + ")");
+    if (LOG.isLoggable(Level.FINER))
+      LOG.finer(this + " open(" + url + ")");
     URLConnection conn = null;
 
 //    Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("203.208.47."+(1+(int)(Math.random()*7.9)), 80));
@@ -113,6 +111,7 @@ public class MyHessianURLConnectionFactory implements HessianConnectionFactory {
       try {
         conn.setReadTimeout((int) readTimeout);
       } catch (Throwable e) {
+        e.printStackTrace();
       }
     }
 
