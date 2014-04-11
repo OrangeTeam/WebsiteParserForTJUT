@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.orange.parser.util;
+package org.orange.parser.util;
 
 
 /**

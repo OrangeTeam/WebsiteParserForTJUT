@@ -1,10 +1,10 @@
-package com.orange.parser.entity;
+package org.orange.parser.entity;
 
 import java.util.ArrayList;
 
-import com.orange.parser.entity.Course.TimeAndAddress.TimeAndAddressException;
-import com.orange.parser.util.BitOperate;
-import com.orange.parser.util.BitOperate.BitOperateException;
+import org.orange.parser.entity.Course.TimeAndAddress.TimeAndAddressException;
+import org.orange.parser.util.BitOperate;
+import org.orange.parser.util.BitOperate.BitOperateException;
 
 
 /**

@@ -1,4 +1,4 @@
-package com.orange.parser.parser;
+package org.orange.parser.parser;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -18,12 +18,12 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import com.orange.parser.entity.Course;
-import com.orange.parser.entity.Post;
-import com.orange.parser.entity.Course.CourseException;
-import com.orange.parser.entity.Course.TimeAndAddress;
-import com.orange.parser.entity.Course.TimeAndAddress.TimeAndAddressException;
-import com.orange.parser.util.BitOperate.BitOperateException;
+import org.orange.parser.entity.Course;
+import org.orange.parser.entity.Post;
+import org.orange.parser.entity.Course.CourseException;
+import org.orange.parser.entity.Course.TimeAndAddress;
+import org.orange.parser.entity.Course.TimeAndAddress.TimeAndAddressException;
+import org.orange.parser.util.BitOperate.BitOperateException;
 
 
 public class SchoolWebpageParser {

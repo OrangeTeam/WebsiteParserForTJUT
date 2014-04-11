@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.orange.parser.entity;
+package org.orange.parser.entity;
 
 import java.io.Serializable;
 import java.text.ParseException;

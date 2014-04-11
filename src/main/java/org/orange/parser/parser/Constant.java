@@ -1,4 +1,4 @@
-package com.orange.parser.parser;
+package org.orange.parser.parser;
 
 public final class Constant {
 	public static final class url{
