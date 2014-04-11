@@ -3,7 +3,6 @@ package org.orange.parser.parser;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.text.ParseException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -44,7 +43,7 @@ public class SchoolWebpageParser {
 	private static final Pattern ACADEMIC_YEAR_AND_SEMESTER_PATTERN =
 			Pattern.compile("(\\d{4})-(\\d{4})学年第?([一二三四五])学期");
 
-	private ParserListener listener;
+	private ParseListener listener;
 	private ReadPageHelper autoReadHelper;
 	private ReadPageHelper readHelper;
 
@@ -55,7 +54,7 @@ public class SchoolWebpageParser {
 	 */
 	public SchoolWebpageParser() {
 		super();
-		listener = new ParserListenerAdapter();
+		listener = new ParseAdapter();
 		autoReadHelper = new ReadPageHelper();
 		autoReadHelper.setCharset("UTF-8");
 		autoReadHelper.setCharsetForParsePostsFromSCCE("UTF-8");
@@ -66,7 +65,7 @@ public class SchoolWebpageParser {
 	 * @param listener
 	 * @throws CloneNotSupportedException
 	 */
-	public SchoolWebpageParser(ParserListener listener) throws CloneNotSupportedException {
+	public SchoolWebpageParser(ParseListener listener) throws CloneNotSupportedException {
 		this();
 		setListener(listener);
 	}
@@ -77,7 +76,7 @@ public class SchoolWebpageParser {
 	 * @param password
 	 * @throws CloneNotSupportedException
 	 */
-	public SchoolWebpageParser(ParserListener listener, String userName, String password) throws CloneNotSupportedException {
+	public SchoolWebpageParser(ParseListener listener, String userName, String password) throws CloneNotSupportedException {
 		this(listener);
 		setUser(userName, password);
 	}
@@ -87,7 +86,7 @@ public class SchoolWebpageParser {
 	 * @param readHelper
 	 * @throws CloneNotSupportedException
 	 */
-	public SchoolWebpageParser(ParserListener listener, ReadPageHelper readHelper) throws CloneNotSupportedException{
+	public SchoolWebpageParser(ParseListener listener, ReadPageHelper readHelper) throws CloneNotSupportedException{
 		this(listener);
 		setReadHelper(readHelper);
 		autoReadHelper.setUser(readHelper.getUserName(), readHelper.getPassword());
@@ -96,14 +95,14 @@ public class SchoolWebpageParser {
 	/**
 	 * @return the listener
 	 */
-	public ParserListener getListener() {
+	public ParseListener getListener() {
 		return listener;
 	}
 	/**
 	 * @param listener the listener to set
 	 * @throws CloneNotSupportedException 
 	 */
-	public void setListener(ParserListener listener) throws CloneNotSupportedException {
+	public void setListener(ParseListener listener) throws CloneNotSupportedException {
 		this.listener = listener.clone();
 	}
 	/**
@@ -117,7 +116,7 @@ public class SchoolWebpageParser {
 	}
 	/**
 	 * 取得 用户最近通过
-	 * {@link SchoolWebpageParser#setListener(ParserListener) setListener(ParserListener)}
+	 * {@link SchoolWebpageParser#setListener(ParseListener) setListener(ParserListener)}
 	 * 设置的ReadPageHelper（用于登录，读取页面等）。对之的修改会应用到本对象。
 	 * @return 用户最近设置的ReadPageHelper，若您之前没有设置过则返回null
 	 */
@@ -126,7 +125,7 @@ public class SchoolWebpageParser {
 	}
 	/**
 	 * 取得 本对象自动设置的ReadPageHelper（用于登录，读取页面等），这个helper只在您没有自行通过
-	 * {@link SchoolWebpageParser#setListener(ParserListener) setListener(ParserListener)}
+	 * {@link SchoolWebpageParser#setListener(ParseListener) setListener(ParserListener)}
 	 * 设置过ReadHelper时使用。对之的修改会应用到本对象自动生成的ReadHelper上。
 	 * @return 本对象自动设置的ReadPageHelper
 	 */
@@ -143,18 +142,18 @@ public class SchoolWebpageParser {
 	/**
 	 * 登录后，再返回当前使用的ReadPageHelper
 	 * @return 如果您自定义过ReadPageHelper，返回您上次定义的ReadPageHelper；否则返回本对象自动生成的ReadPageHelper
-	 * @throws ParserException 登录失败
+	 * @throws ParseException 登录失败
 	 * @throws IOException doLogin进行post请求时遇到error
 	 */
-	public ReadPageHelper getCurrentHelperAfterLogin() throws ParserException, IOException{
+	public ReadPageHelper getCurrentHelperAfterLogin() throws ParseException, IOException{
 		ReadPageHelper readHelper = getCurrentHelper();
 		try{
 			if(!readHelper.doLogin()){
-				this.listener.onError(ParserListener.ERROR_CANNOT_LOGIN, "登录失败。");
-				throw new ParserException("Cannot login website.");
+				this.listener.onError(ParseListener.ERROR_CANNOT_LOGIN, "登录失败。");
+				throw new ParseException("Cannot login website.");
 			}
 		}catch(IOException e){
-			listener.onError(ParserListener.ERROR_IO, "遇到IO异常，无法登录。 "+e.getMessage());
+			listener.onError(ParseListener.ERROR_IO, "遇到IO异常，无法登录。 "+e.getMessage());
 			throw e;
 		}
 		return readHelper;
@@ -399,7 +398,7 @@ public class SchoolWebpageParser {
 			url = "http://59.67.148.66:8080/getRecords.jsp?url=list.jsp&pageSize=100&name=" 
 					+ URLEncoder.encode(aCategory, "GB2312") + "&currentPage=";
 		} catch (UnsupportedEncodingException e) {
-			listener.onError(ParserListener.ERROR_UNSUPPORTED_ENCODING, "遇到编码异常，解释教务处信息失败。 "+e.getMessage());
+			listener.onError(ParseListener.ERROR_UNSUPPORTED_ENCODING, "遇到编码异常，解释教务处信息失败。 "+e.getMessage());
 			throw e;
 		}
 		try {
@@ -416,14 +415,14 @@ public class SchoolWebpageParser {
 							.get(0).getElementsByTag("tr").last().getElementsByTag("a").first()
 							.nextSibling().outerHtml().trim().substring(1, 11)).before(start))
 						break;
-				} catch (ParseException e) {
-					listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_DATE, "解析教务处通知/文章的日期失败。 "+e.getMessage());
+				} catch (java.text.ParseException e) {
+					listener.onWarn(ParseListener.WARNING_CANNOT_PARSE_DATE, "解析教务处通知/文章的日期失败。 "+e.getMessage());
 				}
 				doc = readHelper.getWithDocument(url+i);
 				result.addAll(parsePostsFromTeachingAffairs(aCategory, start, end, max-result.size(), doc));
 			}
 		} catch (IOException e) {
-			listener.onError(ParserListener.ERROR_IO, "遇到IO异常，无法打开页面，解析教务处信息失败。 "+e.getMessage());
+			listener.onError(ParseListener.ERROR_IO, "遇到IO异常，无法打开页面，解析教务处信息失败。 "+e.getMessage());
 			throw e;
 		}
 		return result;
@@ -455,8 +454,8 @@ public class SchoolWebpageParser {
 					continue;
 				if(start!=null && aPost.getDate().before(start))
 					break;
-			} catch (ParseException e) {
-				listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_DATE, "解析教务处通知/文章的日期失败。 "+e.getMessage());
+			} catch (java.text.ParseException e) {
+				listener.onWarn(ParseListener.WARNING_CANNOT_PARSE_DATE, "解析教务处通知/文章的日期失败。 "+e.getMessage());
 			}
 			aPost.setCategory(aCategory).setTitle(link.text()).setUrl(link.attr("abs:href"));
 			aPost.setSource(Post.SOURCES.WEBSITE_OF_TEACHING_AFFAIRS);
@@ -510,7 +509,7 @@ public class SchoolWebpageParser {
 			if(matcher.find())
 				page = Integer.parseInt(matcher.group(1));
 			else
-				listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_PAGE_NUMBER, "不能从计算机学院网站解析页数，现仅解析第一页内容。");
+				listener.onWarn(ParseListener.WARNING_CANNOT_PARSE_PAGE_NUMBER, "不能从计算机学院网站解析页数，现仅解析第一页内容。");
 			result.addAll(parsePostsFromSCCE(categories, start, end ,max ,doc));
 
 			for(int i = 2;i<=page;i++){
@@ -521,14 +520,14 @@ public class SchoolWebpageParser {
 							.select("form table table").first().getElementsByTag("tr").last()
 							.getElementsByTag("td").get(3).text())).before(start))
 						break;
-				} catch (ParseException e) {
-					listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_DATE, "解析计算机学院网站通知/文章的日期失败。 "+e.getMessage());
+				} catch (java.text.ParseException e) {
+					listener.onWarn(ParseListener.WARNING_CANNOT_PARSE_DATE, "解析计算机学院网站通知/文章的日期失败。 "+e.getMessage());
 				}
 				doc = readHelper.getWithDocumentForParsePostsFromSCCE(baseURL+i);
 				result.addAll(parsePostsFromSCCE(categories, start, end, max-result.size(), doc));
 			}
 		} catch (IOException e) {
-			listener.onError(ParserListener.ERROR_IO, "遇到IO异常，无法打开页面，解析计算机学院网站信息失败。 "+e.getMessage());
+			listener.onError(ParseListener.ERROR_IO, "遇到IO异常，无法打开页面，解析计算机学院网站信息失败。 "+e.getMessage());
 			throw e;
 		}
 		return result;
@@ -579,8 +578,8 @@ public class SchoolWebpageParser {
 					continue;
 				if(start!=null && post.getDate().before(start))
 					break;
-			} catch (ParseException e) {
-				listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_DATE, "解析计算机学院网站通知/文章的日期失败。 "+e.getMessage());
+			} catch (java.text.ParseException e) {
+				listener.onWarn(ParseListener.WARNING_CANNOT_PARSE_DATE, "解析计算机学院网站通知/文章的日期失败。 "+e.getMessage());
 			}
 			//设置 title、url、author、source
 			post.setTitle(cols.get(0).text().trim());
@@ -588,7 +587,7 @@ public class SchoolWebpageParser {
 			if(matcher.find())
 				post.setUrl("http://59.67.152.3/"+matcher.group(1));
 			else
-				listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_URL, "解析计算机学院网站通知/文章的URL失败。 ");
+				listener.onWarn(ParseListener.WARNING_CANNOT_PARSE_URL, "解析计算机学院网站通知/文章的URL失败。 ");
 			post.setAuthor(ReadPageHelper.deleteSpace(cols.get(2).text()));
 			post.setSource(Post.SOURCES.WEBSITE_OF_SCCE);
 			result.add(post);
@@ -639,7 +638,7 @@ public class SchoolWebpageParser {
 			if(matcher.find())
 				page = Integer.parseInt(matcher.group(1));
 			else
-				listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_PAGE_NUMBER, "不能从计算机学院学生网站解析页数，现仅解析第一页内容。");
+				listener.onWarn(ParseListener.WARNING_CANNOT_PARSE_PAGE_NUMBER, "不能从计算机学院学生网站解析页数，现仅解析第一页内容。");
 			
 			for(int i = 2;i<=page;i++){
 				if(max>=0 && result.size()>=max)
@@ -648,14 +647,14 @@ public class SchoolWebpageParser {
 					if(start!=null && Post.convertToDate(doc.select(".oright .orbg ul li").last()
 							.getElementsByClass("date").first().text().trim().substring(1, 11)).before(start))
 						break;
-				} catch (ParseException e) {
-					listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_DATE, "解析计算机学院学生网站通知/文章的日期失败。 "+e.getMessage());
+				} catch (java.text.ParseException e) {
+					listener.onWarn(ParseListener.WARNING_CANNOT_PARSE_DATE, "解析计算机学院学生网站通知/文章的日期失败。 "+e.getMessage());
 				}
 				doc = readHelper.getWithDocumentForParsePostsFromSCCE(url+i);
 				result.addAll(parsePostsFromSCCEStudent(aCategory, start, end, max-result.size(), doc));
 			}
 		} catch (IOException e) {
-			listener.onError(ParserListener.ERROR_IO, "遇到IO异常，无法打开页面，解析计算机学院学生网站信息失败。 "+e.getMessage());
+			listener.onError(ParseListener.ERROR_IO, "遇到IO异常，无法打开页面，解析计算机学院学生网站信息失败。 "+e.getMessage());
 			throw e;
 		}
 		
@@ -686,8 +685,8 @@ public class SchoolWebpageParser {
 					continue;
 				if(start!=null && post.getDate().before(start))
 					break;
-			} catch (ParseException e) {
-				listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_DATE, "解析计算机学院学生网站通知/文章的日期失败。 "+e.getMessage());
+			} catch (java.text.ParseException e) {
+				listener.onWarn(ParseListener.WARNING_CANNOT_PARSE_DATE, "解析计算机学院学生网站通知/文章的日期失败。 "+e.getMessage());
 			}
 			link = postLi.getElementsByTag("a").first();
 			post.setTitle(link.text().trim());
@@ -702,13 +701,13 @@ public class SchoolWebpageParser {
 	 * <strong>注：</strong>target中的来源和URL必须有效。
 	 * @param target 要解析的Post
 	 * @return 为方便使用，返回target
-	 * @throws ParserException Post的来源或者URL无效
+	 * @throws ParseException Post的来源或者URL无效
 	 * @throws IOException 可能是网络异常
 	 */
-	public Post parsePostMainBody(Post target) throws ParserException, IOException{
+	public Post parsePostMainBody(Post target) throws ParseException, IOException{
 		if(target.getSource()==Post.SOURCES.UNKNOWN_SOURCE || target.getUrl()==null){
-			this.listener.onError(ParserListener.ERROR_INSUFFICIENT_INFORMATION, "Post的来源或者URL为null，无法解析正文。");
-			throw new ParserException("Post的来源或者URL为null，无法解析正文。\tPost:"+target.toString());
+			this.listener.onError(ParseListener.ERROR_INSUFFICIENT_INFORMATION, "Post的来源或者URL为null，无法解析正文。");
+			throw new ParseException("Post的来源或者URL为null，无法解析正文。\tPost:"+target.toString());
 		}
 		ReadPageHelper helper = getCurrentHelper();
 		Document doc = null;
@@ -744,7 +743,7 @@ public class SchoolWebpageParser {
 				break;
 			}
 		}catch(IOException e){
-			this.listener.onError(ParserListener.ERROR_IO, "遇到IO。请检查网络连接。详情："+e.getMessage());
+			this.listener.onError(ParseListener.ERROR_IO, "遇到IO。请检查网络连接。详情："+e.getMessage());
 			throw e;
 		}
 		rawMainBody = String.format(format, doc.baseUri(), target.getTitle(), rawMainBody);
@@ -756,10 +755,10 @@ public class SchoolWebpageParser {
 	 * @return 解析结果，外层{@link Map}的{@code key}是组别(group)名，内层的{@code key}是字段名。
 	 * <p>示例：result.get("基本信息").get("姓名")</p>
 	 * @throws IOException 网络连接出现异常时
-	 * @throws ParserException 登录失败时
+	 * @throws ParseException 登录失败时
 	 */
 	//TODO 完善部分内部代码的解析，如现在的“证件类型=1”中的1
-	public Map<String, Map<String, String>> parsePersonalInformation() throws IOException, ParserException {
+	public Map<String, Map<String, String>> parsePersonalInformation() throws IOException, ParseException {
 		Document doc = getCurrentHelperAfterLogin().getWithDocument(Constant.url.PERSONAL_INFORMATION);
 		Elements groups = doc.select("#form1 .tableGroup");
 		Map<String, Map<String, String>> result = new HashMap<>(groups.size());
@@ -767,10 +766,10 @@ public class SchoolWebpageParser {
 			String groupName = group.getElementsByTag("h4").text();
 			Elements tables = group.getElementsByTag("table");
 			if(groupName.length() == 0 || tables.isEmpty()) {
-				listener.onWarn(ParserListener.WARNING_STRUCTURE_CHANGED, "解析个人信息时，遇到空键值对group");
+				listener.onWarn(ParseListener.WARNING_STRUCTURE_CHANGED, "解析个人信息时，遇到空键值对group");
 			} else {
 				if(tables.size() > 1)
-					listener.onWarn(ParserListener.WARNING_STRUCTURE_CHANGED, "解析个人信息时，键值对group中有多个tables");
+					listener.onWarn(ParseListener.WARNING_STRUCTURE_CHANGED, "解析个人信息时，键值对group中有多个tables");
 				Map<String, String> keyValues = readKeyValues(tables.first());
 				if(!keyValues.isEmpty())
 					result.put(groupName, keyValues);
@@ -782,10 +781,10 @@ public class SchoolWebpageParser {
 	 * 从URL指定的页面，使用指定的网络连接方法（readPageHelper），解析课程信息
 	 * @param url 要读取的页面地址
 	 * @return 满足条件的课程信息
-	 * @throws ParserException 不能正确读取课程表表头时
+	 * @throws ParseException 不能正确读取课程表表头时
 	 * @throws IOException 网络连接出现异常
 	 */
-	public List<Course> parseCourse(String url) throws ParserException, IOException{
+	public List<Course> parseCourse(String url) throws ParseException, IOException{
 		try{
 			Map<String, String> data = new HashMap<>(1);
 			data.put("iDisplayLength", "30000"); //TODO 检测是否超过30000个课程
@@ -796,10 +795,10 @@ public class SchoolWebpageParser {
 			for(Element table : doc.select("div.ks-tabs-panel table.ui_table"))
 				result.addAll(readCourseTable(table));
 			if(result.isEmpty())
-				listener.onWarn(ParserListener.WARNING_RESULT_IS_EMPTY, "结果为空，可能已选课程等页面已失效。");
+				listener.onWarn(ParseListener.WARNING_RESULT_IS_EMPTY, "结果为空，可能已选课程等页面已失效。");
 			return result;
 		}catch(IOException e){
-			listener.onError(ParserListener.ERROR_IO, "遇到IO异常，无法打开页面，解析课程信息失败。 "+e.getMessage());
+			listener.onError(ParseListener.ERROR_IO, "遇到IO异常，无法打开页面，解析课程信息失败。 "+e.getMessage());
 			throw e;
 		}
 	}
@@ -822,7 +821,7 @@ public class SchoolWebpageParser {
 	 * @see #parseScores(int, int)
 	 */
 	public Map<Integer, Map<Integer, List<Course>>>
-	parseScores(int[][] academicYearAndSemesters) throws ParserException, IOException {
+	parseScores(int[][] academicYearAndSemesters) throws ParseException, IOException {
 		Map<Integer, Map<Integer, List<Course>>> result = new HashMap<>(academicYearAndSemesters.length);
 		for(int[] year : academicYearAndSemesters) {
 			Map<Integer, List<Course>> coursesInTheYear = new HashMap<>(year.length);
@@ -849,10 +848,10 @@ public class SchoolWebpageParser {
 	 * @param academicYear 学年
 	 * @param semester 学期
 	 * @return 满足条件的包含成绩信息的课程类
-	 * @throws ParserException 不能正确读取课程表表头时
+	 * @throws ParseException 不能正确读取课程表表头时
 	 * @throws IOException 网络连接出现异常
 	 */
-	public List<Course> parseScores(int academicYear, int semester) throws ParserException, IOException{
+	public List<Course> parseScores(int academicYear, int semester) throws ParseException, IOException{
 		try{
 			Map<String, String> data = new HashMap<>();
 			data.put("qXndm_ys", academicYear + "-" + (academicYear+1));
@@ -862,10 +861,10 @@ public class SchoolWebpageParser {
 			//courses
 			List<Course> result = readCourseTable(doc.select("div#tab01 [tabid~=0*1] table.ui_table").first()); //TODO tabid的设置
 			if(result.isEmpty())
-				listener.onWarn(ParserListener.WARNING_RESULT_IS_EMPTY, "结果为空，可能最新成绩等页面已失效。");
+				listener.onWarn(ParseListener.WARNING_RESULT_IS_EMPTY, "结果为空，可能最新成绩等页面已失效。");
 			return result;
 		}catch(IOException e){
-			listener.onError(ParserListener.ERROR_IO, "遇到IO异常，无法打开页面，解析成绩信息失败。 "+e.getMessage());
+			listener.onError(ParseListener.ERROR_IO, "遇到IO异常，无法打开页面，解析成绩信息失败。 "+e.getMessage());
 			throw e;
 		}
 	}
@@ -878,7 +877,7 @@ public class SchoolWebpageParser {
 				String value = valueElement.getElementsByTag("input").attr("value");
 				result.put(key, value);
 			} catch (NullPointerException e) {
-				listener.onWarn(ParserListener.WARNING_STRUCTURE_CHANGED, "解析键值对时，找不到值的键");
+				listener.onWarn(ParseListener.WARNING_STRUCTURE_CHANGED, "解析键值对时，找不到值的键");
 			}
 		}
 		return result;
@@ -898,13 +897,13 @@ public class SchoolWebpageParser {
 			else if(cols.isEmpty())
 				headingMap = getHeading(course.getElementsByTag("th"));
 			else		// have and only one column
-	    		listener.onInformation(ParserListener.INFO_SKIP, "Skip: "+course.text());
+				listener.onInformation(ParseListener.INFO_SKIP, "Skip: "+course.text());
 	    }
 		return result;
 	}
 	private Course readCourse(Element course, HashMap<Integer, Integer> headingMap){
 		if(headingMap == null){
-			listener.onError(ParserListener.NULL_POINTER, "headingMap是null，无法解析课程表格。");
+			listener.onError(ParseListener.NULL_POINTER, "headingMap是null，无法解析课程表格。");
 			throw new NullPointerException("headingMap is null.");
 		}
 		String rawTime = null, rawAddress = null;
@@ -915,7 +914,7 @@ public class SchoolWebpageParser {
 		for(i = 0;i<cols.size();i++){
 			fieldCode = headingMap.get(i);
 			if(fieldCode == null){
-				listener.onWarn(ParserListener.NULL_POINTER, "headingMap检查字段内容时，返回null。");
+				listener.onWarn(ParseListener.NULL_POINTER, "headingMap检查字段内容时，返回null。");
 				continue;
 			}
 			switch(fieldCode.intValue()){
@@ -931,17 +930,17 @@ public class SchoolWebpageParser {
 			case Headings.COURSE_TIME:rawTime= cols.get(i).getElementsByTag("span").html();break;
 			case Headings.COURSE_ADDRESS:rawAddress=cols.get(i).getElementsByTag("span").html();break;
 			case Headings.SEQUENCE_NUMBER: case Headings.COURSE_TEACHING_MATERIAL: case Headings.COURSE_GRADE_POINT:
-				listener.onInformation(ParserListener.INFO_SKIP, "忽略"+HEADINGS.getString(fieldCode)+"："+cols.get(i).text().trim());
+				listener.onInformation(ParseListener.INFO_SKIP, "忽略"+HEADINGS.getString(fieldCode)+"："+cols.get(i).text().trim());
 				break;
 			case Headings.UNKNOWN_COL:
-			default:listener.onWarn(ParserListener.WARNING_UNKNOWN_COLUMN, "未知列: "+cols.get(i).text());break;
+			default:listener.onWarn(ParseListener.WARNING_UNKNOWN_COLUMN, "未知列: "+cols.get(i).text());break;
 			}
 		}
 		if(rawTime!=null || rawAddress!=null){
 			try{
 				readTimeAndAddress(result, rawTime, rawAddress);
 			}catch(Exception e){
-				listener.onWarn(ParserListener.WARNINT_CANNOT_PARSE_TIME_AND_ADDRESS, "解析时间地点失败。因为：" + e.getMessage());
+				listener.onWarn(ParseListener.WARNINT_CANNOT_PARSE_TIME_AND_ADDRESS, "解析时间地点失败。因为：" + e.getMessage());
 				e.printStackTrace();
 			}
 		}
@@ -954,7 +953,7 @@ public class SchoolWebpageParser {
 		else
 			temp = ReadPageHelper.deleteSpace(rawData);
 		if(temp.length() == 0){
-			listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_STRING_DATA, "数据"+HEADINGS.getString(colContent)+"为空，解析失败。");
+			listener.onWarn(ParseListener.WARNING_CANNOT_PARSE_STRING_DATA, "数据"+HEADINGS.getString(colContent)+"为空，解析失败。");
 			return null;
 		}
 		else
@@ -973,14 +972,14 @@ public class SchoolWebpageParser {
 		case Headings.COURSE_ACADEMIC_YEAR_AND_SEMESTER:
 			parseAcademicYearAndSemester(result, colContent, temp);
 			break;
-		default:listener.onWarn(ParserListener.WARNING_UNKNOWN_COLUMN, 
+		default:listener.onWarn(ParseListener.WARNING_UNKNOWN_COLUMN,
 				"未知的字符串数据项"+colContent+"("+HEADINGS.getString(colContent)+")。");
 		}
 	}
 	private void parseAcademicYearAndSemester(Course result, int colContent, String rawYearAndSemester) {
 		Matcher matcher = ACADEMIC_YEAR_AND_SEMESTER_PATTERN.matcher(rawYearAndSemester);
 		if(!matcher.matches()) {
-			listener.onWarn(ParserListener.WARNINT_CANNOT_PARSE_ACADEMIC_YEAR_AND_SEMESTER,
+			listener.onWarn(ParseListener.WARNINT_CANNOT_PARSE_ACADEMIC_YEAR_AND_SEMESTER,
 					"未知的学年学期格式"+rawYearAndSemester+"，解析学年学期失败。");
 		}
 		// 学年
@@ -990,21 +989,21 @@ public class SchoolWebpageParser {
 			if(year2 - year1 == 1) {
 				result.setYear(year1);
 			} else {
-				listener.onWarn(ParserListener.WARNINT_CANNOT_PARSE_ACADEMIC_YEAR_AND_SEMESTER,
+				listener.onWarn(ParseListener.WARNINT_CANNOT_PARSE_ACADEMIC_YEAR_AND_SEMESTER,
 						"非预期的学年："+rawYearAndSemester+"不是一年，解析学年失败。");
 			}
 		} catch (NumberFormatException e) {
-			listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_NUMBER_DATA,
+			listener.onWarn(ParseListener.WARNING_CANNOT_PARSE_NUMBER_DATA,
 					"不能把字符串数据转换为数字，解析数字数据项"+HEADINGS.getString(colContent)+"失败。详情："+e.getMessage() );
 		} catch (CourseException e) {
-			listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_NUMBER_DATA,
+			listener.onWarn(ParseListener.WARNING_CANNOT_PARSE_NUMBER_DATA,
 					"数据超过合理范围，解析数字数据项"+HEADINGS.getString(colContent)+"失败.详情："+e.getMessage() );
 		}
 		// 学期
 		try {
 			result.setSemester((byte) valueOfChineseNumber(matcher.group(3)));
 		} catch (CourseException e) {
-			listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_NUMBER_DATA,
+			listener.onWarn(ParseListener.WARNING_CANNOT_PARSE_NUMBER_DATA,
 					"数据超过合理范围，解析数字数据项"+HEADINGS.getString(colContent)+"失败.详情："+e.getMessage() );
 		}
 	}
@@ -1034,20 +1033,20 @@ public class SchoolWebpageParser {
 			case Headings.COURSE_TOTAL_SCORE:result.setTotalScore(Float.parseFloat(temp));break;
 			case Headings.COURSE_ACADEMIC_YEAR:result.setYear(Integer.parseInt(temp));break;
 			case Headings.COURSE_SEMESTER:result.setSemester(Byte.valueOf(temp));break;
-			default:listener.onWarn(ParserListener.WARNING_UNKNOWN_COLUMN, 
+			default:listener.onWarn(ParseListener.WARNING_UNKNOWN_COLUMN,
 					"未知的数字数据项"+colContent+"("+HEADINGS.getString(colContent)+")。");
 			}
 		}catch(NumberFormatException e){
-			listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_NUMBER_DATA, 
+			listener.onWarn(ParseListener.WARNING_CANNOT_PARSE_NUMBER_DATA,
 					"不能把字符串数据转换为数字，解析数字数据项"+HEADINGS.getString(colContent)+"失败。详情："+e.getMessage() );
 		}
 		catch (CourseException e) {
-			listener.onWarn(ParserListener.WARNING_CANNOT_PARSE_NUMBER_DATA, 
+			listener.onWarn(ParseListener.WARNING_CANNOT_PARSE_NUMBER_DATA,
 					"数据超过合理范围，解析数字数据项"+HEADINGS.getString(colContent)+"失败.详情："+e.getMessage() );
 		}
 	}
 	private void readTimeAndAddress(Course result, String rawTime, String rawAddress) 
-			throws ParserException, TimeAndAddressException, BitOperateException {
+			throws ParseException, TimeAndAddressException, BitOperateException {
 		if(rawTime==null)
 			throw new NullPointerException("Error: rawTime == null");
 		if(rawAddress==null)
@@ -1056,13 +1055,13 @@ public class SchoolWebpageParser {
 		times = splitRawTime(rawTime);
 		addresses = splitRawAddress(rawAddress);
 		if(times.length != addresses.length)
-			throw new ParserException("Error: times.length != addresses.length");
+			throw new ParseException("Error: times.length != addresses.length");
 		for(int index = 0;index<times.length;index++){
 			result.addTimeAndAddress(parseTime(times[index]).setAddress(addresses[index]));
 		}
 	}
 
-	private TimeAndAddress parseTime(String time) throws ParserException, BitOperateException, TimeAndAddressException{
+	private TimeAndAddress parseTime(String time) throws ParseException, BitOperateException, TimeAndAddressException{
 		TimeAndAddress result = new TimeAndAddress();
 		Matcher matcher = WEEK_PATTERN.matcher(time);
 		while(matcher.find())
@@ -1075,7 +1074,7 @@ public class SchoolWebpageParser {
 			result.addPeriods(matcher.group(1));
 		String remnants = matcher.replaceAll("").replace(",", "").trim();
 		if(remnants.length() != 0)
-			listener.onWarn(ParserListener.WARNINT_CANNOT_PARSE_TIME_AND_ADDRESS, "部分时间地点信息无法解析："+remnants);
+			listener.onWarn(ParseListener.WARNINT_CANNOT_PARSE_TIME_AND_ADDRESS, "部分时间地点信息无法解析："+remnants);
 		return result;
 	}
 	/**
@@ -1155,7 +1154,7 @@ public class SchoolWebpageParser {
 	 */
 	private HashMap<Integer, Integer> getHeading(Elements tableHeaders) {
 		if(tableHeaders.isEmpty()) {
-			listener.onError(ParserListener.ERROR_CANNOT_PARSE_TABLE_HEADING, "课程表头为空,无法解析表头。");
+			listener.onError(ParseListener.ERROR_CANNOT_PARSE_TABLE_HEADING, "课程表头为空,无法解析表头。");
 			throw new IllegalArgumentException("encounter empty table headers");
 		}
 		int index = 0;
@@ -1164,21 +1163,6 @@ public class SchoolWebpageParser {
 			headMap.put(index++, HEADINGS.getCode(ReadPageHelper.deleteSpace(th.text())));
 		}
 		return headMap;
-	}
-	public static class ParserException extends Exception{
-		private static final long serialVersionUID = 3737828070910029299L;
-		public ParserException(String message){
-			super(message + " @SchoolWebpageParser");
-		}
-		public ParserException(){
-			super("encounter Exception when parse school page.");
-		}
-		public ParserException(String message, Throwable cause) {
-			super(message + " @SchoolWebpageParser", cause);
-		}
-		public ParserException(Throwable cause){
-			super("encounter Exception when parse school page.", cause);
-		}
 	}
 
 	private static final class Headings{
@@ -1245,98 +1229,5 @@ public class SchoolWebpageParser {
 	    	return "Unkown Code";
 	    }
 	}
-	
-	/**
-	 * 解析监听器，用于返回状体信息，解析进度等。
-	 * @author Bai Jie
-	 */
-	public static interface ParserListener extends Cloneable{
-		public static final int NULL_POINTER = 1;
-		public static final int ERROR_CANNOT_LOGIN = 2;
-		public static final int ERROR_IO = 3;
-		public static final int ERROR_UNSUPPORTED_ENCODING = 4;
-		/**不能读取网页中的课程（成绩）表头，无法继续解析。*/
-		public static final int ERROR_CANNOT_PARSE_TABLE_HEADING = 5;
-		/**Post的来源或者URL不明，无法解析Post正文。*/
-		public static final int ERROR_INSUFFICIENT_INFORMATION = 6;
-		/** 文档结构发生了变化 */
-		public static final int WARNING_STRUCTURE_CHANGED = 9;
-		/**不能读取总页面数，这样的话可能仅读取第一页*/
-		public static final int WARNING_CANNOT_PARSE_PAGE_NUMBER = 10;
-		/**结果为空，可能最新成绩、已选课程等页面已失效*/
-		public static final int WARNING_RESULT_IS_EMPTY = 11;
-		/**课程（成绩）表中遇到未知的列（数据项）。*/
-		public static final int WARNING_UNKNOWN_COLUMN = 12;
-		/**解析时间失败。*/
-		public static final int WARNING_CANNOT_PARSE_DATE = 13;
-		public static final int WARNING_CANNOT_PARSE_URL = 14;
-		public static final int WARNING_CANNOT_PARSE_STRING_DATA = 15;
-		public static final int WARNING_CANNOT_PARSE_NUMBER_DATA = 16;
-		public static final int WARNINT_CANNOT_PARSE_TIME_AND_ADDRESS = 17;
-		public static final int WARNINT_CANNOT_PARSE_SEMESTER = 18;
-		public static final int WARNINT_CANNOT_PARSE_ACADEMIC_YEAR_AND_SEMESTER = 19;
-		public static final int WARNING_CANNOT_PARSE_STUDENT_INFO = 20;
-		public static final int WARNING_CANNOT_PARSE_STUDENT_BIRTHDAY = 21;
-		public static final int WARNING_CANNOT_PARSE_STUDENT_ADMISSION_TIME = 22;
-		public static final int WARNING_CANNOT_PARSE_STUDENT_ACADEMIC_PERIOD = 23;
-		/**跳过/忽略某信息。*/
-		public static final int INFO_SKIP = 30;
-		/**
-		 * 当遇到错误时，调用此方法。错误意味着解释失败，停止解析。很可能此调用后解析方法抛出异常
-		 * @param code 错误代码
-		 * @param message 错误信息
-		 */
-		public void onError(int code, String message);
-		/**
-		 * 当遇到警告信息时，调用此方法。警告意味着可能有错误的解析结果，需要用户检查正误，解析方法本身会正常返回结果（可能包含错误信息）。
-		 * @param code 警告代码
-		 * @param message 警告信息
-		 */
-		public void onWarn(int code, String message);
-		/**
-		 * 当返回消息信息时，调用此方法。这并不代表程序不正常，只是用于返回一些关于当前状态的消息。
-		 * @param code 消息代码
-		 * @param message 消息信息
-		 */
-		public void onInformation(int code, String message);
-		/**
-		 * 当解析进度改变时。用于报告解析进度。用current/total表示，0<=current<=total，current==total时解析完成。
-		 * @param current 当前进度。
-		 * @param total 总进度。
-		 */
-		public void onProgressChange(float current, float total);
-		/**
-		 * 实现深克隆
-		 * @see java.lang.Object#clone()
-		 */
-		public ParserListener clone() throws CloneNotSupportedException;
-	}
-	/**
-	 * 解析监听器适配器，若无说明，默认方法是空方法。您可以继承此类，只重写需要定义的方法。<br />
-	 * <strong>注：</strong>本适配器的onError调用System.err.println返回错误信息，方便调试。您可以重写此方法（如用空方法替代）<br />
-	 * <strong>注：</strong>本适配器的clone()方法仅调用默认的super.clone()方法，如果您有非安全对象字段，这并不适合您，请重写clone
-	 * @author Bai Jie
-	 */
-	public static class ParserListenerAdapter implements ParserListener{	
-		public ParserListenerAdapter() {
-			super();
-		}
-		@Override
-		public void onError(int code, String message) {
-			System.err.println("Error "+code+": "+message);
-		}
-		@Override
-		public void onWarn(int code, String message) {			
-		}
-		@Override
-		public void onInformation(int code, String message) {
-		}
-		@Override
-		public void onProgressChange(float current, float total) {			
-		}
-		@Override
-		public ParserListener clone() throws CloneNotSupportedException{
-			return (ParserListener) super.clone();
-		}
-	}
+
 }
