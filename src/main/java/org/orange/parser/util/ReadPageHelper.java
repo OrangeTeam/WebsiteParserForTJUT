@@ -2,8 +2,6 @@ package org.orange.parser.util;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.text.DateFormat;
-import java.util.Date;
 import java.util.Map;
 
 import org.jsoup.Connection;
@@ -14,6 +12,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.UnsupportedMimeTypeException;
 import org.jsoup.nodes.Document;
 import org.orange.parser.parser.Constant;
+import org.orange.parser.reader.Cookie;
 
 public class ReadPageHelper implements Cloneable{
 	private static final String DEFAULT_CHARSET = "GB2312";
@@ -194,7 +193,7 @@ public class ReadPageHelper implements Cloneable{
 		Response res = Jsoup
 				.connect(Constant.url.TEACHING_AFFAIRS_SESSION_PAGE)
 				.timeout(timeout).followRedirects(false).ignoreHttpErrors(true)
-				.cookie(teachingAffairsToken.cookieKey, teachingAffairsToken.cookieValue)
+				.cookie(teachingAffairsToken.getCookieKey(), teachingAffairsToken.getCookieValue())
 				.method(Method.GET).execute();
 		teachingAffairsSession = getCookie1FromMap(res.cookies());
 	}
@@ -314,11 +313,11 @@ public class ReadPageHelper implements Cloneable{
 	public Response request(String url, Method method, String charset, String... data) throws IOException{
 		Connection conn = Jsoup.connect(url).timeout(timeout).followRedirects(false);
 		if(teachingAffairsSession != null && !teachingAffairsSession.isEmpty())
-			conn.cookie(teachingAffairsSession.cookieKey, teachingAffairsSession.cookieValue);
+			conn.cookie(teachingAffairsSession.getCookieKey(), teachingAffairsSession.getCookieValue());
 		if(teachingAffairsToken != null && !teachingAffairsToken.isEmpty())
-			conn.cookie(teachingAffairsToken.cookieKey, teachingAffairsToken.cookieValue);
+			conn.cookie(teachingAffairsToken.getCookieKey(), teachingAffairsToken.getCookieValue());
 		if(SCCESession != null && !SCCESession.isEmpty())
-			conn.cookie(SCCESession.cookieKey, SCCESession.cookieValue);
+			conn.cookie(SCCESession.getCookieKey(), SCCESession.getCookieValue());
 
 		if(data != null)
 			conn.data(data);
@@ -368,79 +367,6 @@ public class ReadPageHelper implements Cloneable{
 		return clone;
 	}
 
-	public static class Cookie implements Cloneable {
-		private String cookieKey;
-		private String cookieValue;
-		private Date modifiedTime;
-		
-		public Cookie(){
-			cookieKey = cookieValue = "";
-			modifiedTime = new Date(0);
-		}
-		public Cookie(String cookieKey, String cookieValue) {
-			this();
-			setCookie(cookieKey, cookieValue);
-		}
-		/**
-		 * @return the cookieKey
-		 */
-		public String getCookieKey() {
-			return cookieKey;
-		}
-		/**
-		 * @return the cookieValue
-		 */
-		public String getCookieValue() {
-			return cookieValue;
-		}
-		/**
-		 * @param cookieKey the cookie's key to set
-		 * @param cookieValue the cookie's value to set
-		 */
-		public void setCookie(String cookieKey, String cookieValue) {
-			this.cookieKey = cookieKey;
-			this.cookieValue = cookieValue;
-			modifiedTime.setTime(System.currentTimeMillis());
-		}
-		/**
-		 * @return the modifiedTime
-		 */
-		public Date getModifiedTime() {
-			return (Date)modifiedTime.clone();
-		}
-		public String getModifiedTimeString(){
-			return DateFormat.getInstance().format(modifiedTime);
-		}
-		/**
-		 * 上次修改时间是否在距现在指定时间（毫秒）内
-		 * @param milliseconds 测试标准。单位：毫秒
-		 * @return 在milliseconds毫秒内，返回true；在milliseconds毫秒外，返回false
-		 */
-		public boolean isModifiedWithIn(long milliseconds){
-			return (System.currentTimeMillis()-modifiedTime.getTime() <= milliseconds);
-		}
-		public boolean isEmpty(){
-			return (cookieKey.length() == 0&&cookieValue.length() == 0);
-		}
-		/* (non-Javadoc)
-		 * @see java.lang.Object#clone()
-		 */
-		@Override
-		public Cookie clone() throws CloneNotSupportedException {
-			Cookie clone = (Cookie) super.clone();
-			clone.modifiedTime = (Date) this.modifiedTime.clone();
-			return clone;
-		}
-		/* (non-Javadoc)
-		 * @see java.lang.Object#toString()
-		 */
-		@Override
-		public String toString() {
-			return "Cookie [cookieKey=" + cookieKey + ", cookieValue="
-					+ cookieValue +"modifiedTime="+getModifiedTimeString()+ "]";
-		}
-	}
-	
 	public static interface OnReadPageListener{
 		/**
 		 * 当（用Get或Post等方法）读取一个页面后
