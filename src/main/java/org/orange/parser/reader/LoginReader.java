@@ -7,5 +7,5 @@ import java.io.IOException;
 public interface LoginReader extends Reader {
 	public void setAccount(String accountName, String password);
 	public Connection getLoginConnection();
-	public boolean doLogin() throws IOException;
+	public boolean login() throws IOException;
 }

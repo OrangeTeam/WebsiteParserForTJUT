@@ -2,7 +2,6 @@ package org.orange.parser.reader;
 
 import org.jsoup.Connection;
 import org.jsoup.HttpStatusException;
-import org.jsoup.Jsoup;
 import org.orange.parser.parser.Constant;
 
 import java.io.IOException;
@@ -11,14 +10,9 @@ import java.net.HttpURLConnection;
 public class SSFWWebsiteReader extends AbstractLoginReader {
 
 	public SSFWWebsiteReader() {
-		mLoginConnection = Jsoup.connect(Constant.url.LOGIN_PAGE);
-		mReadConnection = Jsoup.connect(Constant.url.PERSONAL_INFORMATION);
-		init();
-	}
-	private void init() {
+		mLoginConnection.url(Constant.url.LOGIN_PAGE);
 		mLoginConnection.followRedirects(false).ignoreHttpErrors(true);
 	}
-
 
 	@Override
 	public void setAccount(String accountName, String password) {
@@ -28,7 +22,7 @@ public class SSFWWebsiteReader extends AbstractLoginReader {
 	}
 
 	@Override
-	public boolean doLogin() throws IOException {
+	public boolean onLogin() throws IOException {
 		Connection.Response response =
 				mLoginConnection.method(Connection.Method.POST).execute();
 		String body = response.body();
@@ -52,7 +46,7 @@ public class SSFWWebsiteReader extends AbstractLoginReader {
 
 	/**
 	 * 取得教务处网站（含课程信息等）的会话cookie
-	 * <p>前置条件：已{@link #doLogin()}</p>
+	 * <p>前置条件：已{@link #onLogin()}</p>
 	 * @throws IOException
 	 */
 	private void fetchSessionCookie() throws IOException {

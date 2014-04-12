@@ -2,6 +2,8 @@ package org.orange.parser.parser;
 
 public final class Constant {
 	public static final class url{
+		public static final String DEFAULT_PAGE = "http://example.com/";
+
 		public static final String LOGIN_PAGE = "http://my.tjut.edu.cn/userPasswordValidate.portal";
 		/** 取得教务处网站（含课程信息等）的会话cookie的页面 */
 		public static final String TEACHING_AFFAIRS_SESSION_PAGE = "http://ssfw.tjut.edu.cn/ssfw/j_spring_ids_security_check";
