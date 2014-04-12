@@ -49,7 +49,7 @@ public class SchoolWebpageParser {
 	private ReadPageHelper readHelper;
 
 	private static final Headings HEADINGS = new Headings();
-	
+
 	/**
 	 * 无参构造方法
 	 */
@@ -92,7 +92,7 @@ public class SchoolWebpageParser {
 		setReadHelper(readHelper);
 		autoReadHelper.setUser(readHelper.getUserName(), readHelper.getPassword());
 	}
-	
+
 	/**
 	 * @return the listener
 	 */
@@ -101,7 +101,7 @@ public class SchoolWebpageParser {
 	}
 	/**
 	 * @param listener the listener to set
-	 * @throws CloneNotSupportedException 
+	 * @throws CloneNotSupportedException
 	 */
 	public void setListener(ParseListener listener) throws CloneNotSupportedException {
 		this.listener = listener.clone();
@@ -199,7 +199,7 @@ public class SchoolWebpageParser {
 	 * @throws IOException 链接超时等IO异常
 	 * @throws UnsupportedEncodingException 为解析教务处信息设置URL时，GB2312编码异常
 	 */
-    public List<Post> parsePosts(byte postSource, String[] categories, Date start, 
+    public List<Post> parsePosts(byte postSource, String[] categories, Date start,
     		Date end, int max) throws UnsupportedEncodingException, IOException{
     	LinkedList<Post> result = new LinkedList<Post>();
     	switch(postSource){
@@ -226,7 +226,7 @@ public class SchoolWebpageParser {
     					categoriesInNews.add(aCategory);
     			}
     			if(!categoriesInNotices.isEmpty() && (max<0 || result.size()<max))
-    				result.addAll(parsePostsFromSCCE(categoriesInNotices.toArray(new String[0]), 
+    				result.addAll(parsePostsFromSCCE(categoriesInNotices.toArray(new String[0]),
     						start, end, max, Post.SOURCES.NOTICES_IN_SCCE_URL));
     			if(!categoriesInNews.isEmpty() && (max<0 || result.size()<max))
     				result.addAll(parsePostsFromSCCE(categoriesInNews.toArray(new String[0]), start,
@@ -351,10 +351,10 @@ public class SchoolWebpageParser {
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
 	 * @return 符合条件的posts；如果postSource不可识别，返回null
-     * @throws IOException 
+     * @throws IOException
      * @throws UnsupportedEncodingException 为解析教务处信息设置URL时，GB2312编码异常
 	 */
-    public List<Post> parsePosts(byte postSource, Date start, 
+    public List<Post> parsePosts(byte postSource, Date start,
     		Date end, int max) throws UnsupportedEncodingException, IOException{
     	String[] categories = null;
     	return parsePosts(postSource, categories, start, end, max);
@@ -367,15 +367,15 @@ public class SchoolWebpageParser {
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
 	 * @return 符合条件的posts；如果postSource不可识别，返回null
-     * @throws IOException 
+     * @throws IOException
      * @throws UnsupportedEncodingException 为解析教务处信息设置URL时，GB2312编码异常
      */
-	public List<Post> parsePosts(byte postSource, String aCategory, Date start, Date end, 
+	public List<Post> parsePosts(byte postSource, String aCategory, Date start, Date end,
 			int max) throws UnsupportedEncodingException, IOException {
 		String[] categories = new String[]{aCategory};
 		return parsePosts(postSource, categories, start, end, max);
 	}
-	
+
 	/**
 	 * 根据指定的类别等条件，从教务处网站解析通知等文章
 	 * @param aCategory  某具体类别，类似Post.CATEGORYS.TEACHING_AFFAIRS_NOTICES等
@@ -396,7 +396,7 @@ public class SchoolWebpageParser {
 		LinkedList<Post> result = new LinkedList<Post>();
 		if(max == 0) return result;
 		try {
-			url = "http://59.67.148.66:8080/getRecords.jsp?url=list.jsp&pageSize=100&name=" 
+			url = "http://59.67.148.66:8080/getRecords.jsp?url=list.jsp&pageSize=100&name="
 					+ URLEncoder.encode(aCategory, "GB2312") + "&currentPage=";
 		} catch (UnsupportedEncodingException e) {
 			listener.onError(ParseListener.ERROR_UNSUPPORTED_ENCODING, "遇到编码异常，解释教务处信息失败。 "+e.getMessage());
@@ -407,7 +407,7 @@ public class SchoolWebpageParser {
 			result.addAll(parsePostsFromTeachingAffairs(aCategory, start, end, max, doc));
 			page = Integer.parseInt( doc.body().select("table table table table")
 					.get(1).select("tr td form font:eq(1)").text() );
-			
+
 			for(int i = 2;i<=page;i++){
 				if(max>=0 && result.size()>=max)
 					break;
@@ -437,7 +437,7 @@ public class SchoolWebpageParser {
 	 * @param doc 要解析的网页的Document文档对象模型
 	 * @return 符合条件的posts
 	 */
-	public List<Post> parsePostsFromTeachingAffairs(String aCategory, Date start, Date end, 
+	public List<Post> parsePostsFromTeachingAffairs(String aCategory, Date start, Date end,
 			int max, Document doc) {
 		LinkedList<Post> result = new LinkedList<Post>();
 		Elements posts = doc.body().select("table table table table").get(0).getElementsByTag("tr");
@@ -464,7 +464,7 @@ public class SchoolWebpageParser {
 		}
 		return result;
 	}
-	
+
 	/**
 	 * 根据aCategory、start、end、max、baseURL等条件，利用readHelper，从SCCE解析posts
 	 * @param aCategory 类别，例如“学生通知”
@@ -473,9 +473,9 @@ public class SchoolWebpageParser {
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
 	 * @param baseURL 指定解析的基础URL，类似Post.SOURCES.NOTICES_IN_SCCE_URL
 	 * @return 符合条件的posts
-	 * @throws IOException 
+	 * @throws IOException
 	 */
-	public List<Post> parsePostsFromSCCE(String[] categories, Date start, Date end, 
+	public List<Post> parsePostsFromSCCE(String[] categories, Date start, Date end,
 			int max, String baseURL) throws IOException{
 		ReadPageHelper readHelper = getCurrentHelper();
 		Document doc = null;
@@ -500,7 +500,7 @@ public class SchoolWebpageParser {
 				return parsePosts(Post.SOURCES.WEBSITE_OF_SCCE, categories, start, end, max);
 			else
 				return result;
-		}	
+		}
 		baseURL += "?page=";
 		try {
 			readHelper.prepareToParsePostsFromSCCE();
@@ -560,7 +560,7 @@ public class SchoolWebpageParser {
 //			String temp = ReadPageHelper.deleteSpace(cols.get(4).text());
 //			if(temp.equals("教师") || temp.equals("全体教师"))
 //				continue;
-			
+
 			post = new Post();
 			//验证Category
 			post.setCategory(ReadPageHelper.deleteSpace(cols.get(1).text()));
@@ -595,7 +595,7 @@ public class SchoolWebpageParser {
 		}
 		return result;
 	}
-	
+
 	/**
 	 * 根据aCategory、start、end、max等条件，利用readHelper，从SCCE学生网站解析posts
 	 * @param aCategory 类别，例如Post.CATEGORYS.SCCE_STUDENT_NOTICES
@@ -603,7 +603,7 @@ public class SchoolWebpageParser {
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
 	 * @return 符合条件的posts；如果aCategory不可识别，返回空List
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public List<Post> parsePostsFromSCCEStudent(String aCategory, Date start, Date end, int max) throws IOException{
 		ReadPageHelper readHelper = getCurrentHelper();
@@ -631,7 +631,7 @@ public class SchoolWebpageParser {
 		else
 			return result;
 		url += "?page=";
-		
+
 		try {
 			doc = readHelper.getWithDocumentForParsePostsFromSCCE(url+"1");
 			result.addAll(parsePostsFromSCCEStudent(aCategory, start, end, max, doc));
@@ -640,7 +640,7 @@ public class SchoolWebpageParser {
 				page = Integer.parseInt(matcher.group(1));
 			else
 				listener.onWarn(ParseListener.WARNING_CANNOT_PARSE_PAGE_NUMBER, "不能从计算机学院学生网站解析页数，现仅解析第一页内容。");
-			
+
 			for(int i = 2;i<=page;i++){
 				if(max>=0 && result.size()>=max)
 					break;
@@ -658,7 +658,7 @@ public class SchoolWebpageParser {
 			listener.onError(ParseListener.ERROR_IO, "遇到IO异常，无法打开页面，解析计算机学院学生网站信息失败。 "+e.getMessage());
 			throw e;
 		}
-		
+
 		return result;
 	}
 	/**
@@ -713,7 +713,7 @@ public class SchoolWebpageParser {
 		ReadPageHelper helper = getCurrentHelper();
 		Document doc = null;
 		String rawMainBody;
-		final String format = 
+		final String format =
 				"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n" +
 				"\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n" +
 				"<html xmlns='http://www.w3.org/1999/xhtml'>\n\t<head>\n" +
@@ -847,7 +847,7 @@ public class SchoolWebpageParser {
 	private List<Course> readCourseTable(Element table) {
 	    LinkedList<Course> result = new LinkedList<Course>();
 	    Elements courses = table.getElementsByTag("tr");
-	    
+
 	    HashMap<Integer, Integer> headingMap = null;
 	    for(Element course:courses){
 	    	if(course.text().trim().length()==0)
@@ -879,12 +879,12 @@ public class SchoolWebpageParser {
 				continue;
 			}
 			switch(fieldCode.intValue()){
-			case Headings.COURSE_CODE: case Headings.COURSE_NAME: case Headings.CLASS_NUMBER: 
+			case Headings.COURSE_CODE: case Headings.COURSE_NAME: case Headings.CLASS_NUMBER:
 			case Headings.COURSE_TEACHER: case Headings.COURSE_KIND:
 			case Headings.COURSE_ACADEMIC_YEAR_AND_SEMESTER:
 				parseAsString(result, fieldCode.intValue(), cols.get(i).text());
 				break;
-			case Headings.COURSE_CREDIT: case Headings.COURSE_TEST_SCORE: case Headings.COURSE_TOTAL_SCORE: 
+			case Headings.COURSE_CREDIT: case Headings.COURSE_TEST_SCORE: case Headings.COURSE_TOTAL_SCORE:
 			case Headings.COURSE_ACADEMIC_YEAR: case Headings.COURSE_SEMESTER:
 				parseAsNumber(result, fieldCode.intValue(), cols.get(i).text());
 				break;
@@ -1006,7 +1006,7 @@ public class SchoolWebpageParser {
 					"数据超过合理范围，解析数字数据项"+HEADINGS.getString(colContent)+"失败.详情："+e.getMessage() );
 		}
 	}
-	private void readTimeAndAddress(Course result, String rawTime, String rawAddress) 
+	private void readTimeAndAddress(Course result, String rawTime, String rawAddress)
 			throws ParseException, TimeAndAddressException, BitOperateException {
 		if(rawTime==null)
 			throw new NullPointerException("Error: rawTime == null");
@@ -1147,7 +1147,7 @@ public class SchoolWebpageParser {
 	    private static final int COURSE_SEMESTER = 13;
 	    private static final int COURSE_KIND = 14;
 	    private static final int COURSE_GRADE_POINT = 15;
-		
+
 	    private static final HashMap<String, Integer> HEADING_STRING2INTEGER = new HashMap<String, Integer>();
 	    public Headings(){
 	    	HEADING_STRING2INTEGER.put("序号",	SEQUENCE_NUMBER);

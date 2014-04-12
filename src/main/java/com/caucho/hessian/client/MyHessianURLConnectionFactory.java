@@ -61,14 +61,14 @@ import java.util.logging.Logger;
 public class MyHessianURLConnectionFactory implements HessianConnectionFactory {
   private static final Logger LOG
     = Logger.getLogger(MyHessianURLConnectionFactory.class.getName());
-  
+
   private HessianProxyFactory _proxyFactory;
 
   public void setHessianProxyFactory(HessianProxyFactory factory)
   {
     _proxyFactory = factory;
   }
-  
+
   /**
    * Opens a new or recycled connection to the HTTP server.
    */
@@ -126,7 +126,7 @@ public class MyHessianURLConnectionFactory implements HessianConnectionFactory {
       }
     }
     */
-    
+
     return new HessianURLConnection(url, conn);
   }
 }

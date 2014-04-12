@@ -17,7 +17,7 @@ import org.orange.parser.reader.Cookie;
 public class ReadPageHelper implements Cloneable{
 	private static final String DEFAULT_CHARSET = "GB2312";
 	private OnReadPageListener listener = null;
-	
+
 	/**网络连接的超时时间，单位milliseconds*/
 	private int timeout;
 	private String userName, password, charset, charsetForParsePostsFromSCCE;
@@ -47,7 +47,7 @@ public class ReadPageHelper implements Cloneable{
 		this(userName, password, pageCharset);
 		setTimeout(timeout);
 	}
-	
+
 	/**
 	 * @return the listener
 	 */
@@ -140,7 +140,7 @@ public class ReadPageHelper implements Cloneable{
 	}
 	/**
 	 * do login<br />登录
-	 * @param loginPageURL send login request to this page 向此网址发送登录请求 
+	 * @param loginPageURL send login request to this page 向此网址发送登录请求
 	 * @return true for success, false for failure 成功登录返回真，失败返回假
 	 * @throws java.net.MalformedURLException if the request URL is not a HTTP or HTTPS URL, or is otherwise malformed
 	 * @throws HttpStatusException 若响应状态不可识别，可能与教务处网站的连通性出现问题，或教务网站改版。
@@ -150,7 +150,7 @@ public class ReadPageHelper implements Cloneable{
 	 */
 	public boolean doLogin(String loginPageURL) throws IOException{
 		//是旧用户且上次认证未过期
-		if(!isNewUser && teachingAffairsSession!=null 
+		if(!isNewUser && teachingAffairsSession!=null
 				&& teachingAffairsSession.isModifiedWithIn(expire))
 			return true;
 		//用户名或密码为空
@@ -214,7 +214,7 @@ public class ReadPageHelper implements Cloneable{
 		return true;
 	}
 	/**
-	 * 
+	 *
 	 * @return
 	 * @throws IOException
 	 */
@@ -345,7 +345,7 @@ public class ReadPageHelper implements Cloneable{
     	else
     		return null;
     }
-	
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#clone()
 	 */

@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.orange.parser.util;
 
@@ -9,20 +9,20 @@ package org.orange.parser.util;
  *
  */
 public class BitOperate {
-	/** 把original的第location位设为1.location从低位到高位,从0起 
+	/** 把original的第location位设为1.location从低位到高位,从0起
 	 * @throws BitOperateException 当 location超出0~31的范围
 	 */
     public static int add1onCertainBit(int original,int location) throws BitOperateException{
     	if(location<0)
-    		throw new BitOperateException("negative bit position.", 
+    		throw new BitOperateException("negative bit position.",
     				BitOperateException.NEGATIVE_POSITION);
     	if(location>31)
-    		throw new BitOperateException("too large bit position.(>31)", 
+    		throw new BitOperateException("too large bit position.(>31)",
     				BitOperateException.TOO_LARGE_POSITON);
-    	return original | (1<<location); 
+    	return original | (1<<location);
     }
     /**
-     * locations中有多个，把original的每个location位设为1.location从低位到高位，从0起 
+     * locations中有多个，把original的每个location位设为1.location从低位到高位，从0起
      * @param original 基数
      * @param locations 位置（第几位）
      * @return 计算结果
@@ -35,7 +35,7 @@ public class BitOperate {
     	return result;
     }
 	/**
-	 * 根据locations为origin置1。例如locations[3]==true，则origin的第3位置1。location从低位到高位，从0起 
+	 * 根据locations为origin置1。例如locations[3]==true，则origin的第3位置1。location从低位到高位，从0起
 	 * @param origin 基数
 	 * @param locations 与要置为1的位相应的locations元素为true；否则为false
 	 * @return 计算结果
@@ -48,14 +48,14 @@ public class BitOperate {
 				result = add1onCertainBit(result, position);
 		return result;
 	}
-    /** 把original的第location位设为0.location从低位到高位,从0起 
+    /** 把original的第location位设为0.location从低位到高位,从0起
      * @throws BitOperateException */
     public static int add0onCertainBit(int original, int location) throws BitOperateException{
     	if(location<0)
-    		throw new BitOperateException("negative bit position.", 
+    		throw new BitOperateException("negative bit position.",
     				BitOperateException.NEGATIVE_POSITION);
     	if(location>31)
-    		throw new BitOperateException("too large bit position.(>31)", 
+    		throw new BitOperateException("too large bit position.(>31)",
     				BitOperateException.TOO_LARGE_POSITON);
     	int mask = ~(1<<location);
     	return original & mask;
@@ -76,13 +76,13 @@ public class BitOperate {
      */
     public static int add1onRange(int original, int start, int end, Boolean oddOrEven) throws BitOperateException{
     	if(start<0 || end<0)
-    		throw new BitOperateException("negative bit position.", 
+    		throw new BitOperateException("negative bit position.",
     				BitOperateException.NEGATIVE_POSITION);
     	if(start>31 || end>31)
-    		throw new BitOperateException("too large bit position.(>31)", 
+    		throw new BitOperateException("too large bit position.(>31)",
     				BitOperateException.TOO_LARGE_POSITON);
     	if(start>end)
-    		throw new BitOperateException("start shouldn't have been greater than end.", 
+    		throw new BitOperateException("start shouldn't have been greater than end.",
     				BitOperateException.START_GREATER_THAN_END);
     	int mask = (~(~0<<(end-start+1)))<<start;	//①全1左移end-start+1位 ②取反 ③左移start位
     	if(oddOrEven != null){
@@ -115,7 +115,7 @@ public class BitOperate {
     public static int add1onCertainBit(int original, String positionStr, Boolean oddOrEven) throws BitOperateException{
 		int result = original;
 		if(positionStr.matches(".*[^\\d\\s\u00a0\u3000;；,，\\-－\u2013\u2014\u2015].*"))
-			throw new BitOperateException("Unknown character in parameter.", 
+			throw new BitOperateException("Unknown character in parameter.",
 					BitOperateException.UNKNOWN_NOTATION);
 		String[] positions = positionStr.split("[\\s\u00a0\u3000;；,，]");//根据这些分割
 		for(String position:positions){
@@ -124,11 +124,11 @@ public class BitOperate {
 			if(position.matches(".*[\\-－\u2013\u2014\u2015].*")){
 				String[] pair = position.split("[\\-－\u2013\u2014\u2015]+");
 				if(pair.length!=2)
-					throw new BitOperateException("Don't match token like \"3-6\".", 
+					throw new BitOperateException("Don't match token like \"3-6\".",
 							BitOperateException.UNKNOWN_TOKEN);
 				else{
 					if(pair[0].length() == 0)	//negative number 负数都到此分支
-						throw new BitOperateException("Encounter negative number.", 
+						throw new BitOperateException("Encounter negative number.",
 								BitOperateException.NEGATIVE_POSITION);
 					int start = Integer.parseInt(pair[0]);
 					int end = Integer.parseInt(pair[1]);
@@ -205,12 +205,12 @@ public class BitOperate {
      */
     public static boolean is1onCertainBit(int tested, int position) throws BitOperateException{
     	if(position<0)
-    		throw new BitOperateException("negative bit position.", 
+    		throw new BitOperateException("negative bit position.",
     				BitOperateException.NEGATIVE_POSITION);
     	if(position>31)
-    		throw new BitOperateException("too large bit position.(>31)", 
+    		throw new BitOperateException("too large bit position.(>31)",
     				BitOperateException.TOO_LARGE_POSITON);
-    	return ( tested & (1<<position) ) != 0; 
+    	return ( tested & (1<<position) ) != 0;
     }
     /**
      * 检测tested的position及以上位(bit)是否有1
@@ -220,10 +220,10 @@ public class BitOperate {
      */
     public static boolean has1onBitsHigherThan(int tested, int position) throws BitOperateException{
     	if(position<0)
-    		throw new BitOperateException("negative bit position.", 
+    		throw new BitOperateException("negative bit position.",
     				BitOperateException.NEGATIVE_POSITION);
     	if(position>31)
-    		throw new BitOperateException("too large bit position.(>31)", 
+    		throw new BitOperateException("too large bit position.(>31)",
     				BitOperateException.TOO_LARGE_POSITON);
     	return ( tested & (~0<<position) ) != 0;
     }
@@ -236,10 +236,10 @@ public class BitOperate {
 	 */
 	public static boolean[] is1onEachBit(int tested, int mostSignificantBit) throws BitOperateException{
 		if(mostSignificantBit < 0)
-			throw new BitOperateException("negative bit position.", 
+			throw new BitOperateException("negative bit position.",
 					BitOperateException.NEGATIVE_POSITION);
 		if(mostSignificantBit > 31)
-			throw new BitOperateException("too large bit position.(>31)", 
+			throw new BitOperateException("too large bit position.(>31)",
 					BitOperateException.TOO_LARGE_POSITON);
 		boolean[] result = new boolean[mostSignificantBit+1];
 		for(int position=0, tester=1 ; position <= mostSignificantBit ; position++, tester<<=1)
@@ -280,7 +280,7 @@ public class BitOperate {
 			this("Cannot do bit operate normally.", cause);
 		}
 
-		
+
 		/**
 		 * @param code 错误代码
 		 */

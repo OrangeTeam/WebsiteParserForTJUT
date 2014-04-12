@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.caucho.hessian.client;
 
@@ -17,7 +17,7 @@ import java.net.URL;
  */
 public class MyHessianSocketConnection implements HessianConnection {
 	private static final String CRLF = "\r\n";
-	
+
 	URL url;
 	Socket socket;
 	int statusCode;
@@ -29,8 +29,8 @@ public class MyHessianSocketConnection implements HessianConnection {
 	InputStream in = null;
 
 	/**
-	 * @throws IOException 
-	 * 
+	 * @throws IOException
+	 *
 	 */
 	public MyHessianSocketConnection(URL url, Socket socket) throws IOException {
 		header = new ByteArrayOutputStream();

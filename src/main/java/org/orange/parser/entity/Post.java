@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.orange.parser.entity;
 
@@ -35,7 +35,7 @@ public class Post implements Cloneable, Serializable {
 		public static final String TEACHING_AFFAIRS_NOTICES_ON_TEST = "考试相关通知";
 		public static final String TEACHING_AFFAIRS_CET = "大学英语四六级考试";
 		public static final String[] IN_TEACHING_AFFAIRS_WEBSITE = new String[]{
-			TEACHING_AFFAIRS_NOTICES, TEACHING_AFFAIRS_COURSE_SELECTION, TEACHING_AFFAIRS_NEWS, 
+			TEACHING_AFFAIRS_NOTICES, TEACHING_AFFAIRS_COURSE_SELECTION, TEACHING_AFFAIRS_NEWS,
 			TEACHING_AFFAIRS_NOTICES_ON_TEST, TEACHING_AFFAIRS_CET,"考试相关规定","选课相关规定","成绩学籍相关通知",
 			"成绩相关规定","学籍相关规定","教学研究与评价相关通知","专业建设","培养计划","课程建设","教材建设","教学评价","教学研究",
 			"辅修专业","学科竞赛","实践教学相关通知","实验室建设","实验教学相关规定","实习教学相关规定","第二校园","毕业设计相关规定",
@@ -45,7 +45,7 @@ public class Post implements Cloneable, Serializable {
 		public static final String[] IN_TEACHING_AFFAIRS_WEBSITE_COMMON = new String[]{
 			TEACHING_AFFAIRS_NOTICES, TEACHING_AFFAIRS_COURSE_SELECTION, TEACHING_AFFAIRS_NEWS,
 			TEACHING_AFFAIRS_NOTICES_ON_TEST, TEACHING_AFFAIRS_CET};
-		
+
 		public static final String SCCE_NOTICE_TEACHING = "教学通知";
 		public static final String SCCE_NOTICE_RESEARCH = "科研通知";
 		public static final String SCCE_NOTICE_STUDENT = "学生通知";
@@ -57,7 +57,7 @@ public class Post implements Cloneable, Serializable {
 		public static final String[] IN_SCCE = new String[]{SCCE_NOTICE_TEACHING,SCCE_NOTICE_RESEARCH,
 			SCCE_NOTICE_STUDENT,SCCE_NOTICE_OFFICE,SCCE_NOTICE_UNION,SCCE_NEW_SCHOOL,SCCE_NEW_COLLEGE,
 			SCCE_NEW_DEPARTMENT};
-		
+
 		public static final String SCCE_STUDENT_NEWS = "新闻中心";
 		public static final String SCCE_STUDENT_NOTICES = "通知公告";
 		public static final String SCCE_STUDENT_UNION = "院学生会";
@@ -73,9 +73,9 @@ public class Post implements Cloneable, Serializable {
 			SCCE_STUDENT_NEWS, SCCE_STUDENT_NOTICES, SCCE_STUDENT_UNION, SCCE_STUDENT_EMPLOYMENT
 		};
 	}
-	
 
-	private Long id; 
+
+	private Long id;
 	/**来源，见{@link Post.SOURCES}*/
 	private byte source;
 	/**类别，见{@link Post.CATEGORYS}*/
@@ -94,7 +94,7 @@ public class Post implements Cloneable, Serializable {
 	public Post() {
 		super();
 		id = null;
-		source = SOURCES.UNKNOWN_SOURCE; 
+		source = SOURCES.UNKNOWN_SOURCE;
 		title = url = mainBody = category = author = null;
 		date = new Date(0);
 	}
@@ -130,7 +130,7 @@ public class Post implements Cloneable, Serializable {
 		this.author = src.author;
 		this.date = (Date) src.date.clone();
 	}
-	
+
 	/**
 	 * @return 通知ID
 	 */
@@ -279,7 +279,7 @@ public class Post implements Cloneable, Serializable {
 	 * @return 类似2012(delimiter)07(delimiter)16的字符串
 	 */
 	public String getDateString(String delimiter){
-		SimpleDateFormat dateFormat = 
+		SimpleDateFormat dateFormat =
 				new SimpleDateFormat("yyyy'"+delimiter+"'MM'"+delimiter+"'dd", Locale.PRC);
 		return dateFormat.format(this.date);
 	}
