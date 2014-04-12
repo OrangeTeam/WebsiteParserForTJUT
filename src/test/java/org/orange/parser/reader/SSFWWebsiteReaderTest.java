@@ -55,6 +55,18 @@ public class SSFWWebsiteReaderTest {
 		reader.login();
 		reader.url(Constant.url.PERSONAL_INFORMATION);
 		Document document = reader.read();
+		validatePersonalInformationDocument(document);
+	}
+	@Test
+	public void testRead2() throws IOException {
+		SSFWWebsiteReader reader = new SSFWWebsiteReader();
+		reader.setAccount("20106173", "20106173");
+		reader.login();
+		Document document = reader.read(Constant.url.PERSONAL_INFORMATION);
+		validatePersonalInformationDocument(document);
+	}
+
+	private void validatePersonalInformationDocument(Document document) {
 		String html = document.outerHtml();
 		Assert.assertTrue(html.contains("基本信息"));
 		Assert.assertTrue(html.contains("学籍信息"));
@@ -64,7 +76,5 @@ public class SSFWWebsiteReaderTest {
 		Assert.assertTrue(html.contains("baijie1991@gmail.com"));
 		Assert.assertTrue("邮编", html.contains("050207"));
 		Assert.assertTrue("考生号", html.contains("10130103150617"));
-		System.out.println("结果：");
-		System.out.println(html);
 	}
 }

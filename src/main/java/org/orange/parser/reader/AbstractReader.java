@@ -28,4 +28,10 @@ public abstract class AbstractReader implements Reader {
 		}
 		return mReadConnection.get();
 	}
+
+	@Override
+	public Document read(String url) throws IOException {
+		url(url);
+		return read();
+	}
 }

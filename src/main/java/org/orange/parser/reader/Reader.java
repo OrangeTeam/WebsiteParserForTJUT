@@ -9,4 +9,5 @@ public interface Reader {
 	public Connection getConnection();
 	public void url(String url);
 	public Document read() throws IOException;
+	public Document read(String url) throws IOException;
 }
