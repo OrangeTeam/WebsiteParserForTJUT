@@ -14,6 +14,8 @@ public abstract class AbstractLoginReader extends AbstractReader implements Logi
 	protected Date mRecentLoginTime;
 	protected Connection mLoginConnection = Jsoup.connect(Constant.url.DEFAULT_PAGE);
 
+	private boolean hasSetAccount = false;
+
 	@Override
 	public Connection getLoginConnection() {
 		return mLoginConnection;
@@ -26,10 +28,13 @@ public abstract class AbstractLoginReader extends AbstractReader implements Logi
 					"accountName == null || password == null",
 					new NullPointerException());
 		}
+		hasSetAccount = true;
 	}
 
 	@Override
 	public boolean login() throws IOException {
+		if(!hasSetAccount)
+			throw new IllegalStateException("Please set account before login");
 		if(onLogin()) {
 			mRecentLoginTime = new Date();
 			return true;
@@ -40,8 +45,12 @@ public abstract class AbstractLoginReader extends AbstractReader implements Logi
 
 	@Override
 	public Document read() throws IOException {
-		if(mRecentLoginTime == null)
-			throw new IllegalStateException("Must login before read.");
+		if(mRecentLoginTime == null ||
+				System.currentTimeMillis() - mRecentLoginTime.getTime()
+						>= Constant.PERIOD_OF_SESSION_COOKIE) {
+			if(!login())
+				throw new IllegalStateException("Login failed");
+		}
 		return super.read();
 	}
 

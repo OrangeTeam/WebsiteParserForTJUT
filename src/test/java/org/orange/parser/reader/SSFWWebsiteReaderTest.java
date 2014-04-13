@@ -14,12 +14,30 @@ import java.io.PrintStream;
 @RunWith(JUnit4.class)
 public class SSFWWebsiteReaderTest {
 
+	@Test(expected = IllegalArgumentException.class)
+	public void testSetAccountWithNullAccount1() throws IOException {
+		new SSFWWebsiteReader().setAccount(null, "20106173");
+	}
+	@Test(expected = IllegalArgumentException.class)
+	public void testSetAccountWithNullAccount2() throws IOException {
+		new SSFWWebsiteReader().setAccount("20106173", null);
+	}
+	@Test(expected = IllegalArgumentException.class)
+	public void testSetAccountWithNullAccount3() throws IOException {
+		new SSFWWebsiteReader().setAccount(null, null);
+	}
+
 	@Test(expected = IllegalStateException.class)
-	public void testReadWithoutLogin() throws IOException {
+	public void testLoginWithoutAccountSet() throws IOException {
+		new SSFWWebsiteReader().login();
+	}
+
+	@Test
+	public void testLoginWithWrongAccount() throws IOException {
 		SSFWWebsiteReader reader = new SSFWWebsiteReader();
-		reader.setAccount("20106173", "20106173");
-		reader.url(Constant.url.PERSONAL_INFORMATION);
-		System.out.println(reader.read());
+		reader.setAccount("20106173", "wrong password");
+		Assert.assertFalse("login with wrong password", reader.login());
+		Assert.assertNull(reader.mRecentLoginTime);
 	}
 
 	@Test
@@ -41,14 +59,6 @@ public class SSFWWebsiteReaderTest {
 	}
 
 	@Test
-	public void testLoginWithWrongAccount() throws IOException {
-		SSFWWebsiteReader reader = new SSFWWebsiteReader();
-		reader.setAccount("20106173", "wrong password");
-		Assert.assertFalse("login with wrong password", reader.login());
-		Assert.assertNull(reader.mRecentLoginTime);
-	}
-
-	@Test
 	public void testRead() throws IOException {
 		SSFWWebsiteReader reader = new SSFWWebsiteReader();
 		reader.setAccount("20106173", "20106173");
@@ -61,7 +71,6 @@ public class SSFWWebsiteReaderTest {
 	public void testRead2() throws IOException {
 		SSFWWebsiteReader reader = new SSFWWebsiteReader();
 		reader.setAccount("20106173", "20106173");
-		reader.login();
 		Document document = reader.read(Constant.url.PERSONAL_INFORMATION);
 		validatePersonalInformationDocument(document);
 		System.out.println(document);

@@ -25,16 +25,9 @@ public class ParserTest {
 	}
 
 	@Test
-	public void testParserWithoutAccountSettings() throws IOException {
-		LoginReader reader = new SSFWWebsiteReader();
-		Assert.assertFalse("login without account information", reader.login());
-	}
-
-	@Test
 	public void testParser() throws IOException {
 		LoginReader reader = new SSFWWebsiteReader();
 		reader.setAccount("20106173", "20106173");
-		Assert.assertTrue("login", reader.login());
 		Parser<Map<String, Map<String, String>>> parser = new PersonalInformationParser();
 		parser.setReader(reader);
 		Map<String, Map<String, String>> result = parser.parse();

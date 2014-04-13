@@ -1,6 +1,9 @@
 package org.orange.parser.parser;
 
 public final class Constant {
+	/** session cookie的有效时间，单位milliseconds */
+	public static final long PERIOD_OF_SESSION_COOKIE = 3 * 60 *1000;//	3 minutes;
+
 	public static final class url{
 		public static final String DEFAULT_PAGE = "http://example.com/";
 
