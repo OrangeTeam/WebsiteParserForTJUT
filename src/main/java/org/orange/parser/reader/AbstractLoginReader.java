@@ -2,7 +2,6 @@ package org.orange.parser.reader;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.orange.parser.parser.Constant;
 
 import java.io.IOException;
@@ -51,14 +50,14 @@ public abstract class AbstractLoginReader extends AbstractReader implements Logi
 	}
 
 	@Override
-	public Document read() throws IOException {
+	public void beforeRead() throws IOException {
 		if(mRecentLoginTime == null ||
 				System.currentTimeMillis() - mRecentLoginTime.getTime()
 						>= Constant.PERIOD_OF_SESSION_COOKIE) {
 			if(!login())
 				throw new IllegalStateException("Login failed");
 		}
-		return super.read();
+		super.beforeRead();
 	}
 
 	protected abstract boolean onLogin() throws IOException;

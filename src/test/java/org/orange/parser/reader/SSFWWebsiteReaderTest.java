@@ -52,24 +52,27 @@ public class SSFWWebsiteReaderTest {
 		reader.setAccount("20106173", "20106173");
 		Assert.assertTrue("login", reader.login());
 		Assert.assertEquals(Constant.url.DEFAULT_PAGE, reader.mReadConnection.request().url().toString());
-		reader.read();
+		reader.get();
+		Assert.assertTrue("log", errorLog.toString("UTF-8").contains(WARNING_MESSAGE));
+		errorLog.reset();
+		reader.post();
 		Assert.assertTrue("log", errorLog.toString("UTF-8").contains(WARNING_MESSAGE));
 
 		System.setErr(originErr);
 	}
 
 	@Test
-	public void testRead() throws IOException {
+	public void testGet() throws IOException {
 		LoginReader reader = new SSFWWebsiteReader()
 				.setAccount("20106173", "20106173")
 				.url(Constant.url.PERSONAL_INFORMATION);
 		reader.login();
-		validatePersonalInformationDocument(reader.read());
+		validatePersonalInformationDocument(reader.get());
 	}
 	@Test
-	public void testRead2() throws IOException {
+	public void testGet2() throws IOException {
 		LoginReader reader = new SSFWWebsiteReader().setAccount("20106173", "20106173");
-		Document document = reader.read(Constant.url.PERSONAL_INFORMATION);
+		Document document = reader.url(Constant.url.PERSONAL_INFORMATION).get();
 		validatePersonalInformationDocument(document);
 		System.out.println(document);
 	}

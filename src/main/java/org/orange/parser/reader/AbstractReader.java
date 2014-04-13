@@ -21,18 +21,22 @@ public abstract class AbstractReader implements Reader {
 		return this;
 	}
 
-	@Override
-	public Document read() throws IOException {
+	protected void beforeRead() throws IOException  {
 		if(mReadConnection.request().url().toString().equals(Constant.url.DEFAULT_PAGE)) {
 			System.err.println(
 					"WARNING: you read default page: " + Constant.url.DEFAULT_PAGE);
 		}
-		return mReadConnection.get();
 	}
 
 	@Override
-	public Document read(String url) throws IOException {
-		url(url);
-		return read();
+	public Document get() throws IOException {
+		beforeRead();
+		return mReadConnection.get();
 	}
+	@Override
+	public Document post() throws IOException {
+		beforeRead();
+		return mReadConnection.post();
+	}
+
 }

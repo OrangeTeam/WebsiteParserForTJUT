@@ -8,6 +8,6 @@ import java.io.IOException;
 public interface Reader {
 	public Connection getConnection();
 	public Reader url(String url);
-	public Document read() throws IOException;
-	public Document read(String url) throws IOException;
+	public Document get() throws IOException;
+	public Document post() throws IOException;
 }
