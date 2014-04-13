@@ -1,15 +1,16 @@
 package org.orange.parser.parser;
 
-import org.orange.parser.util.ReadPageHelper;
+import org.orange.parser.reader.Reader;
 
 import java.io.IOException;
 
 public abstract class AbstractParser<T> implements Parser<T> {
-	protected ReadPageHelper mReadPageHelper;
+	protected Reader mReader;
 	protected ParseListener mParseListener = new ParseAdapter();
 
-	public void setReadPageHelper(ReadPageHelper readPageHelper) {
-		mReadPageHelper = readPageHelper;
+	@Override
+	public void setReader(Reader reader) {
+		mReader = reader;
 	}
 
 	public void setParseListener(ParseListener listener) {
@@ -21,7 +22,7 @@ public abstract class AbstractParser<T> implements Parser<T> {
 
 	@Override
 	public T parse() throws IOException {
-		if(mReadPageHelper == null)
+		if(mReader == null)
 			throw new IllegalStateException("Must set ReadPageHelper before parse()");
 		return null;
 	}

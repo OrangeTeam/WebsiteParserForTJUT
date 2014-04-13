@@ -64,6 +64,7 @@ public class SSFWWebsiteReaderTest {
 		reader.login();
 		Document document = reader.read(Constant.url.PERSONAL_INFORMATION);
 		validatePersonalInformationDocument(document);
+		System.out.println(document);
 	}
 
 	private void validatePersonalInformationDocument(Document document) {

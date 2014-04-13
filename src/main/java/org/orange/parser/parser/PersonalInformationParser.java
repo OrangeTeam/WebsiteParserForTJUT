@@ -18,7 +18,7 @@ public class PersonalInformationParser extends AbstractParser<Map<String, Map<St
 	@Override
 	public Map<String, Map<String, String>> parse() throws IOException {
 		super.parse();
-		Document doc = mReadPageHelper.getWithDocument(Constant.url.PERSONAL_INFORMATION);
+		Document doc = mReader.read(Constant.url.PERSONAL_INFORMATION);
 		return parse1(doc);
 	}
 

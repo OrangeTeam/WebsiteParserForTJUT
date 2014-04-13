@@ -29,6 +29,10 @@ public class PersonalInformationParserTest {
 		Map<String, Map<String, String>> result = parser.parse1(doc);
 		System.out.println("结果：");
 		System.out.println(result);
+		validatePersonalInformation(result);
+	}
+
+	public static void validatePersonalInformation(Map<String, Map<String, String>> result) {
 		Assert.assertTrue("基本信息", result.containsKey("基本信息"));
 		Assert.assertTrue("学籍信息", result.containsKey("学籍信息"));
 		Assert.assertTrue("入学信息", result.containsKey("入学信息"));

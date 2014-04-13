@@ -1,8 +1,11 @@
 package org.orange.parser.parser;
 
+import org.orange.parser.reader.Reader;
+
 import java.io.IOException;
 
 public interface Parser<T> {
+	public void setReader(Reader reader);
 	/**
 	 * 执行解析
 	 * @return 解析结果
