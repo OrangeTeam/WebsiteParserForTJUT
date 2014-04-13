@@ -9,8 +9,9 @@ public abstract class AbstractParser<T> implements Parser<T> {
 	protected ParseListener mParseListener = new ParseAdapter();
 
 	@Override
-	public void setReader(Reader reader) {
+	public Parser<T> setReader(Reader reader) {
 		mReader = reader;
+		return this;
 	}
 
 	public void setParseListener(ParseListener listener) {

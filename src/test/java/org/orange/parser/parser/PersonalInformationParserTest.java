@@ -25,8 +25,7 @@ public class PersonalInformationParserTest {
 		Document doc = Jsoup.parse(
 				getFile("personal_information.html"),
 				"utf-8", Constant.url.PERSONAL_INFORMATION);
-		PersonalInformationParser parser = new PersonalInformationParser();
-		Map<String, Map<String, String>> result = parser.parse1(doc);
+		Map<String, Map<String, String>> result = new PersonalInformationParser().parse1(doc);
 		System.out.println("结果：");
 		System.out.println(result);
 		validatePersonalInformation(result);

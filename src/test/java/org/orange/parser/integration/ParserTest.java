@@ -1,10 +1,8 @@
 package org.orange.parser.integration;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.orange.parser.parser.Parser;
 import org.orange.parser.parser.PersonalInformationParser;
 import org.orange.parser.parser.PersonalInformationParserTest;
 import org.orange.parser.reader.LoginReader;
@@ -18,21 +16,16 @@ public class ParserTest {
 
 	@Test(expected = IllegalStateException.class)
 	public void testParserWithoutSettings() throws IOException {
-		LoginReader reader = new SSFWWebsiteReader();
-		Parser parser = new PersonalInformationParser();
-		parser.setReader(reader);
-		System.out.println(parser.parse());
+		System.out.println(new PersonalInformationParser().setReader(new SSFWWebsiteReader()).parse());
 	}
 
 	@Test
 	public void testParser() throws IOException {
-		LoginReader reader = new SSFWWebsiteReader();
-		reader.setAccount("20106173", "20106173");
-		Parser<Map<String, Map<String, String>>> parser = new PersonalInformationParser();
-		parser.setReader(reader);
-		Map<String, Map<String, String>> result = parser.parse();
-		System.out.println(parser.parse());
+		LoginReader reader = new SSFWWebsiteReader().setAccount("20106173", "20106173");
+		Map<String, Map<String, String>> result =
+				new PersonalInformationParser().setReader(reader).parse();
 		PersonalInformationParserTest.validatePersonalInformation(result);
+		System.out.println(result);
 	}
 
 }

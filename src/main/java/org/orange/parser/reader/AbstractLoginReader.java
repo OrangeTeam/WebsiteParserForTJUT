@@ -22,13 +22,14 @@ public abstract class AbstractLoginReader extends AbstractReader implements Logi
 	}
 
 	@Override
-	public void setAccount(String accountName, String password) {
+	public LoginReader setAccount(String accountName, String password) {
 		if(accountName == null || password == null) {
 			throw new IllegalArgumentException(
 					"accountName == null || password == null",
 					new NullPointerException());
 		}
 		hasSetAccount = true;
+		return this;
 	}
 
 	@Override
@@ -41,6 +42,12 @@ public abstract class AbstractLoginReader extends AbstractReader implements Logi
 		} else {
 			return false;
 		}
+	}
+
+	@Override
+	public LoginReader url(String url) {
+		super.url(url);
+		return this;
 	}
 
 	@Override

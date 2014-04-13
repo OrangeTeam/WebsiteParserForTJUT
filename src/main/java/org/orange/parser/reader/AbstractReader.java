@@ -16,8 +16,9 @@ public abstract class AbstractReader implements Reader {
 	}
 
 	@Override
-	public void url(String url) {
+	public Reader url(String url) {
 		mReadConnection.url(url);
+		return this;
 	}
 
 	@Override

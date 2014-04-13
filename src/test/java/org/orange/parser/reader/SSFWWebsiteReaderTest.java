@@ -60,17 +60,15 @@ public class SSFWWebsiteReaderTest {
 
 	@Test
 	public void testRead() throws IOException {
-		SSFWWebsiteReader reader = new SSFWWebsiteReader();
-		reader.setAccount("20106173", "20106173");
+		LoginReader reader = new SSFWWebsiteReader()
+				.setAccount("20106173", "20106173")
+				.url(Constant.url.PERSONAL_INFORMATION);
 		reader.login();
-		reader.url(Constant.url.PERSONAL_INFORMATION);
-		Document document = reader.read();
-		validatePersonalInformationDocument(document);
+		validatePersonalInformationDocument(reader.read());
 	}
 	@Test
 	public void testRead2() throws IOException {
-		SSFWWebsiteReader reader = new SSFWWebsiteReader();
-		reader.setAccount("20106173", "20106173");
+		LoginReader reader = new SSFWWebsiteReader().setAccount("20106173", "20106173");
 		Document document = reader.read(Constant.url.PERSONAL_INFORMATION);
 		validatePersonalInformationDocument(document);
 		System.out.println(document);

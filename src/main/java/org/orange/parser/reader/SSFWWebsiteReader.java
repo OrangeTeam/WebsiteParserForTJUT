@@ -15,10 +15,11 @@ public class SSFWWebsiteReader extends AbstractLoginReader {
 	}
 
 	@Override
-	public void setAccount(String accountName, String password) {
+	public LoginReader setAccount(String accountName, String password) {
 		super.setAccount(accountName, password);
 		mLoginConnection.request().data().clear();
 		mLoginConnection.data("Login.Token1",accountName,"Login.Token2", password);
+		return this;
 	}
 
 	@Override
