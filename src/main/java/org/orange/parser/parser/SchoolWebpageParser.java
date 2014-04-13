@@ -1,5 +1,16 @@
 package org.orange.parser.parser;
 
+import org.jsoup.Connection;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import org.orange.parser.entity.Course;
+import org.orange.parser.entity.Course.TimeAndAddress;
+import org.orange.parser.entity.Course.TimeAndAddress.TimeAndAddressException;
+import org.orange.parser.entity.Post;
+import org.orange.parser.util.BitOperate.BitOperateException;
+import org.orange.parser.util.ReadPageHelper;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -11,19 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.jsoup.Connection;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
-import org.orange.parser.entity.Course;
-import org.orange.parser.entity.Post;
-import org.orange.parser.entity.Course.CourseException;
-import org.orange.parser.entity.Course.TimeAndAddress;
-import org.orange.parser.entity.Course.TimeAndAddress.TimeAndAddressException;
-import org.orange.parser.util.BitOperate.BitOperateException;
-import org.orange.parser.util.ReadPageHelper;
 
 
 public class SchoolWebpageParser {
@@ -466,8 +464,8 @@ public class SchoolWebpageParser {
 	}
 
 	/**
-	 * 根据aCategory、start、end、max、baseURL等条件，利用readHelper，从SCCE解析posts
-	 * @param aCategory 类别，例如“学生通知”
+	 * 根据categories、start、end、max、baseURL等条件，利用readHelper，从SCCE解析posts
+	 * @param categories 类别，例如“学生通知”
 	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
@@ -534,8 +532,8 @@ public class SchoolWebpageParser {
 		return result;
 	}
 	/**
-	 * 以aCategory、start、end、max为限制条件，从计算机学院页面doc中解析posts
-	 * @param aCategory 类别，例如“学生通知”
+	 * 以categories、start、end、max为限制条件，从计算机学院页面doc中解析posts
+	 * @param categories 类别，例如“学生通知”
 	 * @param start 用于限制返回的Posts的范围，只返回start之后（包括start）的Post
 	 * @param end 用于限制返回的Posts的范围，只返回end之前（包括end）的Post
 	 * @param max 用于限制返回的Posts的数量，最多返回max条Post
@@ -956,17 +954,9 @@ public class SchoolWebpageParser {
 		} catch (NumberFormatException e) {
 			listener.onWarn(ParseListener.WARNING_CANNOT_PARSE_NUMBER_DATA,
 					"不能把字符串数据转换为数字，解析数字数据项"+HEADINGS.getString(colContent)+"失败。详情："+e.getMessage() );
-		} catch (CourseException e) {
-			listener.onWarn(ParseListener.WARNING_CANNOT_PARSE_NUMBER_DATA,
-					"数据超过合理范围，解析数字数据项"+HEADINGS.getString(colContent)+"失败.详情："+e.getMessage() );
 		}
 		// 学期
-		try {
-			result.setSemester((byte) valueOfChineseNumber(matcher.group(3)));
-		} catch (CourseException e) {
-			listener.onWarn(ParseListener.WARNING_CANNOT_PARSE_NUMBER_DATA,
-					"数据超过合理范围，解析数字数据项"+HEADINGS.getString(colContent)+"失败.详情："+e.getMessage() );
-		}
+		result.setSemester(valueOfChineseNumber(matcher.group(3)));
 	}
 	/**
 	 * @param chineseNumber 一~五
@@ -989,21 +979,17 @@ public class SchoolWebpageParser {
 		temp = temp.replaceAll("\\.0*$", ""); //在师生服务网站查成绩时，学分用浮点数表示，这里删除多余的".0"
 		try{
 			switch(colContent){
-			case Headings.COURSE_CREDIT:result.setCredit(Integer.parseInt(temp));break;
-			case Headings.COURSE_TEST_SCORE:result.setTestScore(Float.parseFloat(temp));break;
-			case Headings.COURSE_TOTAL_SCORE:result.setTotalScore(Float.parseFloat(temp));break;
-			case Headings.COURSE_ACADEMIC_YEAR:result.setYear(Integer.parseInt(temp));break;
-			case Headings.COURSE_SEMESTER:result.setSemester(Byte.valueOf(temp));break;
+			case Headings.COURSE_CREDIT:result.setCredit(Integer.valueOf(temp));break;
+			case Headings.COURSE_TEST_SCORE:result.setTestScore(Double.valueOf(temp));break;
+			case Headings.COURSE_TOTAL_SCORE:result.setTotalScore(Double.valueOf(temp));break;
+			case Headings.COURSE_ACADEMIC_YEAR:result.setYear(Integer.valueOf(temp));break;
+			case Headings.COURSE_SEMESTER:result.setSemester(Integer.valueOf(temp));break;
 			default:listener.onWarn(ParseListener.WARNING_UNKNOWN_COLUMN,
 					"未知的数字数据项"+colContent+"("+HEADINGS.getString(colContent)+")。");
 			}
 		}catch(NumberFormatException e){
 			listener.onWarn(ParseListener.WARNING_CANNOT_PARSE_NUMBER_DATA,
 					"不能把字符串数据转换为数字，解析数字数据项"+HEADINGS.getString(colContent)+"失败。详情："+e.getMessage() );
-		}
-		catch (CourseException e) {
-			listener.onWarn(ParseListener.WARNING_CANNOT_PARSE_NUMBER_DATA,
-					"数据超过合理范围，解析数字数据项"+HEADINGS.getString(colContent)+"失败.详情："+e.getMessage() );
 		}
 	}
 	private void readTimeAndAddress(Course result, String rawTime, String rawAddress)
@@ -1110,7 +1096,7 @@ public class SchoolWebpageParser {
 	}
 	/**
 	 * 解析课程表头，取得课程表列顺序
-	 * @param tableHeaders 课程表头。&lt;th&gt; cells列表
+	 * @param tableHeaders 课程表头。{@code <th> cells}列表
 	 * @return 列序号到字段意义的映射，用于查看每列的意义。
 	 */
 	private HashMap<Integer, Integer> getHeading(Elements tableHeaders) {

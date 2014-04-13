@@ -1,145 +1,113 @@
 package org.orange.parser.entity;
 
-import java.util.ArrayList;
-
 import org.orange.parser.entity.Course.TimeAndAddress.TimeAndAddressException;
 import org.orange.parser.util.BitOperate;
 import org.orange.parser.util.BitOperate.BitOperateException;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-/**
- * <strong>Note:</strong>大部分用于设置的方法返回this，可以链式调用
- * @author Zhou Peican
- * @author Bai Jie
- */
 public class Course implements Cloneable{
-	/**
-	 * {@link Course}中各属性的标识常量
-	 */
-	public static class Property {
-		public static final int ID					= 0x1;
-		public static final int CODE				= 0x2;
-		public static final int NAME				= 0x3;
-		public static final int TEACHERS			= 0x4;
-		public static final int CREDIT				= 0x5;
-		public static final int TEACHING_CLASS		= 0x6;
-		public static final int TIME_AND_ADDRESS	= 0x7;
-		public static final int TEACHING_MATERIAL	= 0x8;
-		public static final int NOTE				= 0x9;
-		public static final int YEAR				= 0xa;
-		public static final int SEMESTER	= 0xb;
-		public static final int TEST_SCORE			= 0xc;
-		public static final int TOTAL_SCORE			= 0xd;
-		public static final int KIND				= 0xe;
-	}
-	/**
-	 * {@link Course}中各属性的默认值
-	 */
-	public static class DefaultValue {
-		public static final int		ID					= 0;
-		public static final String	CODE				= null;
-		public static final String	NAME				= null;
-		public static final byte	CREDIT				= 0;//TODO -1更好？
-		public static final String	TEACHING_CLASS		= null;
-		public static final String	TEACHING_MATERIAL	= null;
-		public static final String	NOTE				= null;
-		public static final short	YEAR				= 0;
-		public static final Byte	SEMESTER	= null;
-		public static final float	TEST_SCORE			= Float.NaN;
-		public static final float	TOTAL_SCORE			= Float.NaN;
-		public static final String	KIND				= null;
+
+	public static enum Property {
+		UNKNOWN_COL,
+		CODE,
+		NAME,
+		TEACHER,
+		/** 教学班号 */
+		TEACHING_CLASS,
+		CREDIT,
+		TIME,
+		ADDRESS,
+		TEACHING_MATERIAL,
+		//SCORE
+		TEST_SCORE,
+		TOTAL_SCORE,
+		GRADE_POINT,
+		ACADEMIC_YEAR_AND_SEMESTER,
+		ACADEMIC_YEAR,
+		SEMESTER,
+		KIND;
+
+		private static final Map<String, Property> HEADING_STRING2INTEGER = new HashMap<>();
+		static {
+			HEADING_STRING2INTEGER.put("课程代码",	CODE);
+			HEADING_STRING2INTEGER.put("课程号",		CODE);
+			HEADING_STRING2INTEGER.put("课程编码",	CODE);
+			HEADING_STRING2INTEGER.put("课程名称",	NAME);
+			HEADING_STRING2INTEGER.put("教学班号",	TEACHING_CLASS);
+			HEADING_STRING2INTEGER.put("上课教师",	TEACHER);
+			HEADING_STRING2INTEGER.put("教师",		TEACHER);
+			HEADING_STRING2INTEGER.put("学分",		CREDIT);
+			HEADING_STRING2INTEGER.put("上课时间",	TIME);
+			HEADING_STRING2INTEGER.put("时间",		TIME);
+			HEADING_STRING2INTEGER.put("上课地点",	ADDRESS);
+			HEADING_STRING2INTEGER.put("地点",		ADDRESS);
+			HEADING_STRING2INTEGER.put("参考教材",	TEACHING_MATERIAL);
+			HEADING_STRING2INTEGER.put("学年学期",	ACADEMIC_YEAR_AND_SEMESTER);
+			//Scores
+			HEADING_STRING2INTEGER.put("结课考核成绩",	TEST_SCORE);
+			HEADING_STRING2INTEGER.put("期末总评成绩",	TOTAL_SCORE);
+			HEADING_STRING2INTEGER.put("成绩",		TOTAL_SCORE);
+			HEADING_STRING2INTEGER.put("学年",		ACADEMIC_YEAR);
+			HEADING_STRING2INTEGER.put("学期",		SEMESTER);
+			HEADING_STRING2INTEGER.put("课程性质",	KIND);
+			HEADING_STRING2INTEGER.put("绩点",		GRADE_POINT);
+			HEADING_STRING2INTEGER.put("[UNKNOWN_PROPERTY]", UNKNOWN_COL);
+		}
+		public static Property fromString(String property) {
+			Property result = HEADING_STRING2INTEGER.get(property);
+			return result!=null ? result : UNKNOWN_COL;
+		}
+		public static String toString(Property property) {
+			for(Map.Entry<String, Property> entry : HEADING_STRING2INTEGER.entrySet()) {
+				if (entry.getValue() == property) {
+					return entry.getKey();
+				}
+			}
+			return "Unkown Property";
+		}
 	}
 
 	/**本地数据库使用的ID*/
-	private int id;
+	private Integer id;
 	/**课程代码*/
 	private String code;
 	/**课程名称*/
 	private String name;
 	/**课程教师<br />暂没教师详情*/
-	private ArrayList<String> teachers = new ArrayList<String>();
+	private final List<String> teachers = new ArrayList<>();
 	/**学分*/
-	private byte credit;
+	private Integer credit;
 	/**教学班号*/
 	private String teachingClass;
 
 	/**时间地点列表*/
-	private ArrayList<TimeAndAddress> timeAndAddress = new ArrayList<TimeAndAddress>();
+	private final List<TimeAndAddress> timeAndAddress = new ArrayList<>();
 	//暂没参考教材
 	private String teachingMaterial;
 	/**备注*/
 	private String note;
 	/**学年*/
-	private short year;
+	private Integer year;
 	/**学期，如1、2、3分别代表第一、二、三学期*/
-	private Byte semester;
+	private Integer semester;
 	/**结课考核成绩*/
-	private float testScore;
+	private Double testScore;
 	/**期末总评成绩*/
-	private float totalScore;
+	private Double totalScore;
 	/**课程性质*/
 	private String kind;
 
 
 	/**
-	 * 无参构造方法，各属性设为默认空值
+	 * 无参构造方法。集合类型属性设为空集，其他属性设为null。
 	 */
-	public Course(){
-		clear();
-	}
-	/**
-	 * @param code 课程代码
-	 * @param name 课程名称
-	 * @param credit 课程学分
-	 * @param teachingClass 教学班号
-	 * @throws CourseException credit<=0,或者credit大于Byte.MAX_VALUE
-	 */
-	public Course(String code, String name, int credit, String teachingClass) throws CourseException{
-		this();
-		this.code = code;
-		this.name = name;
-		setCredit(credit);
-		this.teachingClass = teachingClass;
-	}
-	/**
-	 * @param code 课程代码
-	 * @param name 课程名称
-	 * @param credit 课程学分
-	 * @param classNumber 教学班号
-	 * @param testScore 结课考核成绩
-	 * @param totalScore 期末总评成绩
-	 * @param year 学年
-	 * @param semester 学期
-	 * @throws CourseException credit<=0,或者credit大于Byte.MAX_VALUE 或者 成绩超出0~999的范围 或者 学年year超出1900~9999的范围
-	 */
-	public Course(String code, String name, int credit, String classNumber, int testScore,
-			int totalScore, int year, Byte semester) throws CourseException{
-		this(code, name, credit, classNumber);
-		setTestScore(testScore);
-		setTotalScore(totalScore);
-		setYear(year);
-		setSemester(semester);
-	}
-	/**全参构造方法
-	 * @throws CourseException 请见{@link #Course(String, String, int, String, int, int, int, Boolean)}*/
-	public Course(int id, String code, String name, String[] teachers, int credit, String classNumber,
-			TimeAndAddress[] timeAndAddresses, String teachingMaterial, String note, int year,
-			Byte semester, int testScore, int totalScore, String kind) throws CourseException{
-		this(code, name, credit, classNumber, testScore, totalScore, year, semester);
-		this.id = id;
-		this.teachingMaterial = teachingMaterial;
-		//对teachers数组初始化
-		if(teachers!=null && teachers.length>0)
-			for(String teacher:teachers)
-				if(teacher != null)
-					this.teachers.add(teacher);
-		if(timeAndAddresses!=null && timeAndAddresses.length>0)
-			for(TimeAndAddress TA:timeAndAddresses)
-				if(TA != null)
-					timeAndAddress.add(new TimeAndAddress(TA));
-		this.note = note;
-		this.kind = kind;
-	}
+	public Course() {}
+
 	/**拷贝构造方法*/
 	public Course(Course src){
 		this.code = src.code;
@@ -154,113 +122,77 @@ public class Course implements Cloneable{
 		this.id = src.id;
 		this.teachingMaterial = src.teachingMaterial;
 		this.note = src.note;
-		setTeachers(src.teachers);
-		setTimeAndAddresse(src.timeAndAddress);
 		this.kind = src.kind;
+		addTeachers(src.teachers);
+		addTimeAndAddresse(src.timeAndAddress);
 	}
 
 	/**
-	 * 所有的属性均没有被设置过
+	 * 所有的属性均没有被设置过（<strong>包括ID字段</strong>）
 	 * @return 如果所有的属性均没有被设置过，返回true；如果其中某项被设置过，返回false
+	 * @see #isEmptyIgnoreId()
 	 */
-	public boolean isEmpty(){
-		return isEmpty(Property.CODE) && isEmpty(Property.CREDIT) && isEmpty(Property.ID)
-				&& isEmpty(Property.SEMESTER) && isEmpty(Property.KIND)
-				&& isEmpty(Property.NAME) && isEmpty(Property.NOTE)
-				&& isEmpty(Property.TEACHERS) && isEmpty(Property.TEACHING_CLASS)
-				&& isEmpty(Property.TEACHING_MATERIAL) && isEmpty(Property.TEST_SCORE)
-				&& isEmpty(Property.TIME_AND_ADDRESS) && isEmpty(Property.TOTAL_SCORE)
-				&& isEmpty(Property.YEAR);
+	public boolean isEmpty() {
+		return id == null && isEmptyIgnoreId();
 	}
 	/**
-	 * 指定的属性是否尚未设置
-	 * @param property 要测试的属性。请使用{@link Property}中的常量
-	 * @return 如果指定的属性尚未设置，返回true；否则返回false
-	 * @see DefaultValue
+	 * 所有的属性均没有被设置过（<strong>但不检测ID字段</strong>）
+	 * @return 如果所有的属性均没有被设置过，返回true；如果其中某项被设置过，返回false
+	 * @see #isEmpty()
 	 */
-	public boolean isEmpty(int property){
-		switch(property){
-		case Property.CODE:
-			return code				== DefaultValue.CODE;
-		case Property.CREDIT:
-			return credit			== DefaultValue.CREDIT;
-		case Property.ID:
-			return id				== DefaultValue.ID;
-		case Property.SEMESTER:
-			return semester	== DefaultValue.SEMESTER;
-		case Property.KIND:
-			return kind				== DefaultValue.KIND;
-		case Property.NAME:
-			return name				== DefaultValue.NAME;
-		case Property.NOTE:
-			return note				== DefaultValue.NOTE;
-		case Property.TEACHING_CLASS:
-			return teachingClass	== DefaultValue.TEACHING_CLASS;
-		case Property.TEACHING_MATERIAL:
-			return teachingMaterial	== DefaultValue.TEACHING_MATERIAL;
-		case Property.YEAR:
-			return year				== DefaultValue.YEAR;
-		case Property.TEST_SCORE:
-			return Float.isNaN(testScore);
-		case Property.TOTAL_SCORE:
-			return Float.isNaN(totalScore);
-		case Property.TEACHERS:
-			return teachers.isEmpty();
-		case Property.TIME_AND_ADDRESS:
-			return timeAndAddress.isEmpty();
-		default:throw new IllegalArgumentException("非法属性参数：" + property);
-		}
+	public boolean isEmptyIgnoreId() {
+		return code == null && name == null
+				&& credit == null && year == null
+				&& semester == null && kind == null
+				&& teachingClass == null && teachingMaterial == null
+				&& testScore == null && totalScore == null
+				&& note == null
+				&& teachers.isEmpty() && timeAndAddress.isEmpty();
 	}
+
 	/**
-	 * 清空所有属性（设为默认值）。调用后{@link #isEmpty()}会返回true
+	 * 清空所有属性（<strong>包括ID字段</strong>），即设为null。
+	 * 调用后{@link #isEmpty()}会返回true
 	 * @return 当前{@link Course}，用于链式调用
-	 * @see DefaultValue
+	 * @see #clearWithoutId()
 	 */
 	public Course clear(){
-		clear(Property.CODE).clear(Property.CREDIT).clear(Property.ID)
-		.clear(Property.SEMESTER).clear(Property.KIND).clear(Property.NAME)
-		.clear(Property.NOTE).clear(Property.TEACHERS).clear(Property.TEACHING_CLASS)
-		.clear(Property.TEACHING_MATERIAL).clear(Property.TEST_SCORE)
-		.clear(Property.TIME_AND_ADDRESS).clear(Property.TOTAL_SCORE).clear(Property.YEAR);
-		return this;
+		id = null;
+		return clearWithoutId();
 	}
 	/**
-	 * 清空指定属性（设为默认值）。调用后{@link #isEmpty(int)}会返回true
-	 * @param property 要设置的属性。请使用{@link Property}中的常量
+	 * 清空所有属性（<strong>但不包括ID字段</strong>），即设为null。
+	 * 调用后{@link #isEmptyIgnoreId()} ()}会返回true。
 	 * @return 当前{@link Course}，用于链式调用
-	 * @see DefaultValue
+	 * @see #clear()
 	 */
-	public Course clear(int property){
-		switch(property){
-		case Property.CODE:				code			= DefaultValue.CODE;break;
-		case Property.CREDIT:			credit			= DefaultValue.CREDIT;break;
-		case Property.ID:				id				= DefaultValue.ID;break;
-		case Property.SEMESTER:	semester	= DefaultValue.SEMESTER;break;
-		case Property.KIND:				kind			= DefaultValue.KIND;break;
-		case Property.NAME:				name			= DefaultValue.NAME;break;
-		case Property.NOTE:				note			= DefaultValue.NOTE;break;
-		case Property.TEACHING_CLASS:	teachingClass	= DefaultValue.TEACHING_CLASS;break;
-		case Property.TEACHING_MATERIAL:teachingMaterial= DefaultValue.TEACHING_MATERIAL;break;
-		case Property.YEAR:				year			= DefaultValue.YEAR;break;
-		case Property.TEST_SCORE:		testScore		= DefaultValue.TEST_SCORE;break;
-		case Property.TOTAL_SCORE:		totalScore		= DefaultValue.TOTAL_SCORE;break;
-		case Property.TEACHERS:			teachers.clear();break;
-		case Property.TIME_AND_ADDRESS:	timeAndAddress.clear();break;
-		default:throw new IllegalArgumentException("非法属性参数：" + property);
-		}
+	public Course clearWithoutId() {
+		code = null;
+		name = null;
+		credit = null;
+		year = null;
+		semester = null;
+		kind = null;
+		teachingClass = null;
+		teachingMaterial = null;
+		testScore = null;
+		totalScore = null;
+		note = null;
+		teachers.clear();
+		timeAndAddress.clear();
 		return this;
 	}
 
 	/**
 	 * @return the id
 	 */
-	public int getId() {
+	public Integer getId() {
 		return id;
 	}
 	/**
 	 * @param id the id to set
 	 */
-	public Course setId(int id) {
+	public Course setId(Integer id) {
 		this.id = id;
 		return this;
 	}
@@ -291,60 +223,16 @@ public class Course implements Cloneable{
 		return this;
 	}
 	/**
-	 * 取得教师列表。为方便，可直接对此方法返回的引用操作，对之的操作会作用在此Course对象上
-	 * @return 授课教师的ArrayList
-	 */
-	public ArrayList<String> getTeachers() {
-		return teachers;
-	}
-	/**
-	 * 设置授课教师列表。把本Course对象的teachers清空并设置为参数指定的内容。之后对参数teachers的修改不会作用到此Course。
-	 * @param teachers 授课教师的ArrayList。如果为null或为空ArrayList或teachers.get(0)为null，则仅清空教师信息
-	 */
-	public Course setTeachers(ArrayList<String> teachers){
-		this.teachers.clear();
-		if(teachers != null && !teachers.isEmpty() && teachers.get(0) != null)
-			this.teachers.addAll(teachers);
-		return this;
-	}
-	/**
-	 * 把本Course对象的teachers清空并设置为参数指定的内容
-	 * @param teachers 授课教师列表的String[]。如果为null或长度为0，则仅清空教师信息
-	 */
-	public Course setTeachers(String[] teachers){
-		this.teachers.clear();
-		if(teachers != null && teachers.length != 0)
-			for(String teacher:teachers)
-				if(teacher != null)
-					this.teachers.add(teacher);
-		return this;
-	}
-	/**
-	 * 把本Course对象的teachers清空并设置为参数指定的内容
-	 * @param teachers 教师名，可以是多名教师，用[,，;；]分开。如果为null，则仅清空教师信息
-	 */
-	public Course setTeachers(String teachers){
-		this.teachers.clear();
-		if(teachers != null)
-			addTeacher(teachers);
-		return this;
-	}
-	/**
 	 * @return 学分
 	 */
-	public byte getCredit() {
+	public Integer getCredit() {
 		return credit;
 	}
 	/**
 	 * @param credit 学分
-	 * @throws CourseException credit<0,或者credit大于Byte.MAX_VALUE
 	 */
-	public Course setCredit(int credit) throws CourseException {
-		if(credit<0)
-			throw new CourseException("Illegal credit: "+credit+". Credit should have been positive.");
-		else if(credit>Byte.MAX_VALUE)
-			throw new CourseException("Illegal credit: "+credit+". Credit should have been less than "+Byte.MAX_VALUE+".");
-		this.credit = (byte)credit;
+	public Course setCredit(Integer credit) {
+		this.credit = credit;
 		return this;
 	}
 	/**
@@ -358,37 +246,6 @@ public class Course implements Cloneable{
 	 */
 	public Course setClassNumber(String teachingClass) {
 		this.teachingClass = teachingClass;
-		return this;
-	}
-	/**
-	 * 取得时间地点列表。为方便，可直接对此方法返回的引用操作，对之的操作会作用在此Course对象上
-	 * @return 时间地点列表
-	 */
-	public ArrayList<TimeAndAddress> getTimeAndAddress() {
-		return timeAndAddress;
-	}
-	/**
-	 * 把本Course对象的TimeAndAddresses清空并设置为参数指定的内容。拷贝参数timeAndAddresses，以后对之的修改不影响此Course对象
-	 * @param timeAndAddresses 时间地点列表。如果为null或为空ArrayList，则仅清空时间地点信息
-	 */
-	public Course setTimeAndAddresse(ArrayList<TimeAndAddress> timeAndAddresses){
-		this.timeAndAddress.clear();
-		if(timeAndAddresses!=null && !timeAndAddresses.isEmpty())
-			for(TimeAndAddress TA:timeAndAddresses)
-				if(TA != null)
-					this.timeAndAddress.add(new TimeAndAddress(TA));
-		return this;
-	}
-	/**
-	 * 把本Course对象的TimeAndAddresses清空并设置为参数指定的内容。拷贝参数timeAndAddresses，以后对之的修改不影响此Course对象
-	 * @param timeAndAddresses 时间地点列表。若果为null或长度为0，则仅清空时间地点信息
-	 */
-	public Course setTimeAndAddresse(TimeAndAddress[] timeAndAddresses){
-		this.timeAndAddress.clear();
-		if(timeAndAddresses!=null && timeAndAddresses.length!=0)
-			for(TimeAndAddress TA:timeAndAddresses)
-				if(TA != null)
-					this.timeAndAddress.add(new TimeAndAddress(TA));
 		return this;
 	}
 	/**
@@ -420,68 +277,56 @@ public class Course implements Cloneable{
 	/**
 	 * @return 学年
 	 */
-	public short getYear() {
+	public Integer getYear() {
 		return year;
 	}
 	/**
-	 * @param year 学年。
-	 * @throws CourseException when (year!=0 && year<1900) || year>9999
+	 * @param year 学年
 	 */
-	public Course setYear(int year) throws CourseException {
-		if( (year!=0 && year<1900) || year>9999)
-			throw new CourseException("Illegal year: "+year);
-		this.year = (short) year;
+	public Course setYear(Integer year) {
+		this.year = year;
 		return this;
 	}
 	/**
 	 * @return 学期，如1、2、3分别代表第一、二、三学期
 	 */
-	public Byte getSemester() {
+	public Integer getSemester() {
 		return semester;
 	}
 	/**
 	 * @param semester 学期，如1、2、3分别代表第一、二、三学期
-	 * @throws CourseException when semester != null && (semester < 1 || semester > 5)
 	 */
-	public Course setSemester(Byte semester) throws CourseException {
-		if(semester != null && (semester < 1 || semester > 5))
-			throw new CourseException("Illegal semester: "+semester);
+	public Course setSemester(Integer semester){
 		this.semester = semester;
 		return this;
 	}
 	/**
 	 * 取得 结课考核成绩
-	 * @return 结课考核成绩。默认值{@link Float#NaN}表示未设置
+	 * @return 结课考核成绩
 	 */
-	public float getTestScore() {
+	public Double getTestScore() {
 		return testScore;
 	}
 	/**
 	 * 设置 结课考核成绩
 	 * @param testScore 结课考核成绩
-	 * @throws CourseException when isInfinite(testScore) || isNaN(testScore) || testScore<0 || testScore>999
 	 */
-	public Course setTestScore(float testScore) throws CourseException {
-		if(Float.isInfinite(testScore) || Float.isNaN(testScore) || testScore<0 || testScore>999)
-			throw new CourseException("Illegel score of test: "+testScore);
+	public Course setTestScore(Double testScore) {
 		this.testScore = testScore;
 		return this;
 	}
 	/**
 	 * 取得 期末总评成绩
-	 * @return 期末总评成绩。默认值{@link Float#NaN}表示未设置
+	 * @return 期末总评成绩
 	 */
-	public float getTotalScore() {
+	public Double getTotalScore() {
 		return totalScore;
 	}
 	/**
 	 * 设置 期末总评成绩
 	 * @param totalScore 期末总评成绩
-	 * @throws CourseException when isInfinite(totalScore) || isNaN(totalScore) || totalScore<0 || totalScore>999
 	 */
-	public Course setTotalScore(float totalScore) throws CourseException {
-		if(Float.isInfinite(totalScore) || Float.isNaN(totalScore) || totalScore<0 || totalScore>999)
-			throw new CourseException("Illegel final score: "+totalScore);
+	public Course setTotalScore(Double totalScore) {
 		this.totalScore = totalScore;
 		return this;
 	}
@@ -489,52 +334,52 @@ public class Course implements Cloneable{
 	 * 返回分数score对应的的绩点
 	 * @param score 要计算的分数
 	 * @return 分数score对应的绩点。0-59的绩点为0
-	 * @throws CourseException when isInfinite(score) || isNaN(score) || score<0 || score>100
+	 * @throws IllegalArgumentException when isInfinite(score) || isNaN(score) || score<0 || score>100
 	 */
-	public static float getGradePoint(float score) throws CourseException{
-		if(Float.isInfinite(score) || Float.isNaN(score) || score<0 || score>100)
-			throw new CourseException("Illegel score: "+score);
+	public static double getGradePoint(double score) {
+		if(Double.isInfinite(score) || Double.isNaN(score) || score < 0 || score > 100)
+			throw new IllegalArgumentException("Illegel score: "+score);
 		if(score<60)
 			return 0;
 		else if(score<65)
 			return 1;
 		else if(score<70)
-			return 1.5f;
+			return 1.5;
 		else if(score<75)
 			return 2;
 		else if(score<80)
-			return 2.5f;
+			return 2.5;
 		else if(score<85)
 			return 3;
 		else if(score<90)
-			return 3.5f;
+			return 3.5;
 		else if(score<96)
 			return 4;
 		else
-			return 4.5f;
+			return 4.5;
 	}
 	/**
 	 * 取得绩点。若fromTotalScoreOrTestScore为真，从期末总评成绩计算；否则从结课考核成绩计算
 	 * @param fromTotalScoreOrTestScore 如果是true，从期末总评成绩计算绩点；如果是false，从结课考核成绩计算
 	 * @return 指定成绩的绩点。0-59分的绩点为0
-	 * @throws CourseException 当  尚未设置相关成绩  时
+	 * @throws IllegalStateException 当  尚未设置相关成绩  时
 	 */
-	public float getGradePoint(boolean fromTotalScoreOrTestScore) throws CourseException{
-		float score;
+	public double getGradePoint(boolean fromTotalScoreOrTestScore) {
+		Double score;
 		if(fromTotalScoreOrTestScore)
 			score = getTotalScore();
 		else
 			score = getTestScore();
-		if(Float.isNaN(score))
-			throw new CourseException("尚未设置"+(fromTotalScoreOrTestScore?"期末总评成绩":"结课考核成绩"));
+		if(score == null)
+			throw new IllegalStateException("尚未设置"+(fromTotalScoreOrTestScore?"期末总评成绩":"结课考核成绩"));
 		return getGradePoint(score);
 	}
 	/**
 	 * 取得绩点。根据期末总评成绩计算
 	 * @return 期末总评成绩的绩点。0-59分的绩点为0
-	 * @throws CourseException 当  尚未设置期末总评成绩  时
+	 * @throws IllegalStateException 当  尚未设置期末总评成绩  时
 	 */
-	public float getGradePoint() throws CourseException{
+	public double getGradePoint() {
 		return getGradePoint(true);
 	}
 
@@ -553,15 +398,40 @@ public class Course implements Cloneable{
 	}
 
 	/**
-	 * 增加教师，可以一次添加多名，用[,，;；]分开
-	 * @param teacher 教师名，可以是多名教师，用[,，;；]分开。如果为null，则直接退出
-	 * @return 参数合法返回this（builder），参数非法抛出异常
+	 * 取得教师列表。为方便，可直接对此方法返回的引用操作，对之的操作会作用在此Course对象上
+	 * @return 授课教师列表
 	 */
-	public Course addTeacher(String teacher){
-		if(teacher == null)
-			return this;
-		String[] teachers = teacher.split("[,，;；]");
-		for(String t:teachers){
+	public List<String> getTeachers() {
+		return teachers;
+	}
+	/**
+	 * 添加授课教师。
+	 * @param teachers 要添加的授课教师列表
+	 * @see List#addAll(Collection)
+	 */
+	public Course addTeachers(Collection<String> teachers) {
+		this.teachers.addAll(teachers);
+		return this;
+	}
+	/**
+	 * 添加授课教师。
+	 * @param teachers 要添加的授课教师列表
+	 * @throws NullPointerException 参数为null
+	 */
+	public Course addTeachers(String... teachers){
+		for(String teacher:teachers)
+			if(teacher != null)
+				this.teachers.add(teacher);
+		return this;
+	}
+	/**
+	 * 添加授课教师，可以一次添加多名，用[,，;；]分开
+	 * @param teachers 教师，可以是多名教师，用[,，;；]分开
+	 * @return 参数合法返回this（builder），参数非法抛出异常
+	 * @throws NullPointerException 参数为null
+	 */
+	public Course addTeacher(String teachers){
+		for(String t : teachers.split("[,，;；]")){
 			t = t.trim();
 			if(t.length()>0)
 				this.teachers.add(t);
@@ -572,16 +442,45 @@ public class Course implements Cloneable{
 	 * 返回教师名称，若有多名教师，用“,”隔开。
 	 * @return 类似teacher1,teacher2,teacher3的字符串；若为空，返回null
 	 */
-	public String getTeacherString(){
+	public String getTeacherString() {
+		if(teachers.isEmpty())
+			return null;
 		StringBuilder sb = new StringBuilder();
 		for(String teacher:this.teachers)
 			sb.append(teacher+",");
-		if(sb.length() == 0)
-			return null;
-		else
-			return sb.substring(0, sb.length()-1);
+		return sb.substring(0, sb.length()-1);
 	}
 
+	/**
+	 * 取得时间地点列表。为方便，可直接对此方法返回的引用操作，对之的操作会作用在此Course对象上
+	 * @return 时间地点列表
+	 */
+	public List<TimeAndAddress> getTimeAndAddress() {
+		return timeAndAddress;
+	}
+	/**
+	 * 添加时间地点。拷贝参数timeAndAddresses，以后对之的修改不影响此Course对象
+	 * @param timeAndAddresses 时间地点列表
+	 * @throws NullPointerException 参数为null
+	 */
+	public Course addTimeAndAddresse(Collection<TimeAndAddress> timeAndAddresses){
+		this.timeAndAddress.clear();
+		for(TimeAndAddress TA:timeAndAddresses)
+			if(TA != null)
+				this.timeAndAddress.add(new TimeAndAddress(TA));
+		return this;
+	}
+	/**
+	 * 添加时间地点。拷贝参数timeAndAddresses，以后对之的修改不影响此Course对象
+	 * @param timeAndAddresses 时间地点列表
+	 * @throws NullPointerException 参数为null
+	 */
+	public Course addTimeAndAddresse(TimeAndAddress... timeAndAddresses){
+		for(TimeAndAddress TA:timeAndAddresses)
+			if(TA != null)
+				this.timeAndAddress.add(new TimeAndAddress(TA));
+		return this;
+	}
 	/**
 	 * 以字符串形式，增加时间和对应的地点
 	 * @param weeks 周次，类似2,4,6,8,10,12,14,18-20的字符串
@@ -619,9 +518,9 @@ public class Course implements Cloneable{
 	 * 把timeAndAddress添加到本Course中
 	 * @param timeAndAddress 要新加入的时间和对应地点
 	 * @return 参数合法返回this（builder），参数非法抛出异常
-	 * @throws NullPointerException 当timeAndAddress==null时
+	 * @throws NullPointerException 参数为null时
 	 */
-	public Course addTimeAndAddress(TimeAndAddress timeAndAddress) throws NullPointerException{
+	public Course addTimeAndAddress(TimeAndAddress timeAndAddress) {
 		if(timeAndAddress == null)
 			throw new NullPointerException("timeAndAddress shouldn't have been null.");
 		this.timeAndAddress.add(new TimeAndAddress(timeAndAddress));
@@ -647,30 +546,12 @@ public class Course implements Cloneable{
 				+getSemester()+"\t"+getKind()+"\t"+getNote()+"\n"+getTimeAndAddressString();
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#clone()
-	 */
 	@Override
 	public Course clone() throws CloneNotSupportedException {
-		Course clone = (Course) super.clone();
-		clone.setTeachers(this.teachers);
-		clone.setTimeAndAddresse(this.timeAndAddress);
-		return clone;
-	}
-
-	public static class CourseException extends Exception{
-		private static final long serialVersionUID = -4494349664328514829L;
-		public CourseException(String message){
-			super(message);
-		}
-		public CourseException(){
-			super("Encounter exception in Course class");
-		}
-		public CourseException(String message, Throwable cause) {
-			super(message, cause);
-		}
-		public CourseException(Throwable cause) {
-			super("Encounter exception in Course class", cause);
+		if(Course.class == getClass()) {
+			return new Course(this);
+		} else {
+			throw new CloneNotSupportedException(getClass() + "didn't override clone()");
 		}
 	}
 
