@@ -26,5 +26,6 @@ public abstract class AbstractParser<T> implements Parser<T> {
 		if(mReader == null)
 			throw new IllegalStateException("Must set ReadPageHelper before parse()");
 		return null;
+		//TODO 确保子类实现
 	}
 }

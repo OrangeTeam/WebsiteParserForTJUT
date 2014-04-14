@@ -70,6 +70,9 @@ public class Course implements Cloneable{
 			}
 			return "Unkown Property";
 		}
+		public String toString() {
+			return toString(this);
+		}
 	}
 
 	/**本地数据库使用的ID*/

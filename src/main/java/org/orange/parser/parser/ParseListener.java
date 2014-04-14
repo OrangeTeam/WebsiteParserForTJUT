@@ -5,6 +5,7 @@ package org.orange.parser.parser;
  * @author Bai Jie
  */
 public interface ParseListener extends Cloneable{
+	public static final int NONE = 0;
 	public static final int NULL_POINTER = 1;
 	public static final int ERROR_CANNOT_LOGIN = 2;
 	public static final int ERROR_IO = 3;
