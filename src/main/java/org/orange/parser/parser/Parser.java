@@ -1,11 +1,11 @@
 package org.orange.parser.parser;
 
-import org.orange.parser.reader.Reader;
+import org.orange.parser.connection.ConnectionAgent;
 
 import java.io.IOException;
 
 public interface Parser<T> {
-	public Parser<T> setReader(Reader reader);
+	public Parser<T> setConnectionAgent(ConnectionAgent connectionAgent);
 	/**
 	 * 执行解析
 	 * @return 解析结果

@@ -1,4 +1,4 @@
-package org.orange.parser.reader;
+package org.orange.parser.connection;
 
 import org.jsoup.Connection;
 import org.jsoup.HttpStatusException;
@@ -7,15 +7,15 @@ import org.orange.parser.parser.Constant;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 
-public class SSFWWebsiteReader extends AbstractLoginReader {
+public class SSFWWebsiteConnectionAgent extends AbstractLoginConnectionAgent {
 
-	public SSFWWebsiteReader() {
+	public SSFWWebsiteConnectionAgent() {
 		mLoginConnection.url(Constant.url.LOGIN_PAGE);
 		mLoginConnection.followRedirects(false).ignoreHttpErrors(true);
 	}
 
 	@Override
-	public LoginReader setAccount(String accountName, String password) {
+	public LoginConnectionAgent setAccount(String accountName, String password) {
 		super.setAccount(accountName, password);
 		mLoginConnection.request().data().clear();
 		mLoginConnection.data("Login.Token1",accountName,"Login.Token2", password);

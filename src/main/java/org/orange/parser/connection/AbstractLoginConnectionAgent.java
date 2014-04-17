@@ -1,4 +1,4 @@
-package org.orange.parser.reader;
+package org.orange.parser.connection;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
 
-public abstract class AbstractLoginReader extends AbstractReader implements LoginReader {
+public abstract class AbstractLoginConnectionAgent extends AbstractConnectionAgent implements LoginConnectionAgent {
 	/** 最近一次成功登录的时间，null表示尚没有成功登录 */
 	protected Date mRecentLoginTime;
 	protected Connection mLoginConnection = Jsoup.connect(Constant.url.DEFAULT_PAGE);
@@ -21,7 +21,7 @@ public abstract class AbstractLoginReader extends AbstractReader implements Logi
 	}
 
 	@Override
-	public LoginReader setAccount(String accountName, String password) {
+	public LoginConnectionAgent setAccount(String accountName, String password) {
 		if(accountName == null || password == null) {
 			throw new IllegalArgumentException(
 					"accountName == null || password == null",
@@ -44,7 +44,7 @@ public abstract class AbstractLoginReader extends AbstractReader implements Logi
 	}
 
 	@Override
-	public LoginReader url(String url) {
+	public LoginConnectionAgent url(String url) {
 		super.url(url);
 		return this;
 	}

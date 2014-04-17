@@ -1,4 +1,4 @@
-package org.orange.parser.reader;
+package org.orange.parser.connection;
 
 import java.text.DateFormat;
 import java.util.Date;

@@ -1,4 +1,4 @@
-package org.orange.parser.reader;
+package org.orange.parser.connection;
 
 import org.jsoup.nodes.Document;
 import org.junit.Assert;
@@ -12,32 +12,32 @@ import java.io.IOException;
 import java.io.PrintStream;
 
 @RunWith(JUnit4.class)
-public class SSFWWebsiteReaderTest {
+public class SSFWWebsiteConnectionAgentTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testSetAccountWithNullAccount1() throws IOException {
-		new SSFWWebsiteReader().setAccount(null, "20106173");
+		new SSFWWebsiteConnectionAgent().setAccount(null, "20106173");
 	}
 	@Test(expected = IllegalArgumentException.class)
 	public void testSetAccountWithNullAccount2() throws IOException {
-		new SSFWWebsiteReader().setAccount("20106173", null);
+		new SSFWWebsiteConnectionAgent().setAccount("20106173", null);
 	}
 	@Test(expected = IllegalArgumentException.class)
 	public void testSetAccountWithNullAccount3() throws IOException {
-		new SSFWWebsiteReader().setAccount(null, null);
+		new SSFWWebsiteConnectionAgent().setAccount(null, null);
 	}
 
 	@Test(expected = IllegalStateException.class)
 	public void testLoginWithoutAccountSet() throws IOException {
-		new SSFWWebsiteReader().login();
+		new SSFWWebsiteConnectionAgent().login();
 	}
 
 	@Test
 	public void testLoginWithWrongAccount() throws IOException {
-		SSFWWebsiteReader reader = new SSFWWebsiteReader();
-		reader.setAccount("20106173", "wrong password");
-		Assert.assertFalse("login with wrong password", reader.login());
-		Assert.assertNull(reader.mRecentLoginTime);
+		SSFWWebsiteConnectionAgent connectionAgent = new SSFWWebsiteConnectionAgent();
+		connectionAgent.setAccount("20106173", "wrong password");
+		Assert.assertFalse("login with wrong password", connectionAgent.login());
+		Assert.assertNull(connectionAgent.mRecentLoginTime);
 	}
 
 	@Test
@@ -48,14 +48,14 @@ public class SSFWWebsiteReaderTest {
 		PrintStream originErr = System.err;
 		System.setErr(new PrintStream(errorLog, true, "UTF-8"));
 
-		SSFWWebsiteReader reader = new SSFWWebsiteReader();
-		reader.setAccount("20106173", "20106173");
-		Assert.assertTrue("login", reader.login());
-		Assert.assertEquals(Constant.url.DEFAULT_PAGE, reader.mReadConnection.request().url().toString());
-		reader.get();
+		SSFWWebsiteConnectionAgent connectionAgent = new SSFWWebsiteConnectionAgent();
+		connectionAgent.setAccount("20106173", "20106173");
+		Assert.assertTrue("login", connectionAgent.login());
+		Assert.assertEquals(Constant.url.DEFAULT_PAGE, connectionAgent.mReadConnection.request().url().toString());
+		connectionAgent.get();
 		Assert.assertTrue("log", errorLog.toString("UTF-8").contains(WARNING_MESSAGE));
 		errorLog.reset();
-		reader.post();
+		connectionAgent.post();
 		Assert.assertTrue("log", errorLog.toString("UTF-8").contains(WARNING_MESSAGE));
 
 		System.setErr(originErr);
@@ -63,16 +63,16 @@ public class SSFWWebsiteReaderTest {
 
 	@Test
 	public void testGet() throws IOException {
-		LoginReader reader = new SSFWWebsiteReader()
+		LoginConnectionAgent connectionAgent = new SSFWWebsiteConnectionAgent()
 				.setAccount("20106173", "20106173")
 				.url(Constant.url.PERSONAL_INFORMATION);
-		reader.login();
-		validatePersonalInformationDocument(reader.get());
+		connectionAgent.login();
+		validatePersonalInformationDocument(connectionAgent.get());
 	}
 	@Test
 	public void testGet2() throws IOException {
-		LoginReader reader = new SSFWWebsiteReader().setAccount("20106173", "20106173");
-		Document document = reader.url(Constant.url.PERSONAL_INFORMATION).get();
+		LoginConnectionAgent connectionAgent = new SSFWWebsiteConnectionAgent().setAccount("20106173", "20106173");
+		Document document = connectionAgent.url(Constant.url.PERSONAL_INFORMATION).get();
 		validatePersonalInformationDocument(document);
 		System.out.println(document);
 	}

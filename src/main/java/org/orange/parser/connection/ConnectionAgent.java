@@ -1,13 +1,13 @@
-package org.orange.parser.reader;
+package org.orange.parser.connection;
 
 import org.jsoup.Connection;
 import org.jsoup.nodes.Document;
 
 import java.io.IOException;
 
-public interface Reader {
+public interface ConnectionAgent {
 	public Connection getConnection();
-	public Reader url(String url);
+	public ConnectionAgent url(String url);
 	public Document get() throws IOException;
 	public Document post() throws IOException;
 }

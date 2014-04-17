@@ -80,11 +80,11 @@ public class ScoreParser extends BaseCourseParser {
 		return readCourseTable(document.select("div#tab01 [tabid~=0*1] table.ui_table").first());
 	}
 	List<Course> parse1(int academicYear, int semester) throws IOException {
-		mReader.getConnection().request().data().clear();
-		mReader.getConnection()
+		mConnectionAgent.getConnection().request().data().clear();
+		mConnectionAgent.getConnection()
 				.data("qXndm_ys", academicYear + "-" + (academicYear+1))
 				.data("qXqdm_ys", String.valueOf(semester));
-		Document doc = mReader.url(Constant.url.ALL_PERSONAL_GRADES).post();
+		Document doc = mConnectionAgent.url(Constant.url.ALL_PERSONAL_GRADES).post();
 		return parse0(doc);
 	}
 

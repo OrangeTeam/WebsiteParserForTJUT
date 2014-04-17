@@ -12,7 +12,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.UnsupportedMimeTypeException;
 import org.jsoup.nodes.Document;
 import org.orange.parser.parser.Constant;
-import org.orange.parser.reader.Cookie;
+import org.orange.parser.connection.Cookie;
 
 public class ReadPageHelper implements Cloneable{
 	private static final String DEFAULT_CHARSET = "GB2312";

@@ -48,10 +48,10 @@ public class SelectedCourseParser extends BaseCourseParser {
 		return result;
 	}
 	List<Course> parse1() throws IOException {
-		mReader.getConnection().request().data().clear();
+		mConnectionAgent.getConnection().request().data().clear();
 		//TODO 检测是否超过30000个课程
-		mReader.getConnection().data("iDisplayLength", "30000");
-		Document doc = mReader.url(Constant.url.LEARNING_COURSES).post();
+		mConnectionAgent.getConnection().data("iDisplayLength", "30000");
+		Document doc = mConnectionAgent.url(Constant.url.LEARNING_COURSES).post();
 		return parse0(doc);
 	}
 

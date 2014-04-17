@@ -1,4 +1,4 @@
-package org.orange.parser.reader;
+package org.orange.parser.connection;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -7,7 +7,7 @@ import org.orange.parser.parser.Constant;
 
 import java.io.IOException;
 
-public abstract class AbstractReader implements Reader {
+public abstract class AbstractConnectionAgent implements ConnectionAgent {
 	protected Connection mReadConnection = Jsoup.connect(Constant.url.DEFAULT_PAGE);
 
 	@Override
@@ -16,7 +16,7 @@ public abstract class AbstractReader implements Reader {
 	}
 
 	@Override
-	public Reader url(String url) {
+	public ConnectionAgent url(String url) {
 		mReadConnection.url(url);
 		return this;
 	}
