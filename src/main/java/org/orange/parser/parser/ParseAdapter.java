@@ -7,24 +7,24 @@ package org.orange.parser.parser;
  * @author Bai Jie
  */
 public class ParseAdapter implements ParseListener {
-	public ParseAdapter() {
-		super();
-	}
-	@Override
-	public void onError(int code, String message) {
-		System.err.println("Error "+code+": "+message);
-	}
-	@Override
-	public void onWarn(int code, String message) {
-	}
-	@Override
-	public void onInformation(int code, String message) {
-	}
-	@Override
-	public void onProgressChange(float current, float total) {
-	}
-	@Override
-	public ParseListener clone() throws CloneNotSupportedException{
-		return (ParseListener) super.clone();
-	}
+    public ParseAdapter() {
+        super();
+    }
+    @Override
+    public void onError(int code, String message) {
+        System.err.println("Error "+code+": "+message);
+    }
+    @Override
+    public void onWarn(int code, String message) {
+    }
+    @Override
+    public void onInformation(int code, String message) {
+    }
+    @Override
+    public void onProgressChange(float current, float total) {
+    }
+    @Override
+    public ParseListener clone() throws CloneNotSupportedException{
+        return (ParseListener) super.clone();
+    }
 }

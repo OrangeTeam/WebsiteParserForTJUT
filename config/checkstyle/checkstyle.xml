@@ -15,6 +15,7 @@
             <property name="ignoreComments" value="false"/>
         </module>
     </module>
+    <module name="FileTabCharacter"/>
     <module name="NewlineAtEndOfFile">
         <property name="lineSeparator" value="lf"/>
     </module>

@@ -84,15 +84,15 @@ public class MyHessianURLConnectionFactory implements HessianConnectionFactory {
     String host = url.getHost();
     System.out.println(host);
     if(host.matches(".*\\.appspot\\.com")){
-    	url = new URL("http://www.google.com.hk"+url.getPath());
-    	conn = url.openConnection();
-    	System.out.println(host);
-    	conn.setRequestProperty("host", " "+host);
-    	System.out.println(conn.getRequestProperty("host"));
+        url = new URL("http://www.google.com.hk"+url.getPath());
+        conn = url.openConnection();
+        System.out.println(host);
+        conn.setRequestProperty("host", " "+host);
+        System.out.println(conn.getRequestProperty("host"));
     }
     else{
-    	System.out.println("conn == null");
-    	conn = url.openConnection();
+        System.out.println("conn == null");
+        conn = url.openConnection();
     }
     // HttpURLConnection httpConn = (HttpURLConnection) conn;
     // httpConn.setRequestMethod("POST");
@@ -119,9 +119,9 @@ public class MyHessianURLConnectionFactory implements HessianConnectionFactory {
     // Used chunked mode when available, i.e. JDK 1.5.
     if (_proxyFactory.isChunkedPost() && conn instanceof HttpURLConnection) {
       try {
-	HttpURLConnection httpConn = (HttpURLConnection) conn;
+    HttpURLConnection httpConn = (HttpURLConnection) conn;
 
-	httpConn.setChunkedStreamingMode(8 * 1024);
+    httpConn.setChunkedStreamingMode(8 * 1024);
       } catch (Throwable e) {
       }
     }
