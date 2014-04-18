@@ -1,7 +1,13 @@
 apply plugin: 'java'
+apply plugin: 'maven-publish'
 apply plugin: 'checkstyle'
 
+group = 'org.orange'
 version = '2.0'
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+}
 
 tasks.withType(JavaCompile) { task ->
     task.options.encoding = 'UTF-8'
@@ -19,4 +25,21 @@ dependencies {
     compile 'com.caucho:hessian:4.0.7'
 
     testCompile "junit:junit:4.11"
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId 'website-parser-tjut'
+
+            from components.java
+            artifact sourceJar {
+                classifier "sources"
+            }
+            pom.withXml {
+                asNode().appendNode('description', 'A website content parser' +
+                        ' for Tianjin University of Technology(TJUT).')
+            }
+        }
+    }
 }
