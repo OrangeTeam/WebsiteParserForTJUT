@@ -88,6 +88,10 @@ public class Post implements Cloneable, Serializable {
     private String mainBody;
     /**作者/发布者*/
     private String author;
+    /**发布部门*/
+    private String authorDepartment;
+    /**通知对象*/
+    private String notifiee;
     /**发布日期*/
     private Date date;
 
@@ -97,26 +101,6 @@ public class Post implements Cloneable, Serializable {
         source = SOURCES.UNKNOWN_SOURCE;
         title = url = mainBody = category = author = null;
         date = new Date(0);
-    }
-    /**全参构造方法*/
-    public Post(Long id, byte source, String category, String title, String url, String mainBody, String author, String date) {
-        this();
-        this.id = id;
-        this.source = source;
-        this.category = category;
-        this.title = title;
-        this.url = url;
-        this.mainBody = mainBody;
-        this.author = author;
-        if(date != null && date.length() != 0){
-            try {
-                setDate(date);
-            } catch (ParseException e) {
-                // TODO Auto-generated catch block
-                System.out.println("Can't parse date normally. "+e.getMessage());
-                e.printStackTrace();
-            }
-        }
     }
     /**拷贝构造方法*/
     public Post(Post src){
@@ -128,6 +112,8 @@ public class Post implements Cloneable, Serializable {
         this.url = src.url;
         this.mainBody = src.mainBody;
         this.author = src.author;
+        this.authorDepartment = src.authorDepartment;
+        this.notifiee = src.notifiee;
         this.date = (Date) src.date.clone();
     }
 
@@ -231,6 +217,36 @@ public class Post implements Cloneable, Serializable {
      */
     public Post setAuthor(String author) {
         this.author = author;
+        return this;
+    }
+    /**
+     * 取得发布部门
+     * @return 发布部门
+     */
+    public String getAuthorDepartment() {
+        return authorDepartment;
+    }
+    /**
+     * 设置发布部门
+     * @param authorDepartment 发布部门
+     */
+    public Post setAuthorDepartment(String authorDepartment) {
+        this.authorDepartment = authorDepartment;
+        return this;
+    }
+    /**
+     * 取得通知对象
+     * @return 通知对象
+     */
+    public String getNotifiee() {
+        return notifiee;
+    }
+    /**
+     * 设置通知对象
+     * @param notifiee 通知对象
+     */
+    public Post setNotifiee(String notifiee) {
+        this.notifiee = notifiee;
         return this;
     }
     /**
