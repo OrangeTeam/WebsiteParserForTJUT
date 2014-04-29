@@ -127,7 +127,7 @@ public class Course implements Cloneable{
         this.note = src.note;
         this.kind = src.kind;
         addTeachers(src.teachers);
-        addTimeAndAddresse(src.timeAndAddress);
+        addTimeAndAddresses(src.timeAndAddress);
     }
 
     /**
@@ -466,7 +466,7 @@ public class Course implements Cloneable{
      * @param timeAndAddresses 时间地点列表
      * @throws NullPointerException 参数为null
      */
-    public Course addTimeAndAddresse(Collection<TimeAndAddress> timeAndAddresses){
+    public Course addTimeAndAddresses(Collection<? extends TimeAndAddress> timeAndAddresses){
         this.timeAndAddress.clear();
         for(TimeAndAddress TA:timeAndAddresses)
             if(TA != null)
@@ -478,7 +478,7 @@ public class Course implements Cloneable{
      * @param timeAndAddresses 时间地点列表
      * @throws NullPointerException 参数为null
      */
-    public Course addTimeAndAddresse(TimeAndAddress... timeAndAddresses){
+    public Course addTimeAndAddresses(TimeAndAddress... timeAndAddresses){
         for(TimeAndAddress TA:timeAndAddresses)
             if(TA != null)
                 this.timeAndAddress.add(new TimeAndAddress(TA));
