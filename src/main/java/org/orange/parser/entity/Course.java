@@ -7,6 +7,7 @@ import org.orange.parser.util.BitOperate.BitOperateException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -84,14 +85,14 @@ public class Course implements Cloneable, java.io.Serializable {
     /**课程名称*/
     private String name;
     /**课程教师<br />暂没教师详情*/
-    private final List<String> teachers = new ArrayList<>();
+    private List<String> teachers = new LinkedList<>();
     /**学分*/
     private Integer credit;
     /**教学班号*/
     private String teachingClass;
 
     /**时间地点列表*/
-    private final List<TimeAndAddress> timeAndAddress = new ArrayList<>();
+    private List<TimeAndAddress> timeAndAddress = new LinkedList<>();
     //暂没参考教材
     private String teachingMaterial;
     /**备注*/
@@ -112,25 +113,6 @@ public class Course implements Cloneable, java.io.Serializable {
      * 无参构造方法。集合类型属性设为空集，其他属性设为null。
      */
     public Course() {}
-
-    /**拷贝构造方法*/
-    public Course(Course src){
-        this.code = src.code;
-        this.name = src.name;
-        this.credit = src.credit;
-        this.teachingClass = src.teachingClass;
-        this.testScore = src.testScore;
-        this.totalScore = src.totalScore;
-        this.year = src.year;
-        this.semester = src.semester;
-
-        this.id = src.id;
-        this.teachingMaterial = src.teachingMaterial;
-        this.note = src.note;
-        this.kind = src.kind;
-        addTeachers(src.teachers);
-        addTimeAndAddresses(src.timeAndAddress);
-    }
 
     /**
      * 所有的属性均没有被设置过（<strong>包括ID字段</strong>）
@@ -472,7 +454,7 @@ public class Course implements Cloneable, java.io.Serializable {
         this.timeAndAddress.clear();
         for(TimeAndAddress TA:timeAndAddresses)
             if(TA != null)
-                this.timeAndAddress.add(new TimeAndAddress(TA));
+                this.timeAndAddress.add(TA.clone());
         return this;
     }
     /**
@@ -483,7 +465,7 @@ public class Course implements Cloneable, java.io.Serializable {
     public Course addTimeAndAddresses(TimeAndAddress... timeAndAddresses){
         for(TimeAndAddress TA:timeAndAddresses)
             if(TA != null)
-                this.timeAndAddress.add(new TimeAndAddress(TA));
+                this.timeAndAddress.add(TA.clone());
         return this;
     }
     /**
@@ -528,7 +510,7 @@ public class Course implements Cloneable, java.io.Serializable {
     public Course addTimeAndAddress(TimeAndAddress timeAndAddress) {
         if(timeAndAddress == null)
             throw new NullPointerException("timeAndAddress shouldn't have been null.");
-        this.timeAndAddress.add(new TimeAndAddress(timeAndAddress));
+        this.timeAndAddress.add(timeAndAddress.clone());
         return this;
     }
     /**
@@ -552,16 +534,21 @@ public class Course implements Cloneable, java.io.Serializable {
     }
 
     @Override
-    public Course clone() throws CloneNotSupportedException {
-        if(Course.class == getClass()) {
-            return new Course(this);
-        } else {
-            throw new CloneNotSupportedException(getClass() + "didn't override clone()");
+    public Course clone() {
+        Course clone = null;
+        try {
+            clone = (Course) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
         }
+        clone.teachers = new LinkedList<>(this.teachers);
+        clone.timeAndAddress = new LinkedList<>();
+        clone.addTimeAndAddresses(this.getTimeAndAddress());
+        return clone;
     }
 
 
-    public static class TimeAndAddress implements java.io.Serializable {
+    public static class TimeAndAddress implements Cloneable, java.io.Serializable {
 
         private static final long serialVersionUID = 3124022745828158655L;
 
@@ -649,13 +636,6 @@ public class Course implements Cloneable, java.io.Serializable {
         }
         public TimeAndAddress(){
             clear();
-        }
-        /**拷贝构造方法*/
-        public TimeAndAddress(TimeAndAddress aCourseTime){
-            week = aCourseTime.week;
-            day = aCourseTime.day;
-            period = aCourseTime.period;
-            address = aCourseTime.address;
         }
 
         /**
@@ -1375,6 +1355,16 @@ public class Course implements Cloneable, java.io.Serializable {
             return getWeekString() + " " + getDayString(xingqiOrZhou) + " "
                     + getPeriodString() + " " + getAddress();
         }
+
+        @Override
+        public TimeAndAddress clone() {
+            try {
+                return (TimeAndAddress) super.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
         /**处理TimeAndAddress，遇到不可处理情况时的异常*/
         public static class TimeAndAddressException extends Exception{
             private static final long serialVersionUID = 1900908778609873214L;
