@@ -76,7 +76,7 @@ public class Course implements Cloneable{
     }
 
     /**本地数据库使用的ID*/
-    private Integer id;
+    private Long id;
     /**课程代码*/
     private String code;
     /**课程名称*/
@@ -189,13 +189,13 @@ public class Course implements Cloneable{
     /**
      * @return the id
      */
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
     /**
      * @param id the id to set
      */
-    public Course setId(Integer id) {
+    public Course setId(Long id) {
         this.id = id;
         return this;
     }
