@@ -10,7 +10,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Course implements Cloneable{
+public class Course implements Cloneable, java.io.Serializable {
+
+    private static final long serialVersionUID = 4388282717304353428L;
 
     public static enum Property {
         UNKNOWN_COL,
@@ -559,7 +561,10 @@ public class Course implements Cloneable{
     }
 
 
-    public static class TimeAndAddress{
+    public static class TimeAndAddress implements java.io.Serializable {
+
+        private static final long serialVersionUID = 3124022745828158655L;
+
         /**
          * {@link TimeAndAddress}中各属性的标识常量
          * @see TimeAndAddress#isEmpty(int)
