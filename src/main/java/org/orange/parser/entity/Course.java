@@ -561,17 +561,23 @@ public class Course implements Cloneable, java.io.Serializable {
             public static final int DAY        = 2;
             public static final int PERIOD    = 3;
             public static final int ADDRESS    = 4;
+            public static final int ID         = 5;
+            public static final int COURSE_ID  = 6;
         }
         /**
          * {@link TimeAndAddress}中各属性的默认值
          */
         public static class DefaultValue {
+            public static final Long     ID        = null;
+            public static final Long     COURSE_ID = null;
             public static final int        WEEK    = 0;
             public static final byte    DAY        = 0;
             public static final short    PERIOD    = 0;
             public static final String    ADDRESS    = null;
         }
 
+        private Long id;
+        private Long courseId;
         /**周<br />第0-20位分别表第0-20周*/
         private int week;
         /**星期 day of week<br />第0位表周日，1-6位表周一到周六*/
@@ -642,7 +648,15 @@ public class Course implements Cloneable, java.io.Serializable {
          * 所有的属性均没有被设置过
          * @return 如果所有的属性均没有被设置过，返回true；如果其中某项被设置过，返回false
          */
-        public boolean isEmpty(){
+        public boolean isEmpty() {
+            return isEmpty(Property.ID) && isEmpty(Property.COURSE_ID) && isEmptyWithoutId();
+        }
+
+        /**
+         * 除{@link #id}和{@link #courseId}外，所有的属性均没有被设置过
+         * @return {@link #id}、{@link #courseId}外，如果所有的属性均没有被设置过，返回true；否则返回false
+         */
+        public boolean isEmptyWithoutId(){
             return isEmpty(Property.WEEK) && isEmpty(Property.DAY)
                     && isEmpty(Property.PERIOD) && isEmpty(Property.ADDRESS);
         }
@@ -659,6 +673,8 @@ public class Course implements Cloneable, java.io.Serializable {
             case Property.PERIOD:    return period == DefaultValue.PERIOD;
             case Property.ADDRESS:
                 return address == DefaultValue.ADDRESS || address.length() == 0;
+            case Property.ID:        return id == DefaultValue.ID;
+            case Property.COURSE_ID: return courseId == DefaultValue.COURSE_ID;
             default:throw new IllegalArgumentException("非法属性参数：" + property);
             }
         }
@@ -690,6 +706,7 @@ public class Course implements Cloneable, java.io.Serializable {
         }
         /**
          * 所有的属性均已设置
+         * <p>Note：不考虑{@link #id}和{@link #courseId}</p>
          * @return 如果所有的属性均已设置，返回true；如果其中某项没有设置，返回false
          */
         public boolean isComplete(){
@@ -697,6 +714,7 @@ public class Course implements Cloneable, java.io.Serializable {
         }
         /**
          * 除地址外（即只考虑时间），所有的属性均已设置；或包括地址在内，所有的属性均已设置
+         * <p>Note：不考虑{@link #id}和{@link #courseId}</p>
          * @param withoutAddress true表示不算地址（即只考虑时间）；false表示考虑地址
          * @return withoutAddress为true时，WEEK、DAY、PERIOD均已设置则返回true；否则返回false。
          * withoutAddress为false时，所有的属性均已设置则返回true，否则返回false
@@ -713,6 +731,21 @@ public class Course implements Cloneable, java.io.Serializable {
              * (withoutAddress || isn'tEmpty(address))
              */
         }
+
+        public Long getId() {
+            return id;
+        }
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+        public Long getCourseId() {
+            return courseId;
+        }
+        public void setCourseId(Long courseId) {
+            this.courseId = courseId;
+        }
+
         /**
          * 类似getDay，0-20位的1/0表示是否有这一周。如16进制0x00 00 01 02 表示8、1周有课
          * @return the week
