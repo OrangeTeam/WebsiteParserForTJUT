@@ -59,7 +59,7 @@ public interface ParseListener extends Cloneable{
      * @param current 当前进度。
      * @param total 总进度。
      */
-    public void onProgressChange(float current, float total);
+    public void onProgressChange(int current, int total);
     /**
      * 实现深克隆
      * @see Object#clone()

@@ -7,14 +7,17 @@ import org.orange.parser.connection.ConnectionAgent;
 import org.orange.parser.connection.LoginConnectionAgent;
 import org.orange.parser.connection.SCCEStudentConnectionAgent;
 import org.orange.parser.connection.SSFWWebsiteConnectionAgent;
+import org.orange.parser.entity.Course;
 import org.orange.parser.parser.PersonalInformationParser;
 import org.orange.parser.parser.PersonalInformationParserTest;
 import org.orange.parser.parser.SCCEStudentPostParser;
 import org.orange.parser.parser.ScoreParser;
+import org.orange.parser.parser.ScoreParserTest;
 import org.orange.parser.parser.SelectedCourseParser;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 @RunWith(JUnit4.class)
@@ -41,7 +44,9 @@ public class ParserTest {
             scoreParser.addAcademicYearAndSemester(i, 1);
             scoreParser.addAcademicYearAndSemester(i, 2);
         }
-        System.out.println(scoreParser.setConnectionAgent(connectionAgent).parse());
+        List<Course> scores = scoreParser.setConnectionAgent(connectionAgent).parse();
+        System.out.println(scores);
+        ScoreParserTest.checkScores(scores);
     }
 
     @Test

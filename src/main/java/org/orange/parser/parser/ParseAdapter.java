@@ -21,7 +21,7 @@ public class ParseAdapter implements ParseListener {
     public void onInformation(int code, String message) {
     }
     @Override
-    public void onProgressChange(float current, float total) {
+    public void onProgressChange(int current, int total) {
     }
     @Override
     public ParseListener clone() throws CloneNotSupportedException{

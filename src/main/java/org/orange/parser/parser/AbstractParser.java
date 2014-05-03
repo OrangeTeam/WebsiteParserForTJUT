@@ -14,11 +14,13 @@ public abstract class AbstractParser<T> implements Parser<T> {
         return this;
     }
 
-    public void setParseListener(ParseListener listener) {
+    @Override
+    public Parser<T> setParseListener(ParseListener listener) {
         if(listener != null)
             mParseListener = listener;
         else
             mParseListener = new ParseAdapter();
+        return this;
     }
 
     @Override

@@ -51,10 +51,14 @@ public class ScoreParser extends BaseCourseParser {
     public List<Course> parse() throws IOException {
         super.parse();
         List<Course> result = new LinkedList<>();
+        final int total = mAcademicYearAndSemesters.size();
+        int progress = 0;
+        mParseListener.onProgressChange(progress++, total);
         for(AcademicYearAndSemester academicYearAndSemester : mAcademicYearAndSemesters) {
             result.addAll(parse1(
                     academicYearAndSemester.getYear(),
                     academicYearAndSemester.getSemester()));
+            mParseListener.onProgressChange(progress++, total);
         }
         return result;
     }

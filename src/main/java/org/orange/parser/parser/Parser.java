@@ -6,6 +6,7 @@ import java.io.IOException;
 
 public interface Parser<T> {
     public Parser<T> setConnectionAgent(ConnectionAgent connectionAgent);
+    public Parser<T> setParseListener(ParseListener listener);
     /**
      * 执行解析
      * @return 解析结果
