@@ -7,6 +7,7 @@ import java.io.IOException;
 
 public interface ConnectionAgent {
     public Connection getConnection();
+    public ConnectionAgent retryCount(int numberOfRetries);
     public ConnectionAgent url(String url);
     public Document get() throws IOException;
     public Document post() throws IOException;

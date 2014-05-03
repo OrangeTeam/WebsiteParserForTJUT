@@ -9,7 +9,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class ScoreParser extends BaseCourseParser {
-    private static final int NUMBER_OF_RETRIES = 5;
     private List<AcademicYearAndSemester> mAcademicYearAndSemesters = new LinkedList<>();
 
     public List<AcademicYearAndSemester> getAcademicYearAndSemesters() {
@@ -53,24 +52,9 @@ public class ScoreParser extends BaseCourseParser {
         super.parse();
         List<Course> result = new LinkedList<>();
         for(AcademicYearAndSemester academicYearAndSemester : mAcademicYearAndSemesters) {
-            for(int counter = NUMBER_OF_RETRIES ; counter >= 1 ; counter--) {
-                try {
-                    result.addAll(parse1(
-                            academicYearAndSemester.getYear(),
-                            academicYearAndSemester.getSemester()));
-                    break; //成功，不用再重试
-                } catch (IOException e) {
-                    if(counter > 1) {
-                        mParseListener.onInformation(ParseListener.NONE,
-                                String.format("解析%d学年%d学期成绩时遇到IO异常，再试一遍",
-                                academicYearAndSemester.getYear(),
-                                academicYearAndSemester.getSemester()));
-                        //continue;（循环最后一句，可以省略） //再重试一遍
-                    }
-                    else
-                        throw e; //最后一次重试失败，直接重抛异常
-                }
-            }
+            result.addAll(parse1(
+                    academicYearAndSemester.getYear(),
+                    academicYearAndSemester.getSemester()));
         }
         return result;
     }

@@ -36,15 +36,26 @@ public abstract class AbstractLoginConnectionAgent extends AbstractConnectionAge
     }
 
     @Override
-    public boolean login() throws IOException {
+    public final boolean login() throws IOException {
         if(!hasSetAccount)
             throw new IllegalStateException("Please set account before login");
-        if(onLogin()) {
-            mRecentLoginTime = new Date();
-            return true;
-        } else {
-            return false;
+        for(int counter = mRetryCount ; counter >= 1 ; counter--) { // 遇到IOException时重试
+            try {
+                if (onLogin()) {
+                    mRecentLoginTime = new Date();
+                    return true;
+                } else {
+                    return false;
+                }
+            } catch (IOException e) {
+                if (counter > 1) {
+                    System.out.println("Encounter IOException(" + e + "), try again. : " + counter);
+                } else {
+                    throw e;
+                }
+            }
         }
+        throw new AssertionError("Shouldn't go here.");
     }
 
     @Override
@@ -54,14 +65,14 @@ public abstract class AbstractLoginConnectionAgent extends AbstractConnectionAge
     }
 
     @Override
-    public void beforeRead() throws IOException {
+    public void beforeExecute() throws IOException {
         if(mRecentLoginTime == null ||
                 System.currentTimeMillis() - mRecentLoginTime.getTime()
                         >= Constant.PERIOD_OF_SESSION_COOKIE) {
             if(!login())
                 throw new IllegalStateException("Login failed");
         }
-        super.beforeRead();
+        super.beforeExecute();
     }
 
     protected abstract boolean onLogin() throws IOException;

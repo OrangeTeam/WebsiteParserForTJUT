@@ -23,7 +23,7 @@ public class PersonalInformationParser extends AbstractParser<Map<String, Map<St
     }
 
     //TODO 完善部分内部代码的解析，如现在的“证件类型=1”中的1
-    Map<String, Map<String, String>> parse1(Document input) throws IOException {
+    Map<String, Map<String, String>> parse1(Document input) {
         Elements groups = input.select("#form1 .tableGroup");
         Map<String, Map<String, String>> result = new HashMap<>(groups.size());
         for(Element group : groups) {
