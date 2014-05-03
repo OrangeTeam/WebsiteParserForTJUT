@@ -33,9 +33,4 @@ public class CourseTest {
         Assert.assertEquals(TIME_AND_ADDRESS_NUMBER, sample.getTimeAndAddress().size());
     }
 
-    @Test(expected = CloneNotSupportedException.class)
-    public void testSubclassClone() throws CloneNotSupportedException {
-        Course subclass = new Course() {};
-        subclass.clone();
-    }
 }
