@@ -13,6 +13,8 @@ public abstract class AbstractLoginConnectionAgent extends AbstractConnectionAge
     protected Date mRecentLoginTime;
     protected Connection mLoginConnection = Jsoup.connect(Constant.url.DEFAULT_PAGE);
 
+    protected String mAccountName;
+    protected String mAccountPassword;
     private boolean hasSetAccount = false;
 
     @Override
@@ -21,12 +23,14 @@ public abstract class AbstractLoginConnectionAgent extends AbstractConnectionAge
     }
 
     @Override
-    public LoginConnectionAgent setAccount(String accountName, String password) {
+    public final LoginConnectionAgent setAccount(String accountName, String password) {
         if(accountName == null || password == null) {
             throw new IllegalArgumentException(
                     "accountName == null || password == null",
                     new NullPointerException());
         }
+        mAccountName = accountName;
+        mAccountPassword = password;
         hasSetAccount = true;
         return this;
     }
@@ -70,6 +74,6 @@ public abstract class AbstractLoginConnectionAgent extends AbstractConnectionAge
         Map<String, String> cookies = response.cookies();
         if(cookies.isEmpty())
             System.err.printf("WARNING: no cookie in response [%s]", response);
-        connection.cookies(response.cookies());
+        connection.cookies(cookies);
     }
 }

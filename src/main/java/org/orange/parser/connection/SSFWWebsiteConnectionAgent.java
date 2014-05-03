@@ -10,22 +10,21 @@ import java.net.HttpURLConnection;
 public class SSFWWebsiteConnectionAgent extends AbstractLoginConnectionAgent {
 
     public SSFWWebsiteConnectionAgent() {
-        mLoginConnection.url(Constant.url.LOGIN_PAGE);
         mLoginConnection.followRedirects(false).ignoreHttpErrors(true);
     }
 
-    @Override
-    public LoginConnectionAgent setAccount(String accountName, String password) {
-        super.setAccount(accountName, password);
+    private void setupAccount() {
         mLoginConnection.request().data().clear();
-        mLoginConnection.data("Login.Token1",accountName,"Login.Token2", password);
-        return this;
+        mLoginConnection.data("Login.Token1", mAccountName, "Login.Token2", mAccountPassword);
     }
 
     @Override
     public boolean onLogin() throws IOException {
-        Connection.Response response =
-                mLoginConnection.method(Connection.Method.POST).execute();
+        setupAccount();
+        Connection.Response response =  mLoginConnection
+                .url(Constant.url.LOGIN_PAGE)
+                .method(Connection.Method.POST)
+                .execute();
         String body = response.body();
         int status = response.statusCode();
         if(status == HttpURLConnection.HTTP_OK) {
@@ -39,7 +38,7 @@ public class SSFWWebsiteConnectionAgent extends AbstractLoginConnectionAgent {
             }
         } else {
             throw new HttpStatusException(
-                    String.format("收到未知的服务器响应，请确认与教务处网站的连通性。Header:\n%s\nBody:\n%s",
+                    String.format("收到未知的服务器响应，请确认与教务处网站的连通性。\nHeader:\n%s\nBody:\n%s",
                             response.headers(), body),
                     status, mLoginConnection.request().url().toString());
         }
@@ -53,7 +52,8 @@ public class SSFWWebsiteConnectionAgent extends AbstractLoginConnectionAgent {
     private void fetchSessionCookie() throws IOException {
         Connection.Response response = mLoginConnection
                 .url(Constant.url.TEACHING_AFFAIRS_SESSION_PAGE)
-                .method(Connection.Method.GET).execute();
+                .method(Connection.Method.GET)
+                .execute();
         setCookiesFromResponse(response);
     }
 }
