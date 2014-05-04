@@ -21,7 +21,7 @@ WebsiteParserForTJUT使用[Gradle][]自动化构建系统。
 `./gradlew build`
 
 ### 发布本项目生成的jar产品到本地Maven缓存
-`./gradlew publishToMavenLocal`
+`./gradlew install`
 
 本地Maven缓存的使用及路径请参考Gradle[手册][man:MavenLocal]。
 

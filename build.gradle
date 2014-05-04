@@ -19,6 +19,8 @@ tasks.withType(Javadoc) { task ->
     task.options.encoding = 'UTF-8'
 }
 
+task install(dependsOn: publishToMavenLocal)
+
 repositories {
     mavenCentral()
 }
