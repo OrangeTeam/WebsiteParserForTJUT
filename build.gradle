@@ -23,11 +23,12 @@ task install(dependsOn: publishToMavenLocal)
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
     compile 'org.jsoup:jsoup:1.7.3'
-    compile 'com.caucho:hessian:4.0.7'
+    compile 'com.exadel.flamingo.android:flamingo-android-hessian-client:2.2.0'
 
     testCompile "junit:junit:4.11"
 }
