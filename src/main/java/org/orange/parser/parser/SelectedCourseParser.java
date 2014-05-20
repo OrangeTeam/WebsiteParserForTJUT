@@ -71,10 +71,22 @@ public class SelectedCourseParser extends BaseCourseParser {
         String[] times, addresses;
         times = splitRawTime(rawTime);
         addresses = splitRawAddress(rawAddress);
-        if(times.length != addresses.length)
-            throw new AssertionError("times.length != addresses.length");
-        for(int index = 0 ; index<times.length ; index++){
-            out.addTimeAndAddress(parseTime(times[index]).setAddress(addresses[index]));
+        if(times.length != addresses.length) {
+            // 体育课可能只有上课时间，没有地点
+            System.out.println("WARNING: SelectedCourseParser.parseTimeAndAddress: times.length != addresses.length");
+            System.out.printf("\ttimes.length = %d \taddresses.length = %d%n", times.length,
+                    addresses.length);
+            System.out.printf("\trawTime = %s \trawAddress = %s%n", rawTime, rawAddress);
+            System.out.println("Course = " + out);
+        }
+        int index;
+        for (index = 0 ; index<times.length ; index++) {
+            final Course.TimeAndAddress timeAndAddress = parseTime(times[index]);
+            if(index < addresses.length) timeAndAddress.setAddress(addresses[index]);
+            out.addTimeAndAddress(timeAndAddress);
+        }
+        for (; index < addresses.length ; index++) {
+            out.addTimeAndAddress(new Course.TimeAndAddress().setAddress(addresses[index]));
         }
         return true;
     }
