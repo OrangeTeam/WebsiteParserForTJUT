@@ -10,6 +10,7 @@ import org.junit.runners.JUnit4;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Map;
 
 @RunWith(JUnit4.class)
@@ -25,7 +26,12 @@ public class PersonalInformationParserTest {
         Document doc = Jsoup.parse(
                 getFile("personal_information.html"),
                 "utf-8", Constant.url.PERSONAL_INFORMATION);
-        Map<String, Map<String, String>> result = new PersonalInformationParser().parse1(doc);
+        PersonalInformationParser parser = new PersonalInformationParser() {
+            @Override
+            void translateItem(Document input, Map<String, Map<String, String>> result,
+                    List<PersonalInformationParser.Item> itemsNeedTranslate) throws IOException {}
+        };
+        Map<String, Map<String, String>> result = parser.parse1(doc);
         System.out.println("结果：");
         System.out.println(result);
         validatePersonalInformation(result);

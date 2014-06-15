@@ -139,7 +139,7 @@ public class PersonalInformationParser extends AbstractParser<Map<String, Map<St
         return result;
     }
 
-    private static class Item {
+    static class Item {
         private static final List<String> BASE_TYPES_OF_BASE_COMPONENT = Arrays.asList(
                 "text","date","photo","textarea","kindedit","attachment","monthPicker");
 
