@@ -25,8 +25,10 @@ WebsiteParserForTJUT使用[Gradle][]自动化构建系统。
 
 本地Maven缓存的使用及路径请参考Gradle[手册][man:MavenLocal]。
 
+### 其他
 您可以通过`./gradlew tasks`查找到更多可用任务。
 
+您可以在[Gradle官网][man:Gradle]找到更详细的文档。
 
 [教务处网站]: http://59.67.148.66
 [计算机学院网站]: http://59.67.152.3
@@ -36,4 +38,5 @@ WebsiteParserForTJUT使用[Gradle][]自动化构建系统。
 [Gradle]: http://gradle.org
 [JDK]: http://www.oracle.com/technetwork/java/javase/downloads/index.html
 [Git]: http://git-scm.com
+[man:Gradle]: http://www.gradle.org/documentation
 [man:MavenLocal]: http://www.gradle.org/docs/current/userguide/dependency_management.html#sub:maven_local
